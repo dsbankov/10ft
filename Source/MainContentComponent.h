@@ -54,6 +54,10 @@ public:
 		addAndMakeVisible(&scroller);
 		addAndMakeVisible(&progressLabel);
 
+		//openGLContext.attachTo(*this);
+		//openGLContext.attachTo(waveform);
+		//openGLContext.attachTo(progressLine);
+
         setSize (1000, 800);
         setAudioChannels (0, 2);
 
@@ -119,6 +123,7 @@ private:
 				setupButton(stopButton, "Stop", false);
 				loopButton.setEnabled(true);
 				waveform.setSource(new FileInputSource(file));
+				progressLabel.startTimer(100);
 			}
 			else
 			{
@@ -126,6 +131,7 @@ private:
 				setupButton(stopButton, "Stop", false);
 				loopButton.setEnabled(false);
 				waveform.clear();
+				progressLabel.stopTimer();
 			}
         }
     }
@@ -204,6 +210,7 @@ private:
 	TrackProgressLabelComponent progressLabel;
 	TrackProgressLineComponent progressLine;
 	TrackScrollerComponent scroller;
+	//OpenGLContext openGLContext;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 };

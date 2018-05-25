@@ -36,11 +36,19 @@ public:
     {
     }
 
+
+
 	void valueChanged() override
 	{
 		double minValue = getMinValue();
 		double maxValue = getMaxValue();
-		double lengthInSeconds = waveform.getTotalLengthInSeconds();
+		if (minValue >= maxValue)
+		{
+			std::swap(minValue, maxValue);
+			setMinAndMaxValuesWithCheck(minValue, maxValue);
+			return;
+		}
+		double lengthInSeconds = waveform.getLengthInSeconds();
 		double leftPositionSeconds = (minValue / 100.0) * lengthInSeconds;
 		double rightPositionSeconds = (maxValue / 100.0) * lengthInSeconds;
 		waveform.setDrawRange(leftPositionSeconds, rightPositionSeconds);
@@ -51,8 +59,8 @@ public:
 		if (isEnabled() && isMouseDownInDragRange(event))
 		{
 			dragEntireRange = true;
-			startOfDragMinX = valueToProportionOfLength(getMinValue()) * getWidth();
-			startOfDragMaxX = valueToProportionOfLength(getMaxValue()) * getWidth();
+			startOfDragMinX = valueToProportionOfLength(getMinValue()) * getLocalBounds().getWidth();
+			startOfDragMaxX = valueToProportionOfLength(getMaxValue()) * getLocalBounds().getWidth();
 		}
 		else
 		{
@@ -82,14 +90,14 @@ private:
 	{
 		if (source == &waveform)
 		{
-			if (waveform.getTotalLengthInSeconds() <= 0)
+			if (waveform.getLengthInSeconds() <= 0)
 			{
 				setMinAndMaxValuesWithCheck(0.0, 100.0, NotificationType::dontSendNotification);
 			}
 			else
 			{
-				double minValue = waveform.getVisibleRegionStartTimeSeconds() / waveform.getTotalLengthInSeconds();
-				double maxValue = waveform.getVisibleRegionEndTimeSeconds() / waveform.getTotalLengthInSeconds();
+				double minValue = waveform.getVisibleRegionStartTimeSeconds() / waveform.getLengthInSeconds();
+				double maxValue = waveform.getVisibleRegionEndTimeSeconds() / waveform.getLengthInSeconds();
 				setMinAndMaxValuesWithCheck(minValue * 100, maxValue * 100, NotificationType::dontSendNotification);
 			}
 		}
@@ -97,8 +105,8 @@ private:
 
 	void setMinAndMaxValuesWithCheck(double	newMinValue, double	newMaxValue, NotificationType notification = sendNotificationAsync)
 	{
-		setEnabled(waveform.getTotalLengthInSeconds() > 0);
-		Slider::setMinAndMaxValues(newMinValue, newMaxValue, notification);
+		setEnabled(waveform.getLengthInSeconds() > 0);
+		setMinAndMaxValues(newMinValue, newMaxValue, notification);
 	}
 
 	bool isMouseDownInDragRange(const MouseEvent & event)

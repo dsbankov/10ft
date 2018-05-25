@@ -20,7 +20,7 @@ class AudioWaveformComponent : public Component, public ChangeBroadcaster, priva
 {
 public:
     AudioWaveformComponent(AudioFormatManager& formatManager, AudioFileTransportSource& audioSource)
-		: audioSource(audioSource), thumbnailCache(5), thumbnail(512, formatManager, thumbnailCache)
+		: audioSource(audioSource), thumbnailCache(5), thumbnail(1024, formatManager, thumbnailCache)
     {
 		thumbnail.addChangeListener(this);
     }
@@ -46,13 +46,15 @@ public:
 
 	void setDrawRange(double visibleRegionStartTimeSeconds, double visibleRegionEndTimeSeconds)
 	{
+		if (visibleRegionStartTimeSeconds >= visibleRegionEndTimeSeconds)
+			return;
 		this->visibleRegionStartTimeSeconds = flattenTime(visibleRegionStartTimeSeconds);
 		this->visibleRegionEndTimeSeconds = flattenTime(visibleRegionEndTimeSeconds);
 		sendChangeMessage();
 		repaint();
 	}
 
-	double getTotalLengthInSeconds()
+	double getLengthInSeconds()
 	{
 		return audioSource.getLengthInSeconds();
 	}
@@ -125,18 +127,17 @@ public:
 		auto bounds = getLocalBounds();
 		auto leftRelativeAmmount = (double)(event.getMouseDownX() - bounds.getX()) / (double)bounds.getWidth();
 		auto rightRelativeAmmount = 1 - leftRelativeAmmount;
-		const double scrollAmmount = (5.0/100.0) * getTotalLengthInSeconds();
+		auto visibleRegionLengthInSeconds = visibleRegionEndTimeSeconds - visibleRegionStartTimeSeconds;
+		const double scrollAmmount = 0.10 * visibleRegionLengthInSeconds;
 		const double scrollAmmountLeft = scrollAmmount * leftRelativeAmmount;
 		const double scrollAmmountRight = scrollAmmount * rightRelativeAmmount;
 		if (wheelDetails.deltaY < 0) // downwards
 		{
 			setDrawRange(visibleRegionStartTimeSeconds - scrollAmmountLeft, visibleRegionEndTimeSeconds + scrollAmmountRight);
-			sendChangeMessage();
 		}
 		else if (wheelDetails.deltaY > 0) // upwards
 		{
 			setDrawRange(visibleRegionStartTimeSeconds + scrollAmmountLeft, visibleRegionEndTimeSeconds - scrollAmmountRight);
-			sendChangeMessage();
 		}
 	}
 
@@ -209,7 +210,7 @@ private:
 		{
 			auto visibleRegionLengthSeconds = visibleRegionEndTimeSeconds - visibleRegionStartTimeSeconds;
 			if (selectedRegionStartTimeSeconds > selectedRegionEndTimeSeconds)
-				swapValues(selectedRegionStartTimeSeconds, selectedRegionEndTimeSeconds);
+				std::swap(selectedRegionStartTimeSeconds, selectedRegionEndTimeSeconds);
 			auto startOfDragX = secondsToX(selectedRegionStartTimeSeconds, thumbnailBounds);
 			auto endOfDragX = secondsToX(selectedRegionEndTimeSeconds, thumbnailBounds);
 			auto notSelectedRegionLeft = thumbnailBounds.removeFromLeft(startOfDragX);
@@ -267,16 +268,9 @@ private:
 	{
 		if (timeSeconds < 0)
 			return 0;
-		if (timeSeconds > getTotalLengthInSeconds())
-			return getTotalLengthInSeconds();
+		if (timeSeconds > getLengthInSeconds())
+			return getLengthInSeconds();
 		return timeSeconds;
-	}
-
-	static void swapValues(double &a, double &b)
-	{
-		double temp = a;
-		a = b;
-		b = temp;
 	}
 
 	//==============================================================================================
