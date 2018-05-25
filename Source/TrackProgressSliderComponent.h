@@ -52,10 +52,6 @@ public:
 
 private:
 
-	Slider timeSlider;
-	AudioTransportSource& audioSource;
-	bool timeSliderDragStartOn = false;
-
 	void timerCallback() override
 	{
 		updateValue();
@@ -93,6 +89,12 @@ private:
 		double sliderValue = (currentPositionSeconds / lengthInSeconds) * 100;
 		return sliderValue;
 	}
+
+	//==============================================================================================
+
+	Slider timeSlider;
+	AudioTransportSource& audioSource;
+	bool timeSliderDragStartOn = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TrackProgressSliderComponent)
 };

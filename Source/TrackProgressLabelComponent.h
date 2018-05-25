@@ -48,9 +48,6 @@ public:
 
 private:
 
-	Label timeLabel;
-	AudioTransportSource& audioSource;
-
 	void timerCallback() override
 	{
 		updateText();
@@ -92,6 +89,11 @@ private:
 		std::string currentTime = time.str();
 		return currentTime;
 	}
+
+	//==============================================================================================
+
+	Label timeLabel;
+	AudioTransportSource& audioSource;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TrackProgressLabelComponent)
 };

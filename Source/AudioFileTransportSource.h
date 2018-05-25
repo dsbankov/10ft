@@ -91,10 +91,6 @@ public:
 
 private:
 
-	AudioFormatManager & formatManager;
-	std::unique_ptr<AudioFormatReaderSource> readerSource;
-	AudioPlayerState state;
-
 	void unloadAudio()
 	{
 		changeState(NoFileLoaded);
@@ -152,5 +148,11 @@ private:
 				changeState(Stopped);
 		}
 	}
+
+	//==============================================================================================
+
+	AudioFormatManager & formatManager;
+	std::unique_ptr<AudioFormatReaderSource> readerSource;
+	AudioPlayerState state;
 
 };

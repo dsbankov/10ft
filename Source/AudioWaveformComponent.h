@@ -190,15 +190,6 @@ public:
 
 private:
 
-	AudioThumbnailCache thumbnailCache;
-	AudioThumbnail thumbnail;
-	AudioFileTransportSource& audioSource;
-	double visibleRegionStartTimeSeconds = 0.0;
-	double visibleRegionEndTimeSeconds = 0.0;
-	bool hasSelectedRegion = false;
-	double selectedRegionStartTimeSeconds = 0.0;
-	double selectedRegionEndTimeSeconds = 0.0;
-
 	void changeListenerCallback(ChangeBroadcaster* source) override
 	{
 		if (source == &thumbnail) repaint();
@@ -287,6 +278,17 @@ private:
 		a = b;
 		b = temp;
 	}
+
+	//==============================================================================================
+
+	AudioThumbnailCache thumbnailCache;
+	AudioThumbnail thumbnail;
+	AudioFileTransportSource& audioSource;
+	double visibleRegionStartTimeSeconds = 0.0;
+	double visibleRegionEndTimeSeconds = 0.0;
+	bool hasSelectedRegion = false;
+	double selectedRegionStartTimeSeconds = 0.0;
+	double selectedRegionEndTimeSeconds = 0.0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioWaveformComponent)
 };

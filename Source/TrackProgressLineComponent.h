@@ -1,7 +1,7 @@
 /*
   ==============================================================================
 
-    PlaybackPositionComponent.h
+    TrackProgressLineComponent.h
     Created: 20 May 2018 3:33:37pm
     Author:  DBANKOV
 
@@ -56,9 +56,6 @@ public:
 
 private:
 
-	AudioWaveformComponent & waveform;
-	bool isLooping = false;
-
 	void timerCallback() override
 	{
 		respondToChange();
@@ -90,6 +87,11 @@ private:
 		}*/
 		repaint();
 	}
+
+	//==============================================================================================
+
+	AudioWaveformComponent & waveform;
+	bool isLooping = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TrackProgressLineComponent)
 };

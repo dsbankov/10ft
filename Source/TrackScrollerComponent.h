@@ -78,11 +78,6 @@ public:
 
 private:
 
-	AudioWaveformComponent& waveform;
-	bool dragEntireRange = false;
-	double startOfDragMinX;
-	double startOfDragMaxX;
-
 	void changeListenerCallback(ChangeBroadcaster *source) override
 	{
 		if (source == &waveform)
@@ -121,6 +116,13 @@ private:
 		if (proportionX < 0) proportionX = 0.0;
 		return proportionOfLengthToValue(proportionX);
 	}
+
+	//==============================================================================================
+
+	AudioWaveformComponent& waveform;
+	bool dragEntireRange = false;
+	double startOfDragMinX;
+	double startOfDragMaxX;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TrackScrollerComponent)
 };
