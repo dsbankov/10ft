@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT name="10ft" companyName="JUCE" version="1.0.0" userNotes="Audio player &amp; waveform editor."
+              companyWebsite="http://juce.com" defines="" projectType="guiapp"
+              id="xaPCEr" jucerVersion="5.3.2">
+  <MAINGROUP id="YFGFpb" name="10ft">
+    <GROUP id="{9E117A82-4BFD-3F75-60D8-A4662BCEA3A5}" name="Source">
+      <FILE id="xQAgO0" name="Application.cpp" compile="1" resource="0" file="Source/Application.cpp"/>
+      <FILE id="Zo1l0O" name="MainContentComponent.h" compile="0" resource="0"
+            file="Source/MainContentComponent.h"/>
+      <FILE id="nS4kDr" name="AudioFileTransportSource.h" compile="0" resource="0"
+            file="Source/AudioFileTransportSource.h"/>
+      <FILE id="MsnmlH" name="AudioWaveformComponent.h" compile="0" resource="0"
+            file="Source/AudioWaveformComponent.h"/>
+      <FILE id="clblof" name="TrackScrollerComponent.h" compile="0" resource="0"
+            file="Source/TrackScrollerComponent.h"/>
+      <FILE id="i0h1nx" name="TrackProgressSliderComponent.h" compile="0"
+            resource="0" file="Source/TrackProgressSliderComponent.h"/>
+      <FILE id="HNVPxA" name="TrackProgressLabelComponent.h" compile="0"
+            resource="0" file="Source/TrackProgressLabelComponent.h"/>
+      <FILE id="k93JZi" name="TrackProgressLineComponent.h" compile="0" resource="0"
+            file="Source/TrackProgressLineComponent.h"/>
+    </GROUP>
+  </MAINGROUP>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+  </MODULES>
+  <EXPORTFORMATS>
+    <VS2017 targetFolder="Builds/VisualStudio2017" windowsTargetPlatformVersion="10.0.17134.0">
+      <CONFIGURATIONS>
+        <CONFIGURATIONS name="Debug" isDebug="1" optimisation="1" targetName="PlayingSoundFilesTutorial"/>
+        <CONFIGURATIONS name="Release" isDebug="0" optimisation="3" targetName="PlayingSoundFilesTutorial"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path=""/>
+        <MODULEPATH id="juce_audio_devices" path=""/>
+        <MODULEPATH id="juce_audio_formats" path=""/>
+        <MODULEPATH id="juce_audio_processors" path=""/>
+        <MODULEPATH id="juce_audio_utils" path=""/>
+        <MODULEPATH id="juce_core" path=""/>
+        <MODULEPATH id="juce_data_structures" path=""/>
+        <MODULEPATH id="juce_events" path=""/>
+        <MODULEPATH id="juce_graphics" path=""/>
+        <MODULEPATH id="juce_gui_basics" path=""/>
+        <MODULEPATH id="juce_gui_extra" path=""/>
+      </MODULEPATHS>
+    </VS2017>
+  </EXPORTFORMATS>
+  <LIVE_SETTINGS>
+    <OSX/>
+    <WINDOWS windowsTargetPlatformVersion="10.0.17134.0" buildEnabled="1"
+             continuousRebuildEnabled="1"/>
+  </LIVE_SETTINGS>
+  <JUCEOPTIONS/>
+</JUCERPROJECT>
