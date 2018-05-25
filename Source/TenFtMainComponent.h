@@ -1,7 +1,7 @@
 /*
 ==============================================================================
 
-MainContentComponent.h
+TenFtMainComponent.h
 Created: 20 May 2018 3:33:07pm
 Author:  DBANKOV
 
@@ -20,10 +20,10 @@ Author:  DBANKOV
 //==============================================================================
 /*
 */
-class MainContentComponent   :	public AudioAppComponent
+class TenFtMainComponent   :	public AudioAppComponent
 {
 public:
-	MainContentComponent() :
+	TenFtMainComponent() :
 		formatManager(), audioSource(formatManager),
 		waveform(formatManager, audioSource), progressLine(waveform), progressLabel(audioSource), scroller(waveform)
     {
@@ -64,7 +64,7 @@ public:
 		audioSource.onStateChange = [this] (AudioFileTransportSource::AudioPlayerState state) { onAudioPlayerStateChange(state); };
     }
 
-    ~MainContentComponent()
+    ~TenFtMainComponent()
     {
         shutdownAudio();
     }
@@ -155,30 +155,27 @@ private:
 
 	void onAudioPlayerStateChange(AudioFileTransportSource::AudioPlayerState state)
 	{
-		switch (state)
+		if (state == AudioFileTransportSource::Stopped)
 		{
-		case AudioFileTransportSource::Stopped:
 			setupButton(playButton, "Play", true);
 			setupButton(stopButton, "Stop", false);
 			progressLine.stopTimer();
 			progressLabel.stopTimer();
 			waveform.clearSelectedRegion();
-			break;
-
-		case AudioFileTransportSource::Playing:
+		}
+		else if (state == AudioFileTransportSource::Playing)
+		{
 			setupButton(playButton, "Pause", true);
 			setupButton(stopButton, "Stop", true);
 			progressLine.startTimer(100);
 			progressLabel.startTimer(100);
-			break;
-
-		case AudioFileTransportSource::Paused:
+		}
+		else if (state == AudioFileTransportSource::Paused)
+		{
 			setupButton(playButton, "Play", true);
 			setupButton(stopButton, "Return To Zero", true);
 			progressLine.stopTimer();
 			progressLabel.stopTimer();
-			break;
-
 		}
 	}
 
@@ -202,5 +199,5 @@ private:
 	TrackScrollerComponent scroller;
 	//OpenGLContext openGLContext;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TenFtMainComponent)
 };

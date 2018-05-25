@@ -141,7 +141,7 @@ private:
 		}
 	}
 
-	void changeListenerCallback(ChangeBroadcaster* broadcaster)
+	void changeListenerCallback(ChangeBroadcaster* broadcaster) override
 	{
 		if (broadcaster == this)
 		{

@@ -7,7 +7,7 @@
 */
 
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "MainContentComponent.h"
+#include "TenFtMainComponent.h"
 
 class Application    : public JUCEApplication
 {
@@ -18,7 +18,7 @@ public:
     const String getApplicationName() override       { return "10ft"; }
     const String getApplicationVersion() override    { return "1.0.0"; }
 
-    void initialise (const String&) override         { mainWindow.reset (new MainWindow ("10ft", new MainContentComponent(), *this)); }
+    void initialise (const String&) override         { mainWindow.reset (new MainWindow ("10ft", new TenFtMainComponent(), *this)); }
     void shutdown() override                         { mainWindow = nullptr; }
 
 private:

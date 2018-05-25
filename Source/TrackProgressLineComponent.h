@@ -78,7 +78,6 @@ private:
 				waveform.setPosition(waveform.getSelectedRegionStartTimeSeconds());
 			else
 				waveform.pauseAudio(waveform.getSelectedRegionStartTimeSeconds());
-			return;
 		}
 		repaint();
 	}

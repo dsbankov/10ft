@@ -6,8 +6,8 @@
   <MAINGROUP id="YFGFpb" name="10ft">
     <GROUP id="{9E117A82-4BFD-3F75-60D8-A4662BCEA3A5}" name="Source">
       <FILE id="xQAgO0" name="Application.cpp" compile="1" resource="0" file="Source/Application.cpp"/>
-      <FILE id="Zo1l0O" name="MainContentComponent.h" compile="0" resource="0"
-            file="Source/MainContentComponent.h"/>
+      <FILE id="Zo1l0O" name="TenFtMainComponent.h" compile="0" resource="0"
+            file="Source/TenFtMainComponent.h"/>
       <FILE id="nS4kDr" name="AudioFileTransportSource.h" compile="0" resource="0"
             file="Source/AudioFileTransportSource.h"/>
       <FILE id="MsnmlH" name="AudioWaveformComponent.h" compile="0" resource="0"
