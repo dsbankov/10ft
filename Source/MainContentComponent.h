@@ -150,6 +150,7 @@ private:
 	{
 		auto shouldLoop = loopButton.getToggleState();
 		progressLine.setIsLooping(shouldLoop);
+		audioSource.setLooping(shouldLoop);
 	}
 
 	void onAudioPlayerStateChange(AudioFileTransportSource::AudioPlayerState state)
@@ -178,17 +179,6 @@ private:
 			progressLabel.stopTimer();
 			break;
 
-		case AudioFileTransportSource::Starting:
-			break;
-
-		case AudioFileTransportSource::Pausing:
-			break;
-
-		case AudioFileTransportSource::Stopping:
-			break;
-
-		case AudioFileTransportSource::NoFileLoaded:
-			break;
 		}
 	}
 

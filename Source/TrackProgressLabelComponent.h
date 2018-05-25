@@ -69,8 +69,8 @@ private:
 
 	static std::string getCurrentPositionFormatted(AudioTransportSource& audioSource)
 	{
-		auto lengthInSeconds(audioSource.getLengthInSeconds());
-		auto currentPosition(audioSource.getCurrentPosition());
+		auto lengthInSeconds = audioSource.getLengthInSeconds();
+		auto currentPosition = audioSource.getCurrentPosition();
 		if (lengthInSeconds <= 0)
 			return "--:--/--:--";
 		std::string passedTime = formatTime(currentPosition);

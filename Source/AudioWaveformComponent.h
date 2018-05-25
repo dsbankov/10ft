@@ -31,7 +31,7 @@ public:
 
 	void paint(Graphics& g) override
 	{
-		Rectangle<int> thumbnailBounds(getLocalBounds());
+		Rectangle<int> thumbnailBounds = getLocalBounds();
 		if (thumbnail.getNumChannels() == 0)
 			paintIfNoFileLoaded(g, thumbnailBounds);
 		else

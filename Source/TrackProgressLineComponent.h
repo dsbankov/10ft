@@ -32,13 +32,13 @@ public:
     {
 		auto startTimeSeconds = waveform.getVisibleRegionStartTimeSeconds();
 		auto endTimeSeconds = waveform.getVisibleRegionEndTimeSeconds();
-		auto audioLengthSeconds(endTimeSeconds - startTimeSeconds);
+		auto audioLengthSeconds = endTimeSeconds - startTimeSeconds;
 		if (audioLengthSeconds > 0)
 		{
-			Rectangle<int> localBounds(getLocalBounds());
+			Rectangle<int> localBounds = getLocalBounds();
 			g.setColour(Colours::green);
-			auto currentPosition(waveform.getCurrentTimeSeconds());
-			auto drawPosition(((currentPosition - startTimeSeconds) / audioLengthSeconds) * localBounds.getWidth() + localBounds.getX());
+			auto currentPosition = waveform.getCurrentTimeSeconds();
+			auto drawPosition = ((currentPosition - startTimeSeconds) / audioLengthSeconds) * localBounds.getWidth() + localBounds.getX();
 			g.drawLine(drawPosition, localBounds.getY(), drawPosition, localBounds.getBottom(), 3.0f);
 		} 
     }
@@ -71,7 +71,7 @@ private:
 
 	void respondToChange()
 	{
-		auto currentPosition(waveform.getCurrentTimeSeconds());
+		auto currentPosition = waveform.getCurrentTimeSeconds();
 		if (waveform.getHasSelectedRegion() && currentPosition >= waveform.getSelectedRegionEndTimeSeconds())
 		{
 			if (isLooping)
@@ -80,11 +80,6 @@ private:
 				waveform.pauseAudio(waveform.getSelectedRegionStartTimeSeconds());
 			return;
 		}
-		/*else if (!waveform.getHasSelectedRegion() && currentPosition >= waveform.getTotalLengthInSeconds() && isLooping)
-		{
-			waveform.playAudio(0.0);
-			return;
-		}*/
 		repaint();
 	}
 

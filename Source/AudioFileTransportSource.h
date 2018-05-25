@@ -87,6 +87,11 @@ public:
 		changeState(Pausing);
 	}
 
+	void setLooping(bool shouldLoop) override
+	{
+		readerSource.get()->setLooping(shouldLoop);
+	}
+
 	std::function<void(AudioFileTransportSource::AudioPlayerState)> onStateChange;
 
 private:
