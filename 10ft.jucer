@@ -12,14 +12,12 @@
             file="Source/AudioFileTransportSource.h"/>
       <FILE id="MsnmlH" name="AudioWaveformComponent.h" compile="0" resource="0"
             file="Source/AudioWaveformComponent.h"/>
-      <FILE id="clblof" name="TrackScrollerComponent.h" compile="0" resource="0"
-            file="Source/TrackScrollerComponent.h"/>
-      <FILE id="i0h1nx" name="TrackProgressSliderComponent.h" compile="0"
-            resource="0" file="Source/TrackProgressSliderComponent.h"/>
-      <FILE id="HNVPxA" name="TrackProgressLabelComponent.h" compile="0"
-            resource="0" file="Source/TrackProgressLabelComponent.h"/>
-      <FILE id="k93JZi" name="TrackProgressLineComponent.h" compile="0" resource="0"
-            file="Source/TrackProgressLineComponent.h"/>
+      <FILE id="clblof" name="AudioScrollerComponent.h" compile="0" resource="0"
+            file="Source/AudioScrollerComponent.h"/>
+      <FILE id="HNVPxA" name="AudioClockComponent.h" compile="0" resource="0"
+            file="Source/AudioClockComponent.h"/>
+      <FILE id="k93JZi" name="AudioPlaybackPositionComponent.h" compile="0"
+            resource="0" file="Source/AudioPlaybackPositionComponent.h"/>
     </GROUP>
   </MAINGROUP>
   <MODULES>
@@ -39,8 +37,8 @@
   <EXPORTFORMATS>
     <VS2017 targetFolder="Builds/VisualStudio2017" windowsTargetPlatformVersion="10.0.17134.0">
       <CONFIGURATIONS>
-        <CONFIGURATIONS name="Debug" isDebug="1" optimisation="1" targetName="PlayingSoundFilesTutorial"/>
-        <CONFIGURATIONS name="Release" isDebug="0" optimisation="3" targetName="PlayingSoundFilesTutorial"/>
+        <CONFIGURATIONS name="Debug" isDebug="1" optimisation="1" targetName="10ft"/>
+        <CONFIGURATIONS name="Release" isDebug="0" optimisation="3" targetName="10ft"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path=""/>
@@ -57,10 +55,30 @@
         <MODULEPATH id="juce_opengl" path="../../JUCE/modules"/>
       </MODULEPATHS>
     </VS2017>
+    <XCODE_IPHONE targetFolder="Builds/iOS">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug"/>
+        <CONFIGURATION isDebug="0" name="Release"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_opengl" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path=""/>
+        <MODULEPATH id="juce_gui_basics" path=""/>
+        <MODULEPATH id="juce_graphics" path=""/>
+        <MODULEPATH id="juce_events" path=""/>
+        <MODULEPATH id="juce_data_structures" path=""/>
+        <MODULEPATH id="juce_core" path=""/>
+        <MODULEPATH id="juce_audio_utils" path=""/>
+        <MODULEPATH id="juce_audio_processors" path=""/>
+        <MODULEPATH id="juce_audio_formats" path=""/>
+        <MODULEPATH id="juce_audio_devices" path=""/>
+        <MODULEPATH id="juce_audio_basics" path=""/>
+      </MODULEPATHS>
+    </XCODE_IPHONE>
   </EXPORTFORMATS>
   <LIVE_SETTINGS>
     <OSX/>
-    <WINDOWS windowsTargetPlatformVersion="10.0.17134.0" buildEnabled="1"
+    <WINDOWS windowsTargetPlatformVersion="10.0.17134.0" buildEnabled="0"
              continuousRebuildEnabled="1"/>
   </LIVE_SETTINGS>
   <JUCEOPTIONS/>

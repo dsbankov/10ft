@@ -19,15 +19,20 @@
 class AudioWaveformComponent : public Component, public ChangeBroadcaster, private ChangeListener
 {
 public:
-    AudioWaveformComponent(AudioFormatManager& formatManager, AudioFileTransportSource& audioSource)
-		: audioSource(audioSource), thumbnailCache(5), thumbnail(1024, formatManager, thumbnailCache)
-    {
+
+	AudioWaveformComponent() : formatManager(), audioSource(formatManager), thumbnailCache(5), thumbnail(1024, formatManager, thumbnailCache)
+	{
 		thumbnail.addChangeListener(this);
-    }
+	}
 
     ~AudioWaveformComponent()
     {
     }
+
+	AudioFileTransportSource& getAudioSource()
+	{
+		return audioSource;
+	}
 
 	void paint(Graphics& g) override
 	{
@@ -52,58 +57,6 @@ public:
 		this->visibleRegionEndTimeSeconds = flattenTime(visibleRegionEndTimeSeconds);
 		sendChangeMessage();
 		repaint();
-	}
-
-	double getLengthInSeconds()
-	{
-		return audioSource.getLengthInSeconds();
-	}
-
-	double getCurrentTimeSeconds()
-	{
-		return audioSource.getCurrentPosition();
-	}
-
-	double getVisibleRegionStartTimeSeconds()
-	{
-		return visibleRegionStartTimeSeconds;
-	}
-
-	double getVisibleRegionEndTimeSeconds()
-	{
-		return visibleRegionEndTimeSeconds;
-	}
-
-	double getSelectedRegionStartTimeSeconds()
-	{
-		return selectedRegionStartTimeSeconds;
-	}
-
-	double getSelectedRegionEndTimeSeconds()
-	{
-		return selectedRegionEndTimeSeconds;
-	}
-
-	bool getHasSelectedRegion()
-	{
-		return hasSelectedRegion;
-	}
-
-	void pauseAudio(double pausePosition)
-	{
-		audioSource.setPosition(pausePosition);
-		audioSource.pauseAudio();
-	}
-
-	void playAudio(double playPosition)
-	{
-		audioSource.setPosition(playPosition);
-		audioSource.start();
-	}
-
-	void setPosition(double position)
-	{
-		audioSource.setPosition(position);
 	}
 
 	void clear()
@@ -189,6 +142,31 @@ public:
 		}
 	}
 
+	double getVisibleRegionStartTimeSeconds()
+	{
+		return visibleRegionStartTimeSeconds;
+	}
+
+	double getVisibleRegionEndTimeSeconds()
+	{
+		return visibleRegionEndTimeSeconds;
+	}
+
+	double getSelectedRegionStartTimeSeconds()
+	{
+		return selectedRegionStartTimeSeconds;
+	}
+
+	double getSelectedRegionEndTimeSeconds()
+	{
+		return selectedRegionEndTimeSeconds;
+	}
+
+	bool getHasSelectedRegion()
+	{
+		return hasSelectedRegion;
+	}
+
 private:
 
 	void changeListenerCallback(ChangeBroadcaster* source) override
@@ -206,6 +184,9 @@ private:
 
 	void paintIfFileLoaded(Graphics& g, Rectangle<int>& thumbnailBounds)
 	{
+		const Colour backgroundColour = Colours::white;
+		const Colour selectedRegionBackgroundColour = Colours::lightblue;
+		const Colour waveformColour = Colours::red;
 		if (hasSelectedRegion)
 		{
 			auto visibleRegionLengthSeconds = visibleRegionEndTimeSeconds - visibleRegionStartTimeSeconds;
@@ -217,27 +198,26 @@ private:
 			auto selectedRegion = thumbnailBounds.removeFromLeft(endOfDragX - startOfDragX);
 			auto notSelectedRegionRight = thumbnailBounds;
 
-			g.setColour(Colours::white);
+			g.setColour(backgroundColour);
 			g.fillRect(notSelectedRegionLeft);
-			g.setColour(Colours::red);
+			g.setColour(waveformColour);
 			thumbnail.drawChannels(g, notSelectedRegionLeft, visibleRegionStartTimeSeconds, selectedRegionStartTimeSeconds, 1.0f);
 
-			g.setColour(Colours::lightblue);
+			g.setColour(selectedRegionBackgroundColour);
 			g.fillRect(selectedRegion);
-			g.setColour(Colours::red);
+			g.setColour(waveformColour);
 			thumbnail.drawChannels(g, selectedRegion, selectedRegionStartTimeSeconds, selectedRegionEndTimeSeconds, 1.0f);
 
-			g.setColour(Colours::white);
+			g.setColour(backgroundColour);
 			g.fillRect(notSelectedRegionRight);
-			g.setColour(Colours::red);
+			g.setColour(waveformColour);
 			thumbnail.drawChannels(g, notSelectedRegionRight, selectedRegionEndTimeSeconds, visibleRegionEndTimeSeconds, 1.0f);
 		}
 		else
 		{
-			g.setColour(Colours::white);
+			g.setColour(backgroundColour);
 			g.fillRect(thumbnailBounds);
-			g.setColour(Colours::red);
-			auto audioLength(audioSource.getLengthInSeconds());
+			g.setColour(waveformColour);
 			thumbnail.drawChannels(g, thumbnailBounds, visibleRegionStartTimeSeconds, visibleRegionEndTimeSeconds, 1.0f);
 		}
 	}
@@ -268,16 +248,17 @@ private:
 	{
 		if (timeSeconds < 0)
 			return 0;
-		if (timeSeconds > getLengthInSeconds())
-			return getLengthInSeconds();
+		if (timeSeconds > audioSource.getLengthInSeconds())
+			return audioSource.getLengthInSeconds();
 		return timeSeconds;
 	}
 
 	//==============================================================================================
 
+	AudioFormatManager formatManager;
+	AudioFileTransportSource audioSource;
 	AudioThumbnailCache thumbnailCache;
 	AudioThumbnail thumbnail;
-	AudioFileTransportSource& audioSource;
 	double visibleRegionStartTimeSeconds = 0.0;
 	double visibleRegionEndTimeSeconds = 0.0;
 	bool hasSelectedRegion = false;

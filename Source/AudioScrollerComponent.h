@@ -15,11 +15,11 @@
 //==============================================================================
 /*
 */
-class TrackScrollerComponent    : public Slider, public ChangeListener
+class AudioScrollerComponent    : public Slider, public ChangeListener
 {
 public:
 
-    TrackScrollerComponent(AudioWaveformComponent& waveform) : Slider(), waveform(waveform)
+    AudioScrollerComponent(AudioWaveformComponent& waveform) : Slider(), waveform(waveform)
     {
 		setRange(0.0, 100.0, 0.1);
 		setSliderStyle(Slider::TwoValueHorizontal);
@@ -32,7 +32,7 @@ public:
 		waveform.addChangeListener(this);
     }
 
-    ~TrackScrollerComponent()
+    ~AudioScrollerComponent()
     {
     }
 
@@ -48,7 +48,7 @@ public:
 			setMinAndMaxValuesWithCheck(minValue, maxValue);
 			return;
 		}
-		double lengthInSeconds = waveform.getLengthInSeconds();
+		double lengthInSeconds = waveform.getAudioSource().getLengthInSeconds();
 		double leftPositionSeconds = (minValue / 100.0) * lengthInSeconds;
 		double rightPositionSeconds = (maxValue / 100.0) * lengthInSeconds;
 		waveform.setDrawRange(leftPositionSeconds, rightPositionSeconds);
@@ -84,28 +84,33 @@ public:
 		}
 	}
 
+	void mouseWheelMove(const MouseEvent & event, const MouseWheelDetails & wheelDetails) override
+	{
+		waveform.mouseWheelMove(event, wheelDetails);
+	}
+
 private:
 
 	void changeListenerCallback(ChangeBroadcaster *source) override
 	{
 		if (source == &waveform)
 		{
-			if (waveform.getLengthInSeconds() <= 0)
+			if (waveform.getAudioSource().getLengthInSeconds() <= 0)
 			{
 				setMinAndMaxValuesWithCheck(0.0, 100.0, NotificationType::dontSendNotification);
 			}
 			else
 			{
-				double minValue = waveform.getVisibleRegionStartTimeSeconds() / waveform.getLengthInSeconds();
-				double maxValue = waveform.getVisibleRegionEndTimeSeconds() / waveform.getLengthInSeconds();
-				setMinAndMaxValuesWithCheck(minValue * 100, maxValue * 100, NotificationType::dontSendNotification);
+				double minValue = waveform.getVisibleRegionStartTimeSeconds() / waveform.getAudioSource().getLengthInSeconds();
+				double maxValue = waveform.getVisibleRegionEndTimeSeconds() / waveform.getAudioSource().getLengthInSeconds();
+				setMinAndMaxValuesWithCheck(minValue * 100.0, maxValue * 100.0, NotificationType::dontSendNotification);
 			}
 		}
 	}
 
 	void setMinAndMaxValuesWithCheck(double	newMinValue, double	newMaxValue, NotificationType notification = sendNotificationAsync)
 	{
-		setEnabled(waveform.getLengthInSeconds() > 0);
+		setEnabled(waveform.getAudioSource().getLengthInSeconds() > 0);
 		setMinAndMaxValues(newMinValue, newMaxValue, notification);
 	}
 
@@ -113,7 +118,7 @@ private:
 	{
 		double proportionOfLength = ((double) event.getMouseDownX()) / ((double) getWidth());
 		auto value = proportionOfLengthToValue(proportionOfLength);
-		auto space = 2;
+		auto space = 1;
 		return value > getMinValue() + space && value < getMaxValue() - space;
 	}
 
@@ -132,5 +137,5 @@ private:
 	double startOfDragMinX;
 	double startOfDragMaxX;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TrackScrollerComponent)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioScrollerComponent)
 };

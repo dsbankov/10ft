@@ -12,10 +12,9 @@ Author:  DBANKOV
 #pragma once
 #include "AudioFileTransportSource.h"
 #include "AudioWaveformComponent.h"
-#include "TrackProgressLineComponent.h"
-#include "TrackProgressLabelComponent.h"
-#include "TrackProgressSliderComponent.h"
-#include "TrackScrollerComponent.h"
+#include "AudioPlaybackPositionComponent.h"
+#include "AudioClockComponent.h"
+#include "AudioScrollerComponent.h"
 
 //==============================================================================
 /*
@@ -23,9 +22,7 @@ Author:  DBANKOV
 class TenFtMainComponent   :	public AudioAppComponent
 {
 public:
-	TenFtMainComponent() :
-		formatManager(), audioSource(formatManager),
-		waveform(formatManager, audioSource), progressLine(waveform), progressLabel(audioSource), scroller(waveform)
+	TenFtMainComponent() : waveform(), playbackPosition(waveform), clock(waveform), scroller(waveform)
     {
         addAndMakeVisible (&openButton);
         openButton.setButtonText ("Open...");
@@ -50,9 +47,9 @@ public:
 		loopButton.setEnabled(false);
 
 		addAndMakeVisible(&waveform);		// order is important for mouseDown events! (will go to the most upfront component (last added))
-		addAndMakeVisible(&progressLine);	// order is important for mouseDown events! (will go to the most upfront component (last added))
+		addAndMakeVisible(&playbackPosition);	// order is important for mouseDown events! (will go to the most upfront component (last added))
 		addAndMakeVisible(&scroller);
-		addAndMakeVisible(&progressLabel);
+		addAndMakeVisible(&clock);
 
 		//openGLContext.attachTo(*this);
 		//openGLContext.attachTo(waveform);
@@ -61,7 +58,7 @@ public:
         setSize (1000, 800);
         setAudioChannels (0, 2);
 
-		audioSource.onStateChange = [this] (AudioFileTransportSource::AudioPlayerState state) { onAudioPlayerStateChange(state); };
+		waveform.getAudioSource().onStateChange = [this] (AudioFileTransportSource::AudioPlayerState state) { onAudioPlayerStateChange(state); };
     }
 
     ~TenFtMainComponent()
@@ -71,40 +68,41 @@ public:
 
     void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override
     {
-		audioSource.prepareToPlay (samplesPerBlockExpected, sampleRate);
+		waveform.getAudioSource().prepareToPlay (samplesPerBlockExpected, sampleRate);
     }
 
     void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override
     {
-        if (!audioSource.isFileLoaded())
+        if (!waveform.getAudioSource().isFileLoaded())
         {
             bufferToFill.clearActiveBufferRegion();
             return;
         }
-		audioSource.getNextAudioBlock (bufferToFill);
+		waveform.getAudioSource().getNextAudioBlock (bufferToFill);
     }
 
     void releaseResources() override
     {
-		audioSource.releaseResources();
+		waveform.getAudioSource().releaseResources();
     }
 
     void resized() override
     {
 		auto bounds = getLocalBounds();
-		auto row1 = bounds.removeFromTop(40);
-		auto row2 = bounds.removeFromTop(40);
-		auto row3 = bounds.removeFromTop(600);
-		auto row4 = bounds.removeFromTop(40);
 		auto width = bounds.getWidth();
+		auto height = bounds.getHeight();
+		auto row1 = bounds.removeFromTop(0.05 * height);
+		auto row2 = bounds.removeFromTop(0.05 * height);
+		auto row4 = bounds.removeFromBottom(0.05 * height);
+		auto row3 = bounds;
 		int delta = 5;
 		openButton.setBounds(row1.reduced(delta));
 		playButton.setBounds(row2.removeFromLeft(width * 0.42).reduced(delta));
 		stopButton.setBounds(row2.removeFromLeft(width * 0.42).reduced(delta));
 		loopButton.setBounds(row2.removeFromLeft(width * 0.07).reduced(delta));
-		progressLabel.setBounds(row2.reduced(delta));
+		clock.setBounds(row2.reduced(delta));
 		waveform.setBounds(row3.reduced(delta));
-		progressLine.setBounds(row3.reduced(delta));
+		playbackPosition.setBounds(row3.reduced(delta));
 		scroller.setBounds(row4.reduced(delta));
     }
 
@@ -117,13 +115,13 @@ private:
         if (fileSelected)
         {
             auto file = chooser.getResult();
-			if (audioSource.loadAudio(file))
+			if (waveform.getAudioSource().loadAudio(file))
 			{
 				setupButton(playButton, "Play", true);
 				setupButton(stopButton, "Stop", false);
 				loopButton.setEnabled(true);
 				waveform.setSource(new FileInputSource(file));
-				progressLabel.startTimer(100);
+				clock.startTimer(100);
 			}
 			else
 			{
@@ -131,26 +129,26 @@ private:
 				setupButton(stopButton, "Stop", false);
 				loopButton.setEnabled(false);
 				waveform.clear();
-				progressLabel.stopTimer();
+				clock.stopTimer();
 			}
         }
     }
 
     void playButtonClicked()
     {
-		audioSource.playAudio();
+		waveform.getAudioSource().playAudio();
     }
 
     void stopButtonClicked()
     {
-		audioSource.stopAudio();
+		waveform.getAudioSource().stopAudio();
     }
 
 	void loopButtonClicked()
 	{
 		auto shouldLoop = loopButton.getToggleState();
-		progressLine.setIsLooping(shouldLoop);
-		audioSource.setLooping(shouldLoop);
+		playbackPosition.setIsLooping(shouldLoop);
+		waveform.getAudioSource().setLooping(shouldLoop);
 	}
 
 	void onAudioPlayerStateChange(AudioFileTransportSource::AudioPlayerState state)
@@ -159,23 +157,23 @@ private:
 		{
 			setupButton(playButton, "Play", true);
 			setupButton(stopButton, "Stop", false);
-			progressLine.stopTimer();
-			progressLabel.stopTimer();
+			playbackPosition.stopTimer();
+			clock.stopTimer();
 			waveform.clearSelectedRegion();
 		}
 		else if (state == AudioFileTransportSource::Playing)
 		{
 			setupButton(playButton, "Pause", true);
 			setupButton(stopButton, "Stop", true);
-			progressLine.startTimer(100);
-			progressLabel.startTimer(100);
+			playbackPosition.startTimer(100);
+			clock.startTimer(100);
 		}
 		else if (state == AudioFileTransportSource::Paused)
 		{
 			setupButton(playButton, "Play", true);
 			setupButton(stopButton, "Return To Zero", true);
-			progressLine.stopTimer();
-			progressLabel.stopTimer();
+			playbackPosition.stopTimer();
+			clock.stopTimer();
 		}
 	}
 
@@ -191,12 +189,10 @@ private:
     TextButton playButton;
     TextButton stopButton;
 	ToggleButton loopButton;
-	AudioFormatManager formatManager;
-	AudioFileTransportSource audioSource;
 	AudioWaveformComponent waveform;
-	TrackProgressLabelComponent progressLabel;
-	TrackProgressLineComponent progressLine;
-	TrackScrollerComponent scroller;
+	AudioClockComponent clock;
+	AudioPlaybackPositionComponent playbackPosition;
+	AudioScrollerComponent scroller;
 	//OpenGLContext openGLContext;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TenFtMainComponent)

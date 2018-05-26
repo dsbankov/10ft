@@ -15,16 +15,16 @@
 //==============================================================================
 /*
 */
-class TrackProgressLineComponent : public Component, public Timer, public ChangeListener
+class AudioPlaybackPositionComponent : public Component, public Timer, public ChangeListener
 {
 public:
-	TrackProgressLineComponent(AudioWaveformComponent & waveform) : waveform(waveform)
+	AudioPlaybackPositionComponent(AudioWaveformComponent & waveform) : waveform(waveform)
     {
 		setInterceptsMouseClicks(false, true); // so we can handle mouse events for the component behind it (AudioWaveformComponent)
 		waveform.addChangeListener(this);
     }
 
-    ~TrackProgressLineComponent()
+    ~AudioPlaybackPositionComponent()
     {
     }
 
@@ -37,7 +37,7 @@ public:
 		{
 			Rectangle<int> localBounds = getLocalBounds();
 			g.setColour(Colours::green);
-			auto currentPosition = waveform.getCurrentTimeSeconds();
+			auto currentPosition = waveform.getAudioSource().getCurrentPosition();
 			auto drawPosition = ((currentPosition - startTimeSeconds) / audioLengthSeconds) * localBounds.getWidth() + localBounds.getX();
 			g.drawLine(drawPosition, localBounds.getY(), drawPosition, localBounds.getBottom(), 3.0f);
 		} 
@@ -71,13 +71,14 @@ private:
 
 	void respondToChange()
 	{
-		auto currentPosition = waveform.getCurrentTimeSeconds();
+		auto currentPosition = waveform.getAudioSource().getCurrentPosition();
 		if (waveform.getHasSelectedRegion() && currentPosition >= waveform.getSelectedRegionEndTimeSeconds())
 		{
-			if (isLooping)
-				waveform.setPosition(waveform.getSelectedRegionStartTimeSeconds());
-			else
-				waveform.pauseAudio(waveform.getSelectedRegionStartTimeSeconds());
+			waveform.getAudioSource().setPosition(waveform.getSelectedRegionStartTimeSeconds());
+			if (!isLooping)
+			{
+				waveform.getAudioSource().pauseAudio();
+			}
 		}
 		repaint();
 	}
@@ -87,5 +88,5 @@ private:
 	AudioWaveformComponent & waveform;
 	bool isLooping = false;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TrackProgressLineComponent)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPlaybackPositionComponent)
 };

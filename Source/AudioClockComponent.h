@@ -19,19 +19,19 @@
 //==============================================================================
 /*
 */
-class TrackProgressLabelComponent : public Component, public Timer, public ChangeListener
+class AudioClockComponent : public Component, public Timer, public ChangeListener
 {
 public:
 
-    TrackProgressLabelComponent(AudioTransportSource& audioSource) : audioSource(audioSource)
+    AudioClockComponent(AudioWaveformComponent& waveform) : waveform(waveform)
     {
 		addAndMakeVisible(&timeLabel);
 		timeLabel.setJustificationType(Justification::horizontallyCentred);
 		updateText();
-		audioSource.addChangeListener(this);
+		waveform.addChangeListener(this);
     }
 
-    ~TrackProgressLabelComponent()
+    ~AudioClockComponent()
     {
     }
 
@@ -55,7 +55,7 @@ private:
 
 	void changeListenerCallback(ChangeBroadcaster *source) override
 	{
-		if (source == &audioSource)
+		if (source == &waveform)
 		{
 			updateText();
 		}
@@ -63,7 +63,7 @@ private:
 
 	void updateText()
 	{
-		std::string currentPositionFormatted = getCurrentPositionFormatted(audioSource);
+		std::string currentPositionFormatted = getCurrentPositionFormatted(waveform.getAudioSource());
 		timeLabel.setText(currentPositionFormatted, NotificationType::dontSendNotification);
 	}
 
@@ -93,7 +93,7 @@ private:
 	//==============================================================================================
 
 	Label timeLabel;
-	AudioTransportSource& audioSource;
+	AudioWaveformComponent& waveform;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TrackProgressLabelComponent)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioClockComponent)
 };
