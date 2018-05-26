@@ -49,12 +49,12 @@ public:
 		thumbnail.setSource(newSource);
 	}
 
-	void setDrawRange(double visibleRegionStartTimeSeconds, double visibleRegionEndTimeSeconds)
+	void setDrawRange(double visibleRegionStartTime, double visibleRegionEndTime)
 	{
-		if (visibleRegionStartTimeSeconds >= visibleRegionEndTimeSeconds)
+		if (visibleRegionStartTime >= visibleRegionEndTime)
 			return;
-		this->visibleRegionStartTimeSeconds = flattenTime(visibleRegionStartTimeSeconds);
-		this->visibleRegionEndTimeSeconds = flattenTime(visibleRegionEndTimeSeconds);
+		this->visibleRegionStartTime = flattenTime(visibleRegionStartTime);
+		this->visibleRegionEndTime = flattenTime(visibleRegionEndTime);
 		sendChangeMessage();
 		repaint();
 	}
@@ -68,8 +68,8 @@ public:
 	void clearSelectedRegion()
 	{
 		hasSelectedRegion = false;
-		selectedRegionStartTimeSeconds = 0.0;
-		selectedRegionEndTimeSeconds = 0.0;
+		selectedRegionStartTime = 0.0;
+		selectedRegionEndTime = 0.0;
 		repaint();
 	}
 
@@ -80,17 +80,17 @@ public:
 		auto bounds = getLocalBounds();
 		auto leftRelativeAmmount = (double)(event.getMouseDownX() - bounds.getX()) / (double)bounds.getWidth();
 		auto rightRelativeAmmount = 1 - leftRelativeAmmount;
-		auto visibleRegionLengthInSeconds = visibleRegionEndTimeSeconds - visibleRegionStartTimeSeconds;
+		auto visibleRegionLengthInSeconds = visibleRegionEndTime - visibleRegionStartTime;
 		const double scrollAmmount = 0.10 * visibleRegionLengthInSeconds;
 		const double scrollAmmountLeft = scrollAmmount * leftRelativeAmmount;
 		const double scrollAmmountRight = scrollAmmount * rightRelativeAmmount;
 		if (wheelDetails.deltaY < 0) // downwards
 		{
-			setDrawRange(visibleRegionStartTimeSeconds - scrollAmmountLeft, visibleRegionEndTimeSeconds + scrollAmmountRight);
+			setDrawRange(visibleRegionStartTime - scrollAmmountLeft, visibleRegionEndTime + scrollAmmountRight);
 		}
 		else if (wheelDetails.deltaY > 0) // upwards
 		{
-			setDrawRange(visibleRegionStartTimeSeconds + scrollAmmountLeft, visibleRegionEndTimeSeconds - scrollAmmountRight);
+			setDrawRange(visibleRegionStartTime + scrollAmmountLeft, visibleRegionEndTime - scrollAmmountRight);
 		}
 	}
 
@@ -99,8 +99,8 @@ public:
 		if (audioSource.getLengthInSeconds() <= 0)
 			return;
 		hasSelectedRegion = false;
-		double newPositionSeconds = xToSeconds(event.getMouseDownX());
-		audioSource.setPosition(newPositionSeconds);
+		double newPosition = xToSeconds(event.getMouseDownX());
+		audioSource.setPosition(newPosition);
 		sendChangeMessage();
 	}
 
@@ -117,10 +117,10 @@ public:
 		else
 		{
 			hasSelectedRegion = true;
-			auto startOfDragX = secondsToX(selectedRegionStartTimeSeconds, getLocalBounds());
+			auto startOfDragX = secondsToX(selectedRegionStartTime, getLocalBounds());
 			auto endOfDragX = startOfDragX + event.getDistanceFromDragStartX();
-			selectedRegionEndTimeSeconds = xToSeconds(endOfDragX);
-			audioSource.setPosition(selectedRegionStartTimeSeconds);
+			selectedRegionEndTime = xToSeconds(endOfDragX);
+			audioSource.setPosition(selectedRegionStartTime);
 		}
 		repaint();
 	}
@@ -138,28 +138,28 @@ public:
 		}
 		else
 		{
-			selectedRegionStartTimeSeconds = xToSeconds(mouseDownX);
+			selectedRegionStartTime = xToSeconds(mouseDownX);
 		}
 	}
 
-	double getVisibleRegionStartTimeSeconds()
+	double getVisibleRegionStartTime()
 	{
-		return visibleRegionStartTimeSeconds;
+		return visibleRegionStartTime;
 	}
 
-	double getVisibleRegionEndTimeSeconds()
+	double getVisibleRegionEndTime()
 	{
-		return visibleRegionEndTimeSeconds;
+		return visibleRegionEndTime;
 	}
 
-	double getSelectedRegionStartTimeSeconds()
+	double getSelectedRegionStartTime()
 	{
-		return selectedRegionStartTimeSeconds;
+		return selectedRegionStartTime;
 	}
 
-	double getSelectedRegionEndTimeSeconds()
+	double getSelectedRegionEndTime()
 	{
-		return selectedRegionEndTimeSeconds;
+		return selectedRegionEndTime;
 	}
 
 	bool getHasSelectedRegion()
@@ -189,11 +189,11 @@ private:
 		const Colour waveformColour = Colours::red;
 		if (hasSelectedRegion)
 		{
-			auto visibleRegionLengthSeconds = visibleRegionEndTimeSeconds - visibleRegionStartTimeSeconds;
-			if (selectedRegionStartTimeSeconds > selectedRegionEndTimeSeconds)
-				std::swap(selectedRegionStartTimeSeconds, selectedRegionEndTimeSeconds);
-			auto startOfDragX = secondsToX(selectedRegionStartTimeSeconds, thumbnailBounds);
-			auto endOfDragX = secondsToX(selectedRegionEndTimeSeconds, thumbnailBounds);
+			auto visibleRegionLengthSeconds = visibleRegionEndTime - visibleRegionStartTime;
+			if (selectedRegionStartTime > selectedRegionEndTime)
+				std::swap(selectedRegionStartTime, selectedRegionEndTime);
+			auto startOfDragX = secondsToX(selectedRegionStartTime, thumbnailBounds);
+			auto endOfDragX = secondsToX(selectedRegionEndTime, thumbnailBounds);
 			auto notSelectedRegionLeft = thumbnailBounds.removeFromLeft(startOfDragX);
 			auto selectedRegion = thumbnailBounds.removeFromLeft(endOfDragX - startOfDragX);
 			auto notSelectedRegionRight = thumbnailBounds;
@@ -201,47 +201,47 @@ private:
 			g.setColour(backgroundColour);
 			g.fillRect(notSelectedRegionLeft);
 			g.setColour(waveformColour);
-			thumbnail.drawChannels(g, notSelectedRegionLeft, visibleRegionStartTimeSeconds, selectedRegionStartTimeSeconds, 1.0f);
+			thumbnail.drawChannels(g, notSelectedRegionLeft, visibleRegionStartTime, selectedRegionStartTime, 1.0f);
 
 			g.setColour(selectedRegionBackgroundColour);
 			g.fillRect(selectedRegion);
 			g.setColour(waveformColour);
-			thumbnail.drawChannels(g, selectedRegion, selectedRegionStartTimeSeconds, selectedRegionEndTimeSeconds, 1.0f);
+			thumbnail.drawChannels(g, selectedRegion, selectedRegionStartTime, selectedRegionEndTime, 1.0f);
 
 			g.setColour(backgroundColour);
 			g.fillRect(notSelectedRegionRight);
 			g.setColour(waveformColour);
-			thumbnail.drawChannels(g, notSelectedRegionRight, selectedRegionEndTimeSeconds, visibleRegionEndTimeSeconds, 1.0f);
+			thumbnail.drawChannels(g, notSelectedRegionRight, selectedRegionEndTime, visibleRegionEndTime, 1.0f);
 		}
 		else
 		{
 			g.setColour(backgroundColour);
 			g.fillRect(thumbnailBounds);
 			g.setColour(waveformColour);
-			thumbnail.drawChannels(g, thumbnailBounds, visibleRegionStartTimeSeconds, visibleRegionEndTimeSeconds, 1.0f);
+			thumbnail.drawChannels(g, thumbnailBounds, visibleRegionStartTime, visibleRegionEndTime, 1.0f);
 		}
 	}
 
 	double xToSeconds(double x)
 	{
-		auto visibleRegionLengthSeconds = visibleRegionEndTimeSeconds - visibleRegionStartTimeSeconds;
-		return (x / getLocalBounds().getWidth()) * visibleRegionLengthSeconds + visibleRegionStartTimeSeconds;
+		auto visibleRegionLengthSeconds = visibleRegionEndTime - visibleRegionStartTime;
+		return (x / getLocalBounds().getWidth()) * visibleRegionLengthSeconds + visibleRegionStartTime;
 	}
 
 	double secondsToX(double s, const Rectangle<int>& thumbnailBounds)
 	{
-		auto visibleRegionLengthSeconds = visibleRegionEndTimeSeconds - visibleRegionStartTimeSeconds;
-		return ((s - visibleRegionStartTimeSeconds) / visibleRegionLengthSeconds) * thumbnailBounds.getWidth();
+		auto visibleRegionLengthSeconds = visibleRegionEndTime - visibleRegionStartTime;
+		return ((s - visibleRegionStartTime) / visibleRegionLengthSeconds) * thumbnailBounds.getWidth();
 	}
 
 	void updateDragRegion(double mouseDownSeconds)
 	{
-		auto distanceFromStartOfDragSeconds = std::abs(mouseDownSeconds - selectedRegionStartTimeSeconds);
-		auto distanceFromEndOfDragSeconds = std::abs(mouseDownSeconds - selectedRegionEndTimeSeconds);
+		auto distanceFromStartOfDragSeconds = std::abs(mouseDownSeconds - selectedRegionStartTime);
+		auto distanceFromEndOfDragSeconds = std::abs(mouseDownSeconds - selectedRegionEndTime);
 		if (distanceFromStartOfDragSeconds < distanceFromEndOfDragSeconds)
-			selectedRegionStartTimeSeconds = mouseDownSeconds;
+			selectedRegionStartTime = mouseDownSeconds;
 		else
-			selectedRegionEndTimeSeconds = mouseDownSeconds;
+			selectedRegionEndTime = mouseDownSeconds;
 	}
 
 	double flattenTime(double timeSeconds)
@@ -259,11 +259,11 @@ private:
 	AudioFileTransportSource audioSource;
 	AudioThumbnailCache thumbnailCache;
 	AudioThumbnail thumbnail;
-	double visibleRegionStartTimeSeconds = 0.0;
-	double visibleRegionEndTimeSeconds = 0.0;
+	double visibleRegionStartTime = 0.0;
+	double visibleRegionEndTime = 0.0;
 	bool hasSelectedRegion = false;
-	double selectedRegionStartTimeSeconds = 0.0;
-	double selectedRegionEndTimeSeconds = 0.0;
+	double selectedRegionStartTime = 0.0;
+	double selectedRegionEndTime = 0.0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioWaveformComponent)
 };
