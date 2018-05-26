@@ -30,8 +30,8 @@ public:
 
     void paint (Graphics& g) override
     {
-		auto startTimeSeconds = waveform.getVisibleRegionStartTimeSeconds();
-		auto endTimeSeconds = waveform.getVisibleRegionEndTimeSeconds();
+		auto startTimeSeconds = waveform.getVisibleRegionStartTime();
+		auto endTimeSeconds = waveform.getVisibleRegionEndTime();
 		auto audioLengthSeconds = endTimeSeconds - startTimeSeconds;
 		if (audioLengthSeconds > 0)
 		{
@@ -72,9 +72,9 @@ private:
 	void respondToChange()
 	{
 		auto currentPosition = waveform.getAudioSource().getCurrentPosition();
-		if (waveform.getHasSelectedRegion() && currentPosition >= waveform.getSelectedRegionEndTimeSeconds())
+		if (waveform.getHasSelectedRegion() && currentPosition >= waveform.getSelectedRegionEndTime())
 		{
-			waveform.getAudioSource().setPosition(waveform.getSelectedRegionStartTimeSeconds());
+			waveform.getAudioSource().setPosition(waveform.getSelectedRegionStartTime());
 			if (!isLooping)
 			{
 				waveform.getAudioSource().pauseAudio();

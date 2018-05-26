@@ -101,8 +101,8 @@ private:
 			}
 			else
 			{
-				double minValue = waveform.getVisibleRegionStartTimeSeconds() / waveform.getAudioSource().getLengthInSeconds();
-				double maxValue = waveform.getVisibleRegionEndTimeSeconds() / waveform.getAudioSource().getLengthInSeconds();
+				double minValue = waveform.getVisibleRegionStartTime() / waveform.getAudioSource().getLengthInSeconds();
+				double maxValue = waveform.getVisibleRegionEndTime() / waveform.getAudioSource().getLengthInSeconds();
 				setMinAndMaxValuesWithCheck(minValue * 100.0, maxValue * 100.0, NotificationType::dontSendNotification);
 			}
 		}
