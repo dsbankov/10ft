@@ -49,7 +49,7 @@ public:
 		double lengthInSeconds = waveform.getAudioSource().getLengthInSeconds();
 		double leftPositionSeconds = (minValue / 100.0) * lengthInSeconds;
 		double rightPositionSeconds = (maxValue / 100.0) * lengthInSeconds;
-		waveform.setDrawRange(leftPositionSeconds, rightPositionSeconds);
+		waveform.setVisibleRegion(leftPositionSeconds, rightPositionSeconds);
 	}
 
 	void mouseDown(const MouseEvent & event) override

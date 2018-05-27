@@ -115,12 +115,11 @@ private:
         if (fileSelected)
         {
             auto file = chooser.getResult();
-			if (waveform.getAudioSource().loadAudio(file))
+			if (waveform.loadAudio(file))
 			{
 				setupButton(playButton, "Play", true);
 				setupButton(stopButton, "Stop", false);
 				loopButton.setEnabled(true);
-				waveform.setSource(new FileInputSource(file));
 				clock.startTimer(100);
 			}
 			else
@@ -128,7 +127,7 @@ private:
 				setupButton(playButton, "Play", false);
 				setupButton(stopButton, "Stop", false);
 				loopButton.setEnabled(false);
-				waveform.clear();
+				loopButton.setToggleState(false, NotificationType::dontSendNotification);
 				clock.stopTimer();
 			}
         }

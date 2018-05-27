@@ -51,11 +51,11 @@ public:
 		const double scrollAmmountRight = scrollAmmount * rightRelativeAmmount;
 		if (wheelDetails.deltaY < 0) // downwards
 		{
-			setDrawRange(visibleRegionStartTime - scrollAmmountLeft, visibleRegionEndTime + scrollAmmountRight);
+			setVisibleRegion(visibleRegionStartTime - scrollAmmountLeft, visibleRegionEndTime + scrollAmmountRight);
 		}
 		else if (wheelDetails.deltaY > 0) // upwards
 		{
-			setDrawRange(visibleRegionStartTime + scrollAmmountLeft, visibleRegionEndTime - scrollAmmountRight);
+			setVisibleRegion(visibleRegionStartTime + scrollAmmountLeft, visibleRegionEndTime - scrollAmmountRight);
 		}
 	}
 
@@ -107,13 +107,24 @@ public:
 		}
 	}
 
-	void setSource(InputSource* newSource)
+	bool loadAudio(File file)
 	{
-		setDrawRange(0.0, audioSource.getLengthInSeconds());
-		thumbnail.setSource(newSource);
+		if (audioSource.loadAudio(file))
+		{
+			thumbnail.setSource(new FileInputSource(file));
+			setVisibleRegion(0.0, audioSource.getLengthInSeconds());
+			return true;
+		}
+		else
+		{
+			hasSelectedRegion = false;
+			thumbnail.clear();
+			setVisibleRegion(0.0, 0.0);
+			return false;
+		}
 	}
 
-	void setDrawRange(double visibleRegionStartTime, double visibleRegionEndTime)
+	void setVisibleRegion(double visibleRegionStartTime, double visibleRegionEndTime)
 	{
 		if (visibleRegionStartTime >= visibleRegionEndTime)
 			return;
@@ -123,17 +134,9 @@ public:
 		repaint();
 	}
 
-	void clear()
-	{
-		setDrawRange(0.0, 0.0);
-		thumbnail.clear();
-	}
-
 	void clearSelectedRegion()
 	{
 		hasSelectedRegion = false;
-		selectedRegionStartTime = 0.0;
-		selectedRegionEndTime = 0.0;
 		repaint();
 	}
 
