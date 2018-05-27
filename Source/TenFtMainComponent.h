@@ -129,6 +129,7 @@ private:
 				loopButton.setEnabled(false);
 				loopButton.setToggleState(false, NotificationType::dontSendNotification);
 				clock.stopTimer();
+				scroller.disable();
 			}
         }
     }

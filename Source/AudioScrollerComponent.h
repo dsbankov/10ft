@@ -87,6 +87,12 @@ public:
 		waveform.mouseWheelMove(event, wheelDetails);
 	}
 
+	void disable()
+	{
+		setMinAndMaxValuesWithCheck(0.0, 100.0, NotificationType::dontSendNotification);
+		setEnabled(false);
+	}
+
 private:
 
 	void changeListenerCallback(ChangeBroadcaster *source) override
