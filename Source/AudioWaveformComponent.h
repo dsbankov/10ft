@@ -29,11 +29,6 @@ public:
     {
     }
 
-	AudioFileTransportSource& getAudioSource()
-	{
-		return audioSource;
-	}
-
 	void paint(Graphics& g) override
 	{
 		Rectangle<int> thumbnailBounds = getLocalBounds();
@@ -41,36 +36,6 @@ public:
 			paintIfNoFileLoaded(g, thumbnailBounds);
 		else
 			paintIfFileLoaded(g, thumbnailBounds);
-	}
-
-	void setSource(InputSource* newSource)
-	{
-		setDrawRange(0.0, audioSource.getLengthInSeconds());
-		thumbnail.setSource(newSource);
-	}
-
-	void setDrawRange(double visibleRegionStartTime, double visibleRegionEndTime)
-	{
-		if (visibleRegionStartTime >= visibleRegionEndTime)
-			return;
-		this->visibleRegionStartTime = flattenTime(visibleRegionStartTime);
-		this->visibleRegionEndTime = flattenTime(visibleRegionEndTime);
-		sendChangeMessage();
-		repaint();
-	}
-
-	void clear()
-	{
-		setDrawRange(0.0, 0.0);
-		thumbnail.clear();
-	}
-
-	void clearSelectedRegion()
-	{
-		hasSelectedRegion = false;
-		selectedRegionStartTime = 0.0;
-		selectedRegionEndTime = 0.0;
-		repaint();
 	}
 
 	void mouseWheelMove(const MouseEvent & event, const MouseWheelDetails & wheelDetails) override
@@ -140,6 +105,41 @@ public:
 		{
 			selectedRegionStartTime = xToSeconds(mouseDownX);
 		}
+	}
+
+	void setSource(InputSource* newSource)
+	{
+		setDrawRange(0.0, audioSource.getLengthInSeconds());
+		thumbnail.setSource(newSource);
+	}
+
+	void setDrawRange(double visibleRegionStartTime, double visibleRegionEndTime)
+	{
+		if (visibleRegionStartTime >= visibleRegionEndTime)
+			return;
+		this->visibleRegionStartTime = flattenTime(visibleRegionStartTime);
+		this->visibleRegionEndTime = flattenTime(visibleRegionEndTime);
+		sendChangeMessage();
+		repaint();
+	}
+
+	void clear()
+	{
+		setDrawRange(0.0, 0.0);
+		thumbnail.clear();
+	}
+
+	void clearSelectedRegion()
+	{
+		hasSelectedRegion = false;
+		selectedRegionStartTime = 0.0;
+		selectedRegionEndTime = 0.0;
+		repaint();
+	}
+
+	AudioFileTransportSource& getAudioSource()
+	{
+		return audioSource;
 	}
 
 	double getVisibleRegionStartTime()

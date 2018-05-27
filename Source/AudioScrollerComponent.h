@@ -36,8 +36,6 @@ public:
     {
     }
 
-
-
 	void valueChanged() override
 	{
 		double minValue = getMinValue();
