@@ -1,1 +1,7 @@
 Builds
+
+JuceLibraryCode/*
+!JuceLibraryCode/AppConfig.h
+
+.tags
+.tags_sorted_by_file

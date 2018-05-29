@@ -1,163 +1,74 @@
 /*
   ==============================================================================
 
-	AudioPlayer.h
-	Created: 18 May 2018 9:53:34pm
-	Author:  DBANKOV
+    AudioPlayer.h
+    Created: 18 May 2018 9:53:34pm
+    Author:  DBANKOV
 
   ==============================================================================
 */
 
+
 #pragma once
+
+
 #include "../JuceLibraryCode/JuceHeader.h"
 #include <string>
 #include <iostream>
 #include <sstream>
 #include <iomanip>
 
-class AudioFileTransportSource : public AudioTransportSource, private ChangeListener
+
+class AudioFileTransportSource :    public AudioTransportSource,
+                                    private ChangeListener
 {
 public:
+    enum AudioPlayerState
+    {
+        NoFileLoaded,
+        Starting,
+        Playing,
+        Stopping,
+        Stopped,
+        Pausing,
+        Paused
+    };
+    std::function<void (
+        AudioFileTransportSource::AudioPlayerState
+    )> onStateChange;
 
-	enum AudioPlayerState
-	{
-		NoFileLoaded,
-		Starting,
-		Playing,
-		Stopping,
-		Stopped,
-		Pausing,
-		Paused
-	};
+public:
+    AudioFileTransportSource (
+        AudioFormatManager& formatManager
+    );
 
-	AudioFileTransportSource(AudioFormatManager& formatManager)
-		: state(NoFileLoaded), formatManager(formatManager), AudioTransportSource()
-	{
-		formatManager.registerBasicFormats();
-		addChangeListener(this);
-	}
+    ~AudioFileTransportSource ();
 
-	~AudioFileTransportSource()
-	{
-		setSource(nullptr);
-	}
+    bool loadAudio (File& file);
 
-	bool loadAudio(File& file)
-	{
-		auto* reader = formatManager.createReaderFor(file);
-		if (reader != nullptr)
-		{
-			std::unique_ptr<AudioFormatReaderSource> tempReaderSource(new AudioFormatReaderSource(reader, true));
-			setSource(tempReaderSource.get(), 0, nullptr, reader->sampleRate);
-			readerSource.swap(tempReaderSource);
-			changeState(Stopped);
-			setPosition(0.0);
-			return true;
-		}
-		else
-		{
-			unloadAudio();
-			return false;
-		}
-	}
+    bool isFileLoaded ();
 
-	bool isFileLoaded()
-	{
-		return state != NoFileLoaded;
-	}
+    void playAudio ();
 
-	void playAudio()
-	{
-		if (state == Playing)
-			changeState(Pausing);
-		else
-			changeState(Starting);
-	}
+    void stopAudio ();
 
-	void stopAudio()
-	{
-		if (state == Paused || state == NoFileLoaded)
-			changeState(Stopped);
-		else
-			changeState(Stopping);
-	}
+    void pauseAudio ();
 
-	void pauseAudio()
-	{
-		changeState(Pausing);
-	}
-
-	void setLooping(bool shouldLoop) override
-	{
-		readerSource.get()->setLooping(shouldLoop);
-	}
-
-	std::function<void(AudioFileTransportSource::AudioPlayerState)> onStateChange;
+    void setLooping (bool shouldLoop) override;
 
 private:
+    void unloadAudio ();
 
-	void unloadAudio()
-	{
-		changeState(NoFileLoaded);
-	}
+    void changeState (
+        AudioFileTransportSource::AudioPlayerState newState
+    );
 
-	void changeState(AudioFileTransportSource::AudioPlayerState newState)
-	{
-		if (state != newState)
-		{
-			state = newState;
+    void changeListenerCallback (
+        ChangeBroadcaster* broadcaster
+    ) override;
 
-			switch (state)
-			{
-			case Starting:
-				start();
-				break;
-
-			case Playing:
-				break;
-
-			case Stopping:
-				stop();
-				break;
-
-			case Stopped:
-				setPosition(0.0);
-				break;
-
-			case Pausing:
-				stop();
-				break;
-
-			case Paused:
-				break;
-
-			case NoFileLoaded:
-				setSource(nullptr);
-				break;
-			}
-
-			onStateChange(newState);
-
-		}
-	}
-
-	void changeListenerCallback(ChangeBroadcaster* broadcaster) override
-	{
-		if (broadcaster == this)
-		{
-			if (isPlaying())
-				changeState(Playing);
-			else if (state == Pausing)
-				changeState(Paused);
-			else
-				changeState(Stopped);
-		}
-	}
-
-	//==============================================================================================
-
-	AudioFormatManager & formatManager;
-	std::unique_ptr<AudioFormatReaderSource> readerSource;
-	AudioPlayerState state;
-
+private:
+    AudioFormatManager& formatManager;
+    std::unique_ptr<AudioFormatReaderSource> readerSource;
+    AudioPlayerState state;
 };
