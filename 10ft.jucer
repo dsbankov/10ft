@@ -21,18 +21,18 @@
     </GROUP>
   </MAINGROUP>
   <MODULES>
-    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
   </MODULES>
   <EXPORTFORMATS>
     <VS2017 targetFolder="Builds/VisualStudio2017" windowsTargetPlatformVersion="10.0.17134.0">
@@ -41,18 +41,18 @@
         <CONFIGURATIONS name="Release" isDebug="0" optimisation="3" targetName="10ft"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_audio_basics" path=""/>
-        <MODULEPATH id="juce_audio_devices" path=""/>
-        <MODULEPATH id="juce_audio_formats" path=""/>
-        <MODULEPATH id="juce_audio_processors" path=""/>
-        <MODULEPATH id="juce_audio_utils" path=""/>
-        <MODULEPATH id="juce_core" path=""/>
-        <MODULEPATH id="juce_data_structures" path=""/>
-        <MODULEPATH id="juce_events" path=""/>
-        <MODULEPATH id="juce_graphics" path=""/>
-        <MODULEPATH id="juce_gui_basics" path=""/>
-        <MODULEPATH id="juce_gui_extra" path=""/>
-        <MODULEPATH id="juce_opengl" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_core" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_data_structures" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_events" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_graphics" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_opengl" path="lib/juce/modules"/>
       </MODULEPATHS>
     </VS2017>
     <VS2015 targetFolder="Builds/VisualStudio2015">
@@ -61,18 +61,18 @@
         <CONFIGURATION isDebug="0" name="Release"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_opengl" path="../../JUCE/modules"/>
-        <MODULEPATH id="juce_gui_extra" path=""/>
-        <MODULEPATH id="juce_gui_basics" path=""/>
-        <MODULEPATH id="juce_graphics" path=""/>
-        <MODULEPATH id="juce_events" path=""/>
-        <MODULEPATH id="juce_data_structures" path=""/>
-        <MODULEPATH id="juce_core" path=""/>
-        <MODULEPATH id="juce_audio_utils" path=""/>
-        <MODULEPATH id="juce_audio_processors" path=""/>
-        <MODULEPATH id="juce_audio_formats" path=""/>
-        <MODULEPATH id="juce_audio_devices" path=""/>
-        <MODULEPATH id="juce_audio_basics" path=""/>
+        <MODULEPATH id="juce_opengl" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_graphics" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_events" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_data_structures" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_core" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="lib/juce/modules"/>
       </MODULEPATHS>
     </VS2015>
     <XCODE_MAC targetFolder="Builds/MacOSX">
@@ -81,18 +81,18 @@
         <CONFIGURATION isDebug="0" name="Release"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_opengl" path="../../JUCE/modules"/>
-        <MODULEPATH id="juce_gui_extra" path=""/>
-        <MODULEPATH id="juce_gui_basics" path=""/>
-        <MODULEPATH id="juce_graphics" path=""/>
-        <MODULEPATH id="juce_events" path=""/>
-        <MODULEPATH id="juce_data_structures" path=""/>
-        <MODULEPATH id="juce_core" path=""/>
-        <MODULEPATH id="juce_audio_utils" path=""/>
-        <MODULEPATH id="juce_audio_processors" path=""/>
-        <MODULEPATH id="juce_audio_formats" path=""/>
-        <MODULEPATH id="juce_audio_devices" path=""/>
-        <MODULEPATH id="juce_audio_basics" path=""/>
+        <MODULEPATH id="juce_opengl" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_graphics" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_events" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_data_structures" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_core" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="lib/juce/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
     <XCODE_IPHONE targetFolder="Builds/iOS">
@@ -101,18 +101,18 @@
         <CONFIGURATION isDebug="0" name="Release"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_opengl" path="../../JUCE/modules"/>
-        <MODULEPATH id="juce_gui_extra" path=""/>
-        <MODULEPATH id="juce_gui_basics" path=""/>
-        <MODULEPATH id="juce_graphics" path=""/>
-        <MODULEPATH id="juce_events" path=""/>
-        <MODULEPATH id="juce_data_structures" path=""/>
-        <MODULEPATH id="juce_core" path=""/>
-        <MODULEPATH id="juce_audio_utils" path=""/>
-        <MODULEPATH id="juce_audio_processors" path=""/>
-        <MODULEPATH id="juce_audio_formats" path=""/>
-        <MODULEPATH id="juce_audio_devices" path=""/>
-        <MODULEPATH id="juce_audio_basics" path=""/>
+        <MODULEPATH id="juce_opengl" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_graphics" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_events" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_data_structures" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_core" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="lib/juce/modules"/>
       </MODULEPATHS>
     </XCODE_IPHONE>
   </EXPORTFORMATS>
