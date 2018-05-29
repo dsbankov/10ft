@@ -2,7 +2,7 @@
 
 <JUCERPROJECT name="10ft" companyName="JUCE" version="1.0.0" userNotes="Audio player &amp; waveform editor."
               companyWebsite="http://juce.com" defines="" projectType="guiapp"
-              id="xaPCEr" jucerVersion="5.3.2">
+              id="xaPCEr" jucerVersion="5.3.2" bundleIdentifier="com.dsbankov.10ft">
   <MAINGROUP id="YFGFpb" name="10ft">
     <GROUP id="{9E117A82-4BFD-3F75-60D8-A4662BCEA3A5}" name="Source">
       <FILE id="xQAgO0" name="Application.cpp" compile="1" resource="0" file="Source/Application.cpp"/>

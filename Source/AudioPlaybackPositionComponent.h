@@ -8,85 +8,104 @@
   ==============================================================================
 */
 
+
 #pragma once
+
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-//==============================================================================
-/*
-*/
-class AudioPlaybackPositionComponent : public Component, public Timer, public ChangeListener
+
+class AudioPlaybackPositionComponent :    public Component,
+                                          public Timer,
+                                          public ChangeListener
 {
 public:
-	AudioPlaybackPositionComponent(AudioWaveformComponent & waveform) : waveform(waveform)
+    AudioPlaybackPositionComponent (AudioWaveformComponent & waveform)
+        :
+            waveform (waveform),
+            isLooping (false)
     {
-		setInterceptsMouseClicks(false, true); // so we can handle mouse events for the component behind it (AudioWaveformComponent)
-		waveform.addChangeListener(this);
+        // so we can handle mouse events for the component behind it (AudioWaveformComponent)
+        setInterceptsMouseClicks (false, true);
+
+        waveform.addChangeListener (this);
     }
 
-    ~AudioPlaybackPositionComponent()
+    ~AudioPlaybackPositionComponent ()
     {
     }
 
     void paint (Graphics& g) override
     {
-		auto startTimeSeconds = waveform.getVisibleRegionStartTime();
-		auto endTimeSeconds = waveform.getVisibleRegionEndTime();
-		auto audioLengthSeconds = endTimeSeconds - startTimeSeconds;
-		if (audioLengthSeconds > 0)
-		{
-			Rectangle<int> localBounds = getLocalBounds();
-			g.setColour(Colours::green);
-			auto currentPosition = waveform.getAudioSource().getCurrentPosition();
-			auto drawPosition = ((currentPosition - startTimeSeconds) / audioLengthSeconds) * localBounds.getWidth() + localBounds.getX();
-			g.drawLine(drawPosition, localBounds.getY(), drawPosition, localBounds.getBottom(), 3.0f);
-		} 
+        auto startTimeSeconds = waveform.getVisibleRegionStartTime (),
+            endTimeSeconds = waveform.getVisibleRegionEndTime (),
+            audioLengthSeconds = endTimeSeconds - startTimeSeconds;
+
+        if (audioLengthSeconds > 0)
+        {
+            juce::Rectangle<float> localBounds = getLocalBounds ().toFloat ();
+            auto currentPosition = waveform.getAudioSource ().getCurrentPosition (),
+                drawPosition = ((currentPosition - startTimeSeconds) / audioLengthSeconds)
+                    * localBounds.getWidth () + localBounds.getX ();
+
+            g.setColour (Colours::green);
+            g.drawLine (
+                drawPosition,
+                localBounds.getY (),
+                drawPosition,
+                localBounds.getBottom (),
+                3.0f
+            );
+        } 
     }
 
-	void stopTimer()
-	{
-		Timer::stopTimer();
-		repaint();
-	}
+    void stopTimer ()
+    {
+        Timer::stopTimer ();
+        repaint ();
+    }
 
-	void setIsLooping(bool isLooping)
-	{
-		this->isLooping = isLooping;
-	}
+    void setIsLooping (bool isLooping)
+    {
+        this->isLooping = isLooping;
+    }
 
 private:
+    void timerCallback () override
+    {
+        respondToChange ();
+    }
 
-	void timerCallback() override
-	{
-		respondToChange();
-	}
+    void changeListenerCallback (ChangeBroadcaster *source) override
+    {
+        if (source == &waveform)
+        {
+            respondToChange ();
+        }
+    }
 
-	void changeListenerCallback(ChangeBroadcaster *source) override
-	{
-		if (source == &waveform)
-		{
-			respondToChange();
-		}
-	}
+    void respondToChange ()
+    {
+        auto currentPosition = waveform.getAudioSource ().getCurrentPosition ();
 
-	void respondToChange()
-	{
-		auto currentPosition = waveform.getAudioSource().getCurrentPosition();
-		if (waveform.getHasSelectedRegion() && currentPosition >= waveform.getSelectedRegionEndTime())
-		{
-			waveform.getAudioSource().setPosition(waveform.getSelectedRegionStartTime());
-			if (!isLooping)
-			{
-				waveform.getAudioSource().pauseAudio();
-			}
-		}
-		repaint();
-	}
+        if (
+            waveform.getHasSelectedRegion () &&
+            currentPosition >= waveform.getSelectedRegionEndTime ()
+        )
+        {
+            waveform.getAudioSource ().setPosition (waveform.getSelectedRegionStartTime ());
+            if (! isLooping)
+            {
+                waveform.getAudioSource ().pauseAudio ();
+            }
+        }
 
-	//==============================================================================================
+        repaint ();
+    }
 
-	AudioWaveformComponent & waveform;
-	bool isLooping = false;
+private:
+    AudioWaveformComponent& waveform;
+    bool isLooping;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPlaybackPositionComponent)
 };
