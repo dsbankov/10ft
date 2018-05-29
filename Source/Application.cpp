@@ -6,59 +6,65 @@
   ==============================================================================
 */
 
+
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "TenFtMainComponent.h"
 
-class Application    : public JUCEApplication
+
+class Application :    public JUCEApplication
 {
 public:
-    //==============================================================================
-    Application() {}
+    Application () {}
 
-    const String getApplicationName() override       { return "10ft"; }
-    const String getApplicationVersion() override    { return "1.0.0"; }
+    const String getApplicationName () override       { return "10ft"; }
+    const String getApplicationVersion () override    { return "1.0.0"; }
 
-    void initialise (const String&) override         { mainWindow.reset (new MainWindow ("10ft", new TenFtMainComponent(), *this)); }
-    void shutdown() override                         { mainWindow = nullptr; }
+    void initialise (const String&) override          { mainWindow.reset (new MainWindow ("10ft", new TenFtMainComponent (), *this)); }
+    void shutdown () override                         { mainWindow = nullptr; }
 
 private:
-    class MainWindow    : public DocumentWindow
+    class MainWindow :    public DocumentWindow
     {
     public:
         MainWindow (const String& name, Component* c, JUCEApplication& a)
-            : DocumentWindow (name, Desktop::getInstance().getDefaultLookAndFeel()
-                                                          .findColour (ResizableWindow::backgroundColourId),
-                              DocumentWindow::allButtons),
-              app (a)
+            :
+                DocumentWindow (
+                    name,
+                    Desktop::getInstance ()
+                        .getDefaultLookAndFeel ()
+                        .findColour (ResizableWindow::backgroundColourId),
+                    DocumentWindow::allButtons
+                ),
+                app (a)
         {
             setUsingNativeTitleBar (true);
             setContentOwned (c, true);
 
-           #if JUCE_ANDROID || JUCE_IOS
+        #if JUCE_ANDROID || JUCE_IOS
             setFullScreen (true);
-           #else
+        #else
             setResizable (true, false);
             setResizeLimits (300, 250, 10000, 10000);
             centreWithSize (getWidth(), getHeight());
-           #endif
+        #endif
 
             setVisible (true);
         }
 
-        void closeButtonPressed() override
+        void closeButtonPressed () override
         {
-            app.systemRequestedQuit();
+            app.systemRequestedQuit ();
         }
 
     private:
         JUCEApplication& app;
 
-        //==============================================================================
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainWindow)
     };
 
     std::unique_ptr<MainWindow> mainWindow;
 };
+
 
 //==============================================================================
 START_JUCE_APPLICATION (Application)
