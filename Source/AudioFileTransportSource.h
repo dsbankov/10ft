@@ -33,158 +33,39 @@ public:
         Pausing,
         Paused
     };
+    std::function<void (
+        AudioFileTransportSource::AudioPlayerState
+    )> onStateChange;
 
 public:
-    AudioFileTransportSource (AudioFormatManager& formatManager)
-        :
-            AudioTransportSource (),
-            formatManager (formatManager),
-            state (NoFileLoaded)
-    {
-        formatManager.registerBasicFormats ();
-        addChangeListener (this);
-    }
+    AudioFileTransportSource (
+        AudioFormatManager& formatManager
+    );
 
-    ~AudioFileTransportSource ()
-    {
-        setSource (nullptr);
-    }
+    ~AudioFileTransportSource ();
 
-    bool loadAudio (File& file)
-    {
-        auto* reader = formatManager.createReaderFor (file);
+    bool loadAudio (File& file);
 
-        if (reader != nullptr)
-        {
-            std::unique_ptr<AudioFormatReaderSource> tempReaderSource (
-                new AudioFormatReaderSource (reader, true)
-            );
+    bool isFileLoaded ();
 
-            setSource (
-                tempReaderSource.get (),
-                0,
-                nullptr,
-                reader->sampleRate
-            );
+    void playAudio ();
 
-            readerSource.swap (tempReaderSource);
+    void stopAudio ();
 
-            changeState (Stopped);
-            setPosition (0.0);
+    void pauseAudio ();
 
-            return true;
-        }
-        else
-        {
-            unloadAudio ();
-            return false;
-        }
-    }
-
-    bool isFileLoaded ()
-    {
-        return state != NoFileLoaded;
-    }
-
-    void playAudio ()
-    {
-        if (state == Playing)
-        {
-            changeState (Pausing);
-        }
-        else
-        {
-            changeState (Starting);
-        }
-    }
-
-    void stopAudio ()
-    {
-        if (state == Paused || state == NoFileLoaded)
-        {
-            changeState (Stopped);
-        }
-        else
-        {
-            changeState (Stopping);
-        }
-    }
-
-    void pauseAudio ()
-    {
-        changeState (Pausing);
-    }
-
-    void setLooping (bool shouldLoop) override
-    {
-        readerSource.get ()->setLooping (shouldLoop);
-    }
-
-    std::function<void (AudioFileTransportSource::AudioPlayerState)> onStateChange;
+    void setLooping (bool shouldLoop) override;
 
 private:
-    void unloadAudio ()
-    {
-        changeState (NoFileLoaded);
-    }
+    void unloadAudio ();
 
-    void changeState (AudioFileTransportSource::AudioPlayerState newState)
-    {
-        if (state != newState)
-        {
-            state = newState;
+    void changeState (
+        AudioFileTransportSource::AudioPlayerState newState
+    );
 
-            switch (state)
-            {
-                case Starting:
-                    start ();
-                    break;
-
-                case Playing:
-                    break;
-
-                case Stopping:
-                    stop ();
-                    break;
-
-                case Stopped:
-                    setPosition (0.0);
-                    break;
-
-                case Pausing:
-                    stop ();
-                    break;
-
-                case Paused:
-                    break;
-
-                case NoFileLoaded:
-                    setSource (nullptr);
-                    break;
-            }
-
-            onStateChange (newState);
-        }
-    }
-
-    void changeListenerCallback (ChangeBroadcaster* broadcaster) override
-    {
-        if (broadcaster == this)
-        {
-            if (isPlaying ())
-            {
-                changeState (Playing);
-            }
-            else if (state == Pausing)
-            {
-                changeState (Paused);
-            }
-            else
-            {
-                changeState (Stopped);
-            }
-        }
-    }
+    void changeListenerCallback (
+        ChangeBroadcaster* broadcaster
+    ) override;
 
 private:
     AudioFormatManager& formatManager;

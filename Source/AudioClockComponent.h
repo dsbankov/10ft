@@ -19,87 +19,36 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
+#include "AudioWaveformComponent.h"
+
 
 class AudioClockComponent :    public Component,
                                public Timer,
                                public ChangeListener
 {
 public:
+    AudioClockComponent (AudioWaveformComponent& waveform);
 
-    AudioClockComponent (AudioWaveformComponent& waveform)
-        :
-            waveform (waveform)
-    {
-        addAndMakeVisible (&timeLabel);
-        timeLabel.setJustificationType (Justification::horizontallyCentred);
-        updateText ();
-        waveform.addChangeListener (this);
-    }
+    ~AudioClockComponent ();
 
-    ~AudioClockComponent ()
-    {
-    }
+    void resized () override;
 
-    void resized () override
-    {
-        timeLabel.setBounds (getLocalBounds ());
-    }
-
-    void stopTimer ()
-    {
-        Timer::stopTimer ();
-        updateText ();
-    }
+    void stopTimer ();
 
 private:
+    void timerCallback () override;
 
-    void timerCallback () override
-    {
-        updateText ();
-    }
+    void changeListenerCallback (
+        ChangeBroadcaster *source
+    ) override;
 
-    void changeListenerCallback (ChangeBroadcaster *source) override
-    {
-        if (source == &waveform)
-        {
-            updateText ();
-        }
-    }
+    void updateText ();
 
-    void updateText ()
-    {
-        std::string currentPositionFormatted = getCurrentPositionFormatted (waveform.getAudioSource ());
-        timeLabel.setText (currentPositionFormatted, NotificationType::dontSendNotification);
-    }
+    static std::string getCurrentPositionFormatted (
+        AudioTransportSource& audioSource
+    );
 
-    static std::string getCurrentPositionFormatted (AudioTransportSource& audioSource)
-    {
-        auto lengthInSeconds = audioSource.getLengthInSeconds (),
-          currentPosition = audioSource.getCurrentPosition ();
-
-        if (lengthInSeconds <= 0)
-        {
-            return "--:--/--:--";
-        }
-
-        std::string passedTime = formatTime (currentPosition),
-            entireDurationTime = formatTime (lengthInSeconds),
-            currentTime = passedTime + "/" + entireDurationTime;
-
-        return currentTime;
-    }
-
-    static std::string formatTime (double timeInSeconds)
-    {
-        RelativeTime relativeTime (timeInSeconds);
-        int minutes = round (floor (relativeTime.inMinutes ())),
-            seconds = round (floor (relativeTime.inSeconds ()) - (minutes * 60));
-        std::ostringstream time;
-
-        time << std::setw (2) << std::setfill ('0') << minutes << ":" << std::setw (2) << std::setfill ('0') << seconds;
-
-        return time.str ();
-    }
+    static std::string formatTime (double timeInSeconds);
 
 private:
     Label timeLabel;

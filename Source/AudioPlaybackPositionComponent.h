@@ -14,94 +14,34 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
+#include "AudioWaveformComponent.h"
+
 
 class AudioPlaybackPositionComponent :    public Component,
                                           public Timer,
                                           public ChangeListener
 {
 public:
-    AudioPlaybackPositionComponent (AudioWaveformComponent & waveform)
-        :
-            waveform (waveform),
-            isLooping (false)
-    {
-        // so we can handle mouse events for the component behind it (AudioWaveformComponent)
-        setInterceptsMouseClicks (false, true);
+    AudioPlaybackPositionComponent (
+        AudioWaveformComponent & waveform
+    );
 
-        waveform.addChangeListener (this);
-    }
+    ~AudioPlaybackPositionComponent ();
 
-    ~AudioPlaybackPositionComponent ()
-    {
-    }
+    void paint (Graphics& g) override;
 
-    void paint (Graphics& g) override
-    {
-        auto startTimeSeconds = waveform.getVisibleRegionStartTime (),
-            endTimeSeconds = waveform.getVisibleRegionEndTime (),
-            audioLengthSeconds = endTimeSeconds - startTimeSeconds;
+    void stopTimer ();
 
-        if (audioLengthSeconds > 0)
-        {
-            juce::Rectangle<float> localBounds = getLocalBounds ().toFloat ();
-            auto currentPosition = waveform.getAudioSource ().getCurrentPosition (),
-                drawPosition = ((currentPosition - startTimeSeconds) / audioLengthSeconds)
-                    * localBounds.getWidth () + localBounds.getX ();
-
-            g.setColour (Colours::green);
-            g.drawLine (
-                drawPosition,
-                localBounds.getY (),
-                drawPosition,
-                localBounds.getBottom (),
-                3.0f
-            );
-        } 
-    }
-
-    void stopTimer ()
-    {
-        Timer::stopTimer ();
-        repaint ();
-    }
-
-    void setIsLooping (bool isLooping)
-    {
-        this->isLooping = isLooping;
-    }
+    void setIsLooping (bool isLooping);
 
 private:
-    void timerCallback () override
-    {
-        respondToChange ();
-    }
+    void timerCallback () override;
 
-    void changeListenerCallback (ChangeBroadcaster *source) override
-    {
-        if (source == &waveform)
-        {
-            respondToChange ();
-        }
-    }
+    void changeListenerCallback (
+        ChangeBroadcaster *source
+    ) override;
 
-    void respondToChange ()
-    {
-        auto currentPosition = waveform.getAudioSource ().getCurrentPosition ();
-
-        if (
-            waveform.getHasSelectedRegion () &&
-            currentPosition >= waveform.getSelectedRegionEndTime ()
-        )
-        {
-            waveform.getAudioSource ().setPosition (waveform.getSelectedRegionStartTime ());
-            if (! isLooping)
-            {
-                waveform.getAudioSource ().pauseAudio ();
-            }
-        }
-
-        repaint ();
-    }
+    void respondToChange ();
 
 private:
     AudioWaveformComponent& waveform;
