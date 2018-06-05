@@ -11,18 +11,23 @@
 
 #include "AudioPlaybackPositionComponent.h"
 
-
 AudioPlaybackPositionComponent::AudioPlaybackPositionComponent (
-    AudioWaveformComponent & waveform
-)
-    :
-        waveform (waveform),
-        isLooping (false)
+    TenFtAudioTransportSource& audioSource,
+    float& visibleRegionStartTime,
+    float& visibleRegionEndTime,
+    bool& hasSelectedRegion,
+    float& selectedRegionStartTime,
+    float& selectedRegionEndTime
+) :
+    audioSource(audioSource),
+    visibleRegionStartTime(visibleRegionStartTime),
+    visibleRegionEndTime(visibleRegionEndTime),
+    selectedRegionStartTime(selectedRegionStartTime),
+    selectedRegionEndTime(selectedRegionEndTime),
+    hasSelectedRegion(hasSelectedRegion)
 {
     // so we can handle mouse events for the component behind it (AudioWaveformComponent)
     setInterceptsMouseClicks (false, true);
-
-    waveform.addChangeListener (this);
 }
 
 AudioPlaybackPositionComponent::~AudioPlaybackPositionComponent ()
@@ -31,15 +36,18 @@ AudioPlaybackPositionComponent::~AudioPlaybackPositionComponent ()
 
 void AudioPlaybackPositionComponent::paint (Graphics& g)
 {
-    auto startTimeSeconds = waveform.getVisibleRegionStartTime (),
-        endTimeSeconds = waveform.getVisibleRegionEndTime (),
-        audioLengthSeconds = endTimeSeconds - startTimeSeconds;
+    auto visibleRegionLength = visibleRegionEndTime - visibleRegionStartTime;
 
-    if (audioLengthSeconds > 0)
+    if (visibleRegionLength > 0)
     {
+        auto currentPosition = audioSource.getCurrentPosition ();
+        if (currentPosition < visibleRegionStartTime || currentPosition > visibleRegionEndTime)
+        {
+            return;
+        }
+
         juce::Rectangle<float> localBounds = getLocalBounds ().toFloat ();
-        auto currentPosition = waveform.getAudioSource ().getCurrentPosition (),
-            drawPosition = ((currentPosition - startTimeSeconds) / audioLengthSeconds)
+        auto drawPosition = ((currentPosition - visibleRegionStartTime) / visibleRegionLength)
                 * localBounds.getWidth () + localBounds.getX ();
 
         g.setColour (Colours::green);
@@ -59,11 +67,6 @@ void AudioPlaybackPositionComponent::stopTimer ()
     repaint ();
 }
 
-void AudioPlaybackPositionComponent::setIsLooping (bool isLooping)
-{
-    this->isLooping = isLooping;
-}
-
 // ==============================================================================
 
 void AudioPlaybackPositionComponent::timerCallback ()
@@ -75,25 +78,22 @@ void AudioPlaybackPositionComponent::changeListenerCallback (
     ChangeBroadcaster *source
 )
 {
-    if (source == &waveform)
-    {
-        respondToChange ();
-    }
+    respondToChange ();
 }
 
 void AudioPlaybackPositionComponent::respondToChange ()
 {
-    auto currentPosition = waveform.getAudioSource ().getCurrentPosition ();
+    auto currentPosition = audioSource.getCurrentPosition ();
 
     if (
-        waveform.getHasSelectedRegion () &&
-        currentPosition >= waveform.getSelectedRegionEndTime ()
+        hasSelectedRegion &&
+        currentPosition >= selectedRegionEndTime
     )
     {
-        waveform.getAudioSource ().setPosition (waveform.getSelectedRegionStartTime ());
-        if (! isLooping)
+        audioSource.setPosition (selectedRegionStartTime);
+        if (!audioSource.isLooping ())
         {
-            waveform.getAudioSource ().pauseAudio ();
+            audioSource.pauseAudio ();
         }
     }
 

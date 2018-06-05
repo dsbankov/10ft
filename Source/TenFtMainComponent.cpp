@@ -12,12 +12,10 @@
 #include "TenFtMainComponent.h"
 
 
-
 TenFtMainComponent::TenFtMainComponent ()
     :
         waveform (),
         clock (waveform),
-        playbackPosition (waveform),
         scroller (waveform)
 {
     addAndMakeVisible (&openButton);
@@ -51,23 +49,18 @@ TenFtMainComponent::TenFtMainComponent ()
     loopButton.setEnabled (false);
 
     // order is important for mouseDown events!
-    //  (will go to the most upfront component (last added))
+    // (will go to the most upfront component (last added))
     addAndMakeVisible (&waveform);
-    addAndMakeVisible (&playbackPosition);
     addAndMakeVisible (&scroller);
     addAndMakeVisible (&clock);
-
-    //openGLContext.attachTo (*this);
-    //openGLContext.attachTo (waveform);
-    //openGLContext.attachTo (progressLine);
 
     setSize (1000, 800);
     setAudioChannels (0, 2);
 
     waveform.getAudioSource ().onStateChange = [this] (
-        AudioFileTransportSource::AudioPlayerState state
+        TenFtAudioTransportSource::State state
     ) {
-        onAudioPlayerStateChange (state);
+        onAudioSourceStateChange (state);
     };
 }
 
@@ -127,9 +120,6 @@ void TenFtMainComponent::resized ()
         row2.reduced (delta).toNearestInt ()
     );
     waveform.setBounds (
-        row3.reduced (delta).toNearestInt ()
-    );
-    playbackPosition.setBounds (
         row3.reduced (delta).toNearestInt ()
     );
     scroller.setBounds (
@@ -192,32 +182,31 @@ void TenFtMainComponent::loopButtonClicked ()
 {
     const bool shouldLoop = loopButton.getToggleState ();
 
-    playbackPosition.setIsLooping (shouldLoop);
     waveform.getAudioSource ().setLooping (shouldLoop);
 }
 
-void TenFtMainComponent::onAudioPlayerStateChange (AudioFileTransportSource::AudioPlayerState state)
+void TenFtMainComponent::onAudioSourceStateChange (TenFtAudioTransportSource::State state)
 {
-    if (state == AudioFileTransportSource::Stopped)
+    if (state == TenFtAudioTransportSource::Stopped)
     {
         setupButton (playButton, "Play", true);
         setupButton (stopButton, "Stop", false);
-        playbackPosition.stopTimer ();
-        clock.stopTimer ();
+        waveform.getPlaybackPositionComponent ().stopTimer ();
         waveform.clearSelectedRegion ();
+        clock.stopTimer ();
     }
-    else if (state == AudioFileTransportSource::Playing)
+    else if (state == TenFtAudioTransportSource::Playing)
     {
         setupButton (playButton, "Pause", true);
         setupButton (stopButton, "Stop", true);
-        playbackPosition.startTimer (100);
+        waveform.getPlaybackPositionComponent ().startTimer (100);
         clock.startTimer (100);
     }
-    else if (state == AudioFileTransportSource::Paused)
+    else if (state == TenFtAudioTransportSource::Paused)
     {
         setupButton (playButton, "Play", true);
         setupButton (stopButton, "Return To Zero", true);
-        playbackPosition.stopTimer ();
+        waveform.getPlaybackPositionComponent ().stopTimer ();
         clock.stopTimer ();
     }
 }

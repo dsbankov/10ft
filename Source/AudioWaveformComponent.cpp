@@ -22,13 +22,21 @@ AudioWaveformComponent::AudioWaveformComponent ()
         visibleRegionEndTime (0.0),
         hasSelectedRegion (false),
         selectedRegionStartTime (0.0),
-        selectedRegionEndTime (0.0)
+        selectedRegionEndTime (0.0),
+        playbackPosition (audioSource, visibleRegionStartTime,
+            visibleRegionEndTime, hasSelectedRegion,
+            selectedRegionStartTime, selectedRegionEndTime),
+        openGLContext()
 {
+    openGLContext.attachTo (*this);
+    addAndMakeVisible (&playbackPosition);
+    addChangeListener (&playbackPosition);
     thumbnail.addChangeListener (this);
 }
 
 AudioWaveformComponent::~AudioWaveformComponent ()
 {
+    openGLContext.detach ();
 }
 
 void AudioWaveformComponent::paint (Graphics& g)
@@ -43,6 +51,11 @@ void AudioWaveformComponent::paint (Graphics& g)
     {
         paintIfFileLoaded (g, thumbnailBounds);
     }
+}
+
+void AudioWaveformComponent::resized ()
+{
+    playbackPosition.setBounds (getLocalBounds ());
 }
 
 void AudioWaveformComponent::mouseWheelMove (
@@ -69,7 +82,7 @@ void AudioWaveformComponent::mouseWheelMove (
     if (wheelDetails.deltaY < 0)
     {
         // downwards
-
+        
         setVisibleRegion (
             visibleRegionStartTime - scrollAmmountLeft,
             visibleRegionEndTime + scrollAmmountRight
@@ -201,7 +214,7 @@ void AudioWaveformComponent::clearSelectedRegion ()
     repaint ();
 }
 
-AudioFileTransportSource& AudioWaveformComponent::getAudioSource ()
+TenFtAudioTransportSource& AudioWaveformComponent::getAudioSource ()
 {
     return audioSource;
 }
@@ -229,6 +242,11 @@ float AudioWaveformComponent::getSelectedRegionEndTime ()
 bool AudioWaveformComponent::getHasSelectedRegion ()
 {
     return hasSelectedRegion;
+}
+
+AudioPlaybackPositionComponent& AudioWaveformComponent::getPlaybackPositionComponent ()
+{
+    return playbackPosition;
 }
 
 // ==============================================================================

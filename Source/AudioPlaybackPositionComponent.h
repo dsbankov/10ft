@@ -14,7 +14,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-#include "AudioWaveformComponent.h"
+#include "TenFtAudioTransportSource.h"
 
 
 class AudioPlaybackPositionComponent :    public Component,
@@ -23,7 +23,12 @@ class AudioPlaybackPositionComponent :    public Component,
 {
 public:
     AudioPlaybackPositionComponent (
-        AudioWaveformComponent & waveform
+        TenFtAudioTransportSource& audioSource,
+        float& visibleRegionStartTime,
+        float& visibleRegionEndTime,
+        bool& hasSelectedRegion,
+        float& selectedRegionStartTime,
+        float& selectedRegionEndTime
     );
 
     ~AudioPlaybackPositionComponent ();
@@ -31,8 +36,6 @@ public:
     void paint (Graphics& g) override;
 
     void stopTimer ();
-
-    void setIsLooping (bool isLooping);
 
 private:
     void timerCallback () override;
@@ -44,8 +47,12 @@ private:
     void respondToChange ();
 
 private:
-    AudioWaveformComponent& waveform;
-    bool isLooping;
+    TenFtAudioTransportSource& audioSource;
+    float& visibleRegionStartTime;
+    float& visibleRegionEndTime;
+    float& selectedRegionStartTime;
+    float& selectedRegionEndTime;
+    bool& hasSelectedRegion;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPlaybackPositionComponent)
 };

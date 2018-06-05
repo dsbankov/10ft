@@ -14,7 +14,8 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-#include "AudioFileTransportSource.h"
+#include "TenFtAudioTransportSource.h"
+#include "AudioPlaybackPositionComponent.h"
 
 
 class AudioWaveformComponent :    public Component,
@@ -27,6 +28,8 @@ public:
     ~AudioWaveformComponent ();
 
     void paint (Graphics& g) override;
+
+    void resized () override;
 
     void mouseWheelMove (
         const MouseEvent& event,
@@ -48,7 +51,7 @@ public:
 
     void clearSelectedRegion ();
 
-    AudioFileTransportSource& getAudioSource ();
+    TenFtAudioTransportSource& getAudioSource ();
 
     float getVisibleRegionStartTime ();
 
@@ -59,6 +62,8 @@ public:
     float getSelectedRegionEndTime ();
 
     bool getHasSelectedRegion ();
+
+    AudioPlaybackPositionComponent& getPlaybackPositionComponent ();
 
 private:
     void changeListenerCallback (
@@ -90,7 +95,7 @@ private:
 
 private:
     AudioFormatManager formatManager;
-    AudioFileTransportSource audioSource;
+    TenFtAudioTransportSource audioSource;
     AudioThumbnailCache thumbnailCache;
     AudioThumbnail thumbnail;
     float visibleRegionStartTime;
@@ -98,6 +103,8 @@ private:
     bool hasSelectedRegion;
     float selectedRegionStartTime;
     float selectedRegionEndTime;
+    AudioPlaybackPositionComponent playbackPosition;
+    OpenGLContext openGLContext;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioWaveformComponent)
 };

@@ -11,19 +11,19 @@
 
 #pragma once
 
-
-#include "../JuceLibraryCode/JuceHeader.h"
 #include <string>
 #include <iostream>
 #include <sstream>
 #include <iomanip>
 
+#include "../JuceLibraryCode/JuceHeader.h"
 
-class AudioFileTransportSource :    public AudioTransportSource,
+
+class TenFtAudioTransportSource :   public AudioTransportSource,
                                     private ChangeListener
 {
 public:
-    enum AudioPlayerState
+    enum State
     {
         NoFileLoaded,
         Starting,
@@ -33,16 +33,17 @@ public:
         Pausing,
         Paused
     };
+
     std::function<void (
-        AudioFileTransportSource::AudioPlayerState
+        TenFtAudioTransportSource::State
     )> onStateChange;
 
 public:
-    AudioFileTransportSource (
+    TenFtAudioTransportSource (
         AudioFormatManager& formatManager
     );
 
-    ~AudioFileTransportSource ();
+    ~TenFtAudioTransportSource ();
 
     bool loadAudio (File& file);
 
@@ -56,11 +57,13 @@ public:
 
     void setLooping (bool shouldLoop) override;
 
+    bool isLooping () const override;
+
 private:
     void unloadAudio ();
 
     void changeState (
-        AudioFileTransportSource::AudioPlayerState newState
+        TenFtAudioTransportSource::State newState
     );
 
     void changeListenerCallback (
@@ -70,5 +73,5 @@ private:
 private:
     AudioFormatManager& formatManager;
     std::unique_ptr<AudioFormatReaderSource> readerSource;
-    AudioPlayerState state;
+    State state;
 };

@@ -7,8 +7,8 @@
     <GROUP id="{9E117A82-4BFD-3F75-60D8-A4662BCEA3A5}" name="Source">
       <FILE id="Olz56J" name="AudioClockComponent.cpp" compile="1" resource="0"
             file="Source/AudioClockComponent.cpp"/>
-      <FILE id="k3fLwe" name="AudioFileTransportSource.cpp" compile="1" resource="0"
-            file="Source/AudioFileTransportSource.cpp"/>
+      <FILE id="k3fLwe" name="TenFtAudioTransportSource.cpp" compile="1"
+            resource="0" file="Source/TenFtAudioTransportSource.cpp"/>
       <FILE id="CwtHnD" name="AudioPlaybackPositionComponent.cpp" compile="1"
             resource="0" file="Source/AudioPlaybackPositionComponent.cpp"/>
       <FILE id="G8Mi6a" name="AudioScrollerComponent.cpp" compile="1" resource="0"
@@ -20,8 +20,8 @@
       <FILE id="xQAgO0" name="Application.cpp" compile="1" resource="0" file="Source/Application.cpp"/>
       <FILE id="Zo1l0O" name="TenFtMainComponent.h" compile="0" resource="0"
             file="Source/TenFtMainComponent.h"/>
-      <FILE id="nS4kDr" name="AudioFileTransportSource.h" compile="0" resource="0"
-            file="Source/AudioFileTransportSource.h"/>
+      <FILE id="nS4kDr" name="TenFtAudioTransportSource.h" compile="0" resource="0"
+            file="Source/TenFtAudioTransportSource.h"/>
       <FILE id="MsnmlH" name="AudioWaveformComponent.h" compile="0" resource="0"
             file="Source/AudioWaveformComponent.h"/>
       <FILE id="clblof" name="AudioScrollerComponent.h" compile="0" resource="0"
@@ -130,7 +130,7 @@
   </EXPORTFORMATS>
   <LIVE_SETTINGS>
     <OSX/>
-    <WINDOWS windowsTargetPlatformVersion="10.0.17134.0" buildEnabled="1"
+    <WINDOWS windowsTargetPlatformVersion="10.0.17134.0" buildEnabled="0"
              continuousRebuildEnabled="1"/>
   </LIVE_SETTINGS>
   <JUCEOPTIONS/>
