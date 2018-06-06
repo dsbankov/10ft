@@ -95,7 +95,7 @@ void TenFtMainComponent::releaseResources ()
 
 void TenFtMainComponent::resized ()
 {
-    juce::Rectangle<float> bounds = getLocalBounds ().toFloat ();
+    juce::Rectangle<float> bounds = getLocalBounds ().toFloat ().reduced (10.0f);
     float width = bounds.getWidth (),
         height = bounds.getHeight (),
         delta = 5.0f;
