@@ -9,28 +9,47 @@
 */
 
 #include "TenFtLookAndFeel.h"
+#include "AudioWaveformComponent.h"
 
 TenFtLookAndFeel::TenFtLookAndFeel ()
 {
-    Colour colour = getMainColour (),
-        contrastingColour = colour.contrasting (1.0f);
-    setColour (TextButton::ColourIds::buttonColourId, colour);
-    setColour (TextButton::ColourIds::buttonOnColourId, colour);
+    Colour mainColour = Colours::yellow.withBrightness (0.8f).withSaturation (0.5f),
+        contrastingColour = mainColour.contrasting (1.0f);
+    setColour (TextButton::ColourIds::buttonColourId, mainColour.brighter ());
+    setColour (TextButton::ColourIds::buttonOnColourId, mainColour.brighter ());
     setColour (TextButton::ColourIds::textColourOffId, contrastingColour);
     setColour (TextButton::ColourIds::textColourOnId, contrastingColour);
+    //setColour (ComboBox::ColourIds::outlineColourId, Colours::red);
     setColour (Slider::ColourIds::backgroundColourId, contrastingColour);
-    setColour (Slider::ColourIds::thumbColourId, colour.brighter());
+    setColour (Slider::ColourIds::thumbColourId, mainColour.brighter());
     setColour (Slider::ColourIds::trackColourId, contrastingColour);
     setColour (Label::ColourIds::textColourId, contrastingColour);
     setColour (ToggleButton::ColourIds::textColourId, contrastingColour);
     setColour (ToggleButton::ColourIds::tickColourId, contrastingColour);
+
+    int waveformColourId =
+            AudioWaveformComponent::ColourIds::waveformColour,
+        waveformBackgroundColourId =
+            AudioWaveformComponent::ColourIds::waveformBackgroundColour,
+        waveformSelectedRegionBackgroundColourId =
+            AudioWaveformComponent::ColourIds::waveformSelectedRegionBackgroundColour,
+        lineColourId =
+            AudioPlaybackPositionComponent::ColourIds::lineColour;
+
+    setColour (waveformColourId, contrastingColour);
+    setColour (waveformBackgroundColourId, mainColour.contrasting (0.2f));
+    setColour (waveformSelectedRegionBackgroundColourId, mainColour.contrasting (0.4f));
+    setColour (lineColourId,
+        Colour::contrasting (
+            Colour::contrasting (
+                findColour (waveformColourId),
+                findColour (waveformBackgroundColourId)
+            ),
+            findColour (waveformSelectedRegionBackgroundColourId)
+        ).overlaidWith (Colours::red.withAlpha (0.8f)).withAlpha (0.8f)
+    );
 }
 
 TenFtLookAndFeel::~TenFtLookAndFeel ()
 {
-}
-
-const Colour TenFtLookAndFeel::getMainColour ()
-{
-    return Colours::yellow.withBrightness (0.8f).withSaturation (0.5f);
 }

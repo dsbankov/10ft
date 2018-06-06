@@ -22,14 +22,18 @@ class AudioPlaybackPositionComponent :    public Component,
                                           public ChangeListener
 {
 public:
+    enum ColourIds
+    {
+        lineColour = 3
+    };
+
     AudioPlaybackPositionComponent (
         TenFtAudioTransportSource& audioSource,
         float& visibleRegionStartTime,
         float& visibleRegionEndTime,
         bool& hasSelectedRegion,
         float& selectedRegionStartTime,
-        float& selectedRegionEndTime,
-        Colour& lineColour
+        float& selectedRegionEndTime
     );
 
     ~AudioPlaybackPositionComponent ();
@@ -54,7 +58,6 @@ private:
     float& selectedRegionStartTime;
     float& selectedRegionEndTime;
     bool& hasSelectedRegion;
-    Colour& lineColour;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPlaybackPositionComponent)
 };

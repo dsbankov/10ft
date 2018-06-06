@@ -74,4 +74,5 @@ private:
     AudioFormatManager& formatManager;
     std::unique_ptr<AudioFormatReaderSource> readerSource;
     State state;
+
 };

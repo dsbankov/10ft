@@ -18,6 +18,8 @@ TenFtMainComponent::TenFtMainComponent ()
         clock (waveform),
         scroller (waveform)
 {
+    setLookAndFeel (&tenFtLookAndFeel);
+
     addAndMakeVisible (&openButton);
     openButton.setButtonText ("Open...");
     openButton.onClick = [this] {
@@ -59,19 +61,6 @@ TenFtMainComponent::TenFtMainComponent ()
     ) {
         onAudioSourceStateChange (state);
     };
-
-    setLookAndFeel (&tenFtLookAndFeel);
-
-    Colour mainColour = tenFtLookAndFeel.getMainColour ();
-
-    waveform.waveformColour = mainColour.contrasting (1.0f);
-    waveform.waveformBackgroundColour = mainColour.contrasting (0.2f);
-    waveform.waveformSelectedRegionBackgroundColour = mainColour.contrasting (0.4f);
-    waveform.waveformPlaybackPositionColour =
-        Colour::contrasting (
-            Colour::contrasting (waveform.waveformColour, waveform.waveformBackgroundColour),
-            waveform.waveformSelectedRegionBackgroundColour
-        ).overlaidWith (Colours::red.withAlpha (0.8f)).withAlpha(0.8f);
 }
 
 TenFtMainComponent::~TenFtMainComponent ()
@@ -140,7 +129,7 @@ void TenFtMainComponent::resized ()
 
 void TenFtMainComponent::paint (Graphics & g)
 {
-    g.fillAll (TenFtLookAndFeel::getMainColour().contrasting(0.1f));
+    g.fillAll (findColour (AudioWaveformComponent::ColourIds::waveformBackgroundColour).contrasting(0.2f));
 }
 
 // ==============================================================================

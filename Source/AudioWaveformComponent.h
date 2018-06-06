@@ -23,10 +23,12 @@ class AudioWaveformComponent :    public Component,
                                   private ChangeListener
 {
 public:
-    Colour waveformColour = Colours::red,
-        waveformBackgroundColour = Colours::white,
-        waveformSelectedRegionBackgroundColour = Colours::lightblue,
-        waveformPlaybackPositionColour = Colours::green;
+    enum ColourIds
+    {
+        waveformColour = 0,
+        waveformBackgroundColour = 1,
+        waveformSelectedRegionBackgroundColour = 2
+    };
 
 public:
     AudioWaveformComponent ();

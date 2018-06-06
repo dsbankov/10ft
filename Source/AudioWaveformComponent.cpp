@@ -25,14 +25,14 @@ AudioWaveformComponent::AudioWaveformComponent ()
         selectedRegionEndTime (0.0),
         playbackPosition (audioSource, visibleRegionStartTime,
             visibleRegionEndTime, hasSelectedRegion,
-            selectedRegionStartTime, selectedRegionEndTime,
-            waveformPlaybackPositionColour),
+            selectedRegionStartTime, selectedRegionEndTime),
         openGLContext()
 {
     openGLContext.attachTo (*this);
+    thumbnail.addChangeListener (this);
+
     addAndMakeVisible (&playbackPosition);
     addChangeListener (&playbackPosition);
-    thumbnail.addChangeListener (this);
 }
 
 AudioWaveformComponent::~AudioWaveformComponent ()
@@ -267,9 +267,9 @@ void AudioWaveformComponent::paintIfNoFileLoaded (
     juce::Rectangle<float> thumbnailBounds
 )
 {
-    g.setColour (waveformBackgroundColour);
+    g.setColour (findColour(ColourIds::waveformBackgroundColour));
     g.fillRect (thumbnailBounds);
-    g.setColour (waveformColour);
+    g.setColour (findColour (ColourIds::waveformColour));
     g.drawFittedText (
         "No File Loaded",
         thumbnailBounds.toNearestInt (),
@@ -304,9 +304,9 @@ void AudioWaveformComponent::paintIfFileLoaded (
                 thumbnailBounds.removeFromLeft (endOfDragX - startOfDragX),
             notSelectedRegionRight = thumbnailBounds;
 
-        g.setColour (waveformBackgroundColour);
+        g.setColour (findColour (ColourIds::waveformBackgroundColour));
         g.fillRect (notSelectedRegionLeft);
-        g.setColour (waveformColour);
+        g.setColour (findColour (ColourIds::waveformColour));
         thumbnail.drawChannels (
             g,
             notSelectedRegionLeft.toNearestInt (),
@@ -315,9 +315,9 @@ void AudioWaveformComponent::paintIfFileLoaded (
             1.0f
         );
 
-        g.setColour (waveformSelectedRegionBackgroundColour);
+        g.setColour (findColour (ColourIds::waveformSelectedRegionBackgroundColour));
         g.fillRect (selectedRegion);
-        g.setColour (waveformColour);
+        g.setColour (findColour (ColourIds::waveformColour));
         thumbnail.drawChannels (
             g,
             selectedRegion.toNearestInt (),
@@ -326,9 +326,9 @@ void AudioWaveformComponent::paintIfFileLoaded (
             1.0f
         );
 
-        g.setColour (waveformBackgroundColour);
+        g.setColour (findColour (ColourIds::waveformBackgroundColour));
         g.fillRect (notSelectedRegionRight);
-        g.setColour (waveformColour);
+        g.setColour (findColour (ColourIds::waveformColour));
         thumbnail.drawChannels (
             g,
             notSelectedRegionRight.toNearestInt (),
@@ -339,9 +339,9 @@ void AudioWaveformComponent::paintIfFileLoaded (
     }
     else
     {
-        g.setColour (waveformBackgroundColour);
+        g.setColour (findColour (ColourIds::waveformBackgroundColour));
         g.fillRect (thumbnailBounds);
-        g.setColour (waveformColour);
+        g.setColour (findColour (ColourIds::waveformColour));
         thumbnail.drawChannels (
             g,
             thumbnailBounds.toNearestInt (),

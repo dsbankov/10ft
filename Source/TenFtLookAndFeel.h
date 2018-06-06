@@ -19,6 +19,4 @@ public:
 
     ~TenFtLookAndFeel ();
 
-    static const Colour getMainColour ();
-
 };
