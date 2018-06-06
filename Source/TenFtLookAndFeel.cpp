@@ -19,10 +19,9 @@ TenFtLookAndFeel::TenFtLookAndFeel ()
     setColour (TextButton::ColourIds::buttonOnColourId, mainColour.brighter ());
     setColour (TextButton::ColourIds::textColourOffId, contrastingColour);
     setColour (TextButton::ColourIds::textColourOnId, contrastingColour);
-    //setColour (ComboBox::ColourIds::outlineColourId, Colours::red);
-    setColour (Slider::ColourIds::backgroundColourId, contrastingColour);
-    setColour (Slider::ColourIds::thumbColourId, mainColour.brighter());
-    setColour (Slider::ColourIds::trackColourId, contrastingColour);
+    setColour (Slider::ColourIds::backgroundColourId, mainColour.contrasting(0.3f));
+    setColour (Slider::ColourIds::thumbColourId, mainColour.contrasting (0.8f));
+    setColour (Slider::ColourIds::trackColourId, mainColour);
     setColour (Label::ColourIds::textColourId, contrastingColour);
     setColour (ToggleButton::ColourIds::textColourId, contrastingColour);
     setColour (ToggleButton::ColourIds::tickColourId, contrastingColour);
