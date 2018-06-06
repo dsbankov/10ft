@@ -17,14 +17,16 @@ AudioPlaybackPositionComponent::AudioPlaybackPositionComponent (
     float& visibleRegionEndTime,
     bool& hasSelectedRegion,
     float& selectedRegionStartTime,
-    float& selectedRegionEndTime
+    float& selectedRegionEndTime,
+    Colour& lineColour
 ) :
     audioSource(audioSource),
     visibleRegionStartTime(visibleRegionStartTime),
     visibleRegionEndTime(visibleRegionEndTime),
     selectedRegionStartTime(selectedRegionStartTime),
     selectedRegionEndTime(selectedRegionEndTime),
-    hasSelectedRegion(hasSelectedRegion)
+    hasSelectedRegion(hasSelectedRegion),
+    lineColour(lineColour)
 {
     // so we can handle mouse events for the component behind it (AudioWaveformComponent)
     setInterceptsMouseClicks (false, true);
@@ -50,13 +52,13 @@ void AudioPlaybackPositionComponent::paint (Graphics& g)
         auto drawPosition = ((currentPosition - visibleRegionStartTime) / visibleRegionLength)
                 * localBounds.getWidth () + localBounds.getX ();
 
-        g.setColour (Colours::green);
+        g.setColour (lineColour);
         g.drawLine (
             drawPosition,
             localBounds.getY (),
             drawPosition,
             localBounds.getBottom (),
-            3.0f
+            2.0f
         );
     } 
 }

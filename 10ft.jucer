@@ -5,6 +5,10 @@
               id="xaPCEr" jucerVersion="5.3.2" bundleIdentifier="com.dsbankov.10ft">
   <MAINGROUP id="YFGFpb" name="10ft">
     <GROUP id="{9E117A82-4BFD-3F75-60D8-A4662BCEA3A5}" name="Source">
+      <FILE id="wZwZwv" name="TenFtLookAndFeel.cpp" compile="1" resource="0"
+            file="Source/TenFtLookAndFeel.cpp"/>
+      <FILE id="FCwe28" name="TenFtLookAndFeel.h" compile="0" resource="0"
+            file="Source/TenFtLookAndFeel.h"/>
       <FILE id="Olz56J" name="AudioClockComponent.cpp" compile="1" resource="0"
             file="Source/AudioClockComponent.cpp"/>
       <FILE id="k3fLwe" name="TenFtAudioTransportSource.cpp" compile="1"

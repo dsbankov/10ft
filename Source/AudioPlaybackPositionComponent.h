@@ -28,7 +28,8 @@ public:
         float& visibleRegionEndTime,
         bool& hasSelectedRegion,
         float& selectedRegionStartTime,
-        float& selectedRegionEndTime
+        float& selectedRegionEndTime,
+        Colour& lineColour
     );
 
     ~AudioPlaybackPositionComponent ();
@@ -53,6 +54,7 @@ private:
     float& selectedRegionStartTime;
     float& selectedRegionEndTime;
     bool& hasSelectedRegion;
+    Colour& lineColour;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPlaybackPositionComponent)
 };

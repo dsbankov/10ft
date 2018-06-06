@@ -29,7 +29,6 @@ TenFtMainComponent::TenFtMainComponent ()
     playButton.onClick = [this] {
         playButtonClicked ();
     };
-    playButton.setColour (TextButton::buttonColourId, Colours::green);
     playButton.setEnabled (false);
 
     addAndMakeVisible (&stopButton);
@@ -37,19 +36,17 @@ TenFtMainComponent::TenFtMainComponent ()
     stopButton.onClick = [this] {
         stopButtonClicked ();
     };
-    stopButton.setColour (TextButton::buttonColourId, Colours::red);
     stopButton.setEnabled (false);
 
     addAndMakeVisible (&loopButton);
     loopButton.setButtonText ("Loop");
+    loopButton.changeWidthToFitText ();
     loopButton.setToggleState (false, NotificationType::dontSendNotification);
     loopButton.onClick = [this] {
         loopButtonClicked ();
     };
     loopButton.setEnabled (false);
 
-    // order is important for mouseDown events!
-    // (will go to the most upfront component (last added))
     addAndMakeVisible (&waveform);
     addAndMakeVisible (&scroller);
     addAndMakeVisible (&clock);
@@ -62,11 +59,25 @@ TenFtMainComponent::TenFtMainComponent ()
     ) {
         onAudioSourceStateChange (state);
     };
+
+    setLookAndFeel (&tenFtLookAndFeel);
+
+    Colour mainColour = tenFtLookAndFeel.getMainColour ();
+
+    waveform.waveformColour = mainColour.contrasting (1.0f);
+    waveform.waveformBackgroundColour = mainColour.contrasting (0.2f);
+    waveform.waveformSelectedRegionBackgroundColour = mainColour.contrasting (0.4f);
+    waveform.waveformPlaybackPositionColour =
+        Colour::contrasting (
+            Colour::contrasting (waveform.waveformColour, waveform.waveformBackgroundColour),
+            waveform.waveformSelectedRegionBackgroundColour
+        ).overlaidWith (Colours::red.withAlpha (0.8f)).withAlpha(0.8f);
 }
 
 TenFtMainComponent::~TenFtMainComponent ()
 {
     shutdownAudio ();
+    setLookAndFeel (nullptr);
 }
 
 void TenFtMainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
@@ -125,6 +136,11 @@ void TenFtMainComponent::resized ()
     scroller.setBounds (
         row4.reduced (delta).toNearestInt ()
     );
+}
+
+void TenFtMainComponent::paint (Graphics & g)
+{
+    g.fillAll (TenFtLookAndFeel::getMainColour().contrasting(0.1f));
 }
 
 // ==============================================================================

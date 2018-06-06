@@ -44,11 +44,11 @@ private:
 
     void updateText ();
 
-    static std::string getCurrentPositionFormatted (
+    std::string getCurrentPositionFormatted (
         AudioTransportSource& audioSource
     );
 
-    static std::string formatTime (double timeInSeconds);
+    std::string formatTime (double timeInSeconds);
 
 private:
     Label timeLabel;

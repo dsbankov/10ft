@@ -73,9 +73,12 @@ std::string AudioClockComponent::getCurrentPositionFormatted (
 )
 {
     auto lengthInSeconds = audioSource.getLengthInSeconds (),
-      currentPosition = audioSource.getCurrentPosition ();
+        currentPosition = audioSource.getCurrentPosition ();
+    auto disabled = lengthInSeconds <= 0;
 
-    if (lengthInSeconds <= 0)
+    timeLabel.setEnabled (!disabled);
+
+    if (disabled)
     {
         return "--:--/--:--";
     }

@@ -23,6 +23,12 @@ class AudioWaveformComponent :    public Component,
                                   private ChangeListener
 {
 public:
+    Colour waveformColour = Colours::red,
+        waveformBackgroundColour = Colours::white,
+        waveformSelectedRegionBackgroundColour = Colours::lightblue,
+        waveformPlaybackPositionColour = Colours::green;
+
+public:
     AudioWaveformComponent ();
 
     ~AudioWaveformComponent ();
@@ -38,9 +44,9 @@ public:
 
     void mouseDoubleClick (const MouseEvent& event) override;
 
-    void mouseDrag (const MouseEvent &event) override;
+    void mouseDrag (const MouseEvent& event) override;
 
-    void mouseDown (const MouseEvent &event) override;
+    void mouseDown (const MouseEvent& event) override;
 
     bool loadAudio (File file);
 
@@ -72,7 +78,7 @@ private:
 
     void paintIfNoFileLoaded (
         Graphics& g,
-        juce::Rectangle<int> thumbnailBounds
+        juce::Rectangle<float> thumbnailBounds
     );
 
     void paintIfFileLoaded (

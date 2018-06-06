@@ -16,6 +16,7 @@ Author:  DBANKOV
 #include "AudioWaveformComponent.h"
 #include "AudioClockComponent.h"
 #include "AudioScrollerComponent.h"
+#include "TenFtLookAndFeel.h"
 
 
 class TenFtMainComponent :    public AudioAppComponent
@@ -37,6 +38,8 @@ public:
     void releaseResources () override;
 
     void resized () override;
+
+    void paint (Graphics& g) override;
 
 private:
     void openButtonClicked ();
@@ -65,6 +68,7 @@ private:
     AudioWaveformComponent waveform;
     AudioClockComponent clock;
     AudioScrollerComponent scroller;
+    TenFtLookAndFeel tenFtLookAndFeel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TenFtMainComponent)
 };
