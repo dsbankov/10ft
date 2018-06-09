@@ -84,7 +84,7 @@ void AudioWaveformComponent::mouseWheelMove (
     {
         // downwards
         
-        setVisibleRegion (
+        updateVisibleRegion (
             visibleRegionStartTime - scrollAmmountLeft,
             visibleRegionEndTime + scrollAmmountRight
         );
@@ -93,7 +93,7 @@ void AudioWaveformComponent::mouseWheelMove (
     {
         // upwards
         
-        setVisibleRegion (
+        updateVisibleRegion (
             visibleRegionStartTime + scrollAmmountLeft,
             visibleRegionEndTime - scrollAmmountRight
         );
@@ -128,7 +128,7 @@ void AudioWaveformComponent::mouseDrag (const MouseEvent &event)
                 + event.getDistanceFromDragStartX (),
             mouseDownSeconds = xToSeconds (mouseDownX);
 
-        updateDragRegion (mouseDownSeconds);
+        updateSelectedRegion (mouseDownSeconds);
     }
     else
     {
@@ -160,7 +160,7 @@ void AudioWaveformComponent::mouseDown (const MouseEvent &event)
     {
         float seconds = xToSeconds (mouseDownX);
 
-        updateDragRegion (seconds);
+        updateSelectedRegion (seconds);
 
         repaint ();
     }
@@ -175,7 +175,7 @@ bool AudioWaveformComponent::loadAudio (File file)
     if (audioSource.loadAudio (file))
     {
         thumbnail.setSource (new FileInputSource (file));
-        setVisibleRegion (0.0, audioSource.getLengthInSeconds ());
+        updateVisibleRegion (0.0, audioSource.getLengthInSeconds ());
 
         return true;
     }
@@ -184,13 +184,13 @@ bool AudioWaveformComponent::loadAudio (File file)
         hasSelectedRegion = false;
 
         thumbnail.clear ();
-        setVisibleRegion (0.0, 0.0);
+        updateVisibleRegion (0.0, 0.0);
 
         return false;
     }
 }
 
-void AudioWaveformComponent::setVisibleRegion (
+void AudioWaveformComponent::updateVisibleRegion (
     float visibleRegionStartTime,
     float visibleRegionEndTime
 )
@@ -376,7 +376,7 @@ float AudioWaveformComponent::secondsToX (
         * thumbnailBounds.getWidth ();
 }
 
-void AudioWaveformComponent::updateDragRegion (float mouseDownSeconds)
+void AudioWaveformComponent::updateSelectedRegion (float mouseDownSeconds)
 {
     float distanceFromStartOfDragSeconds =
             std::abs (mouseDownSeconds - selectedRegionStartTime),

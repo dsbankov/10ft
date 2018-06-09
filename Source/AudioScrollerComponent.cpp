@@ -60,7 +60,7 @@ void AudioScrollerComponent::valueChanged ()
         leftPositionSeconds = (minValue / 100.0) * lengthInSeconds,
         rightPositionSeconds = (maxValue / 100.0) * lengthInSeconds;
 
-    waveform.setVisibleRegion (leftPositionSeconds, rightPositionSeconds);
+    waveform.updateVisibleRegion (leftPositionSeconds, rightPositionSeconds);
 }
 
 void AudioScrollerComponent::mouseDown (const MouseEvent & event)

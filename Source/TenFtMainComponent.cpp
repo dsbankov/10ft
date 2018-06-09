@@ -78,7 +78,7 @@ void TenFtMainComponent::prepareToPlay (int samplesPerBlockExpected, double samp
 
 void TenFtMainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
 {
-    if (! waveform.getAudioSource ().isFileLoaded ())
+    if (! waveform.getAudioSource ().isAudioLoaded ())
     {
         bufferToFill.clearActiveBufferRegion ();
 

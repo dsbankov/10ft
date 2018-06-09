@@ -52,7 +52,7 @@ public:
 
     bool loadAudio (File file);
 
-    void setVisibleRegion (
+    void updateVisibleRegion (
         float visibleRegionStartTime,
         float visibleRegionEndTime
     );
@@ -97,7 +97,7 @@ private:
         const juce::Rectangle<float> thumbnailBounds
     );
 
-    void updateDragRegion (float mouseDownSeconds);
+    void updateSelectedRegion (float mouseDownSeconds);
 
     float flattenTime (float timeSeconds);
 

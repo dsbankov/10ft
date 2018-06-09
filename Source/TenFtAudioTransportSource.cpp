@@ -60,7 +60,7 @@ bool TenFtAudioTransportSource::loadAudio (File& file)
     }
 }
 
-bool TenFtAudioTransportSource::isFileLoaded ()
+bool TenFtAudioTransportSource::isAudioLoaded ()
 {
     return state != NoFileLoaded;
 }

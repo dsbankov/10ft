@@ -47,7 +47,7 @@ public:
 
     bool loadAudio (File& file);
 
-    bool isFileLoaded ();
+    bool isAudioLoaded ();
 
     void playAudio ();
 
