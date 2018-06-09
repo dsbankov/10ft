@@ -101,6 +101,8 @@ private:
 
     float flattenTime (float timeSeconds);
 
+    bool isVisibleRegionCorrect (float visibleRegionStartTime, float visibleRegionEndTime);
+
 private:
     AudioFormatManager formatManager;
     TenFtAudioTransportSource audioSource;

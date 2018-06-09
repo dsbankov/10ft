@@ -48,7 +48,7 @@ void AudioScrollerComponent::valueChanged ()
     double minValue = getMinValue (),
         maxValue = getMaxValue ();
 
-    if (minValue >= maxValue)
+    if (minValue > maxValue)
     {
         std::swap (minValue, maxValue);
         setMinAndMaxValuesWithCheck (minValue, maxValue);

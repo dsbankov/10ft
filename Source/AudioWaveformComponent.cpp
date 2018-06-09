@@ -17,7 +17,7 @@ AudioWaveformComponent::AudioWaveformComponent ()
         formatManager (),
         audioSource (formatManager),
         thumbnailCache (5),
-        thumbnail (1024, formatManager, thumbnailCache),
+        thumbnail (2048, formatManager, thumbnailCache),
         visibleRegionStartTime (0.0),
         visibleRegionEndTime (0.0),
         hasSelectedRegion (false),
@@ -175,7 +175,7 @@ bool AudioWaveformComponent::loadAudio (File file)
     if (audioSource.loadAudio (file))
     {
         thumbnail.setSource (new FileInputSource (file));
-        updateVisibleRegion (0.0, audioSource.getLengthInSeconds ());
+        updateVisibleRegion (0.0f, audioSource.getLengthInSeconds ());
 
         return true;
     }
@@ -184,7 +184,7 @@ bool AudioWaveformComponent::loadAudio (File file)
         hasSelectedRegion = false;
 
         thumbnail.clear ();
-        updateVisibleRegion (0.0, 0.0);
+        updateVisibleRegion (0.0f, 0.0f);
 
         return false;
     }
@@ -195,13 +195,24 @@ void AudioWaveformComponent::updateVisibleRegion (
     float visibleRegionEndTime
 )
 {
-    if (visibleRegionStartTime >= visibleRegionEndTime)
+    float startTimeFlattened = flattenTime (visibleRegionStartTime),
+        endTimeFlattened = flattenTime (visibleRegionEndTime);
+
+    if (!isVisibleRegionCorrect(startTimeFlattened, endTimeFlattened))
+    {
+        throw std::logic_error (
+            "Incorrect visible region [" +
+                std::to_string(visibleRegionStartTime) + ", " +
+                std::to_string (visibleRegionEndTime) + "].");
+    }
+
+    if (endTimeFlattened - startTimeFlattened < 0.05f)
     {
         return;
     }
 
-    this->visibleRegionStartTime = flattenTime (visibleRegionStartTime);
-    this->visibleRegionEndTime = flattenTime (visibleRegionEndTime);
+    this->visibleRegionStartTime = startTimeFlattened;
+    this->visibleRegionEndTime = endTimeFlattened;
 
     sendChangeMessage ();
 
@@ -406,4 +417,18 @@ float AudioWaveformComponent::flattenTime (float timeSeconds)
     }
 
     return timeSeconds;
+}
+
+bool AudioWaveformComponent::isVisibleRegionCorrect (
+    float visibleRegionStartTime,
+    float visibleRegionEndTime)
+{
+    bool isAudioLoaded = audioSource.isAudioLoaded ();
+    return
+        (!isAudioLoaded &&
+            visibleRegionStartTime == 0.0f && visibleRegionEndTime == 0.0f) ||
+            (isAudioLoaded &&
+                visibleRegionStartTime < visibleRegionEndTime &&
+                visibleRegionStartTime >= 0 &&
+                visibleRegionEndTime <= audioSource.getLengthInSeconds ());
 }
