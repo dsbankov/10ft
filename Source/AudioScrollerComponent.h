@@ -53,9 +53,9 @@ private:
 
 private:
     AudioWaveformComponent& waveform;
-    bool dragEntireRange;
-    double startOfDragMinX;
-    double startOfDragMaxX;
+    bool dragVisibleRegion;
+    double visibleRegionMinX;
+    double visibleRegionMaxX;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioScrollerComponent)
 };

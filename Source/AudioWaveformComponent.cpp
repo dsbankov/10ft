@@ -427,8 +427,8 @@ bool AudioWaveformComponent::isVisibleRegionCorrect (
     return
         (!isAudioLoaded &&
             visibleRegionStartTime == 0.0f && visibleRegionEndTime == 0.0f) ||
-            (isAudioLoaded &&
-                visibleRegionStartTime < visibleRegionEndTime &&
-                visibleRegionStartTime >= 0 &&
-                visibleRegionEndTime <= audioSource.getLengthInSeconds ());
+        (isAudioLoaded &&
+            visibleRegionStartTime < visibleRegionEndTime &&
+            visibleRegionStartTime >= 0 &&
+            visibleRegionEndTime <= audioSource.getLengthInSeconds ());
 }

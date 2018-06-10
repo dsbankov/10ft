@@ -18,9 +18,9 @@ AudioScrollerComponent::AudioScrollerComponent (
     :
         Slider (),
         waveform (waveform),
-        dragEntireRange (false),
-        startOfDragMinX (0.0),
-        startOfDragMaxX (0.0)
+        dragVisibleRegion (false),
+        visibleRegionMinX (0.0),
+        visibleRegionMaxX (0.0)
 {
     setRange (0.0, 100.0, 0.1);
     setSliderStyle (Slider::TwoValueHorizontal);
@@ -33,8 +33,8 @@ AudioScrollerComponent::AudioScrollerComponent (
     setChangeNotificationOnlyOnRelease (false);
     setEnabled (false);
 
-    startOfDragMinX = getMinimum ();
-    startOfDragMaxX = getMaximum ();
+    visibleRegionMinX = getMinimum ();
+    visibleRegionMaxX = getMaximum ();
 
     waveform.addChangeListener (this);
 }
@@ -48,10 +48,8 @@ void AudioScrollerComponent::valueChanged ()
     double minValue = getMinValue (),
         maxValue = getMaxValue ();
 
-    if (minValue > maxValue)
+    if (minValue == maxValue)
     {
-        std::swap (minValue, maxValue);
-        setMinAndMaxValuesWithCheck (minValue, maxValue);
         return;
     }
 
@@ -65,40 +63,68 @@ void AudioScrollerComponent::valueChanged ()
 
 void AudioScrollerComponent::mouseDown (const MouseEvent & event)
 {
-    if (isEnabled () && isMouseDownInDragRange (event))
+    if (!isEnabled ())
     {
-        dragEntireRange = true;
-        startOfDragMinX = valueToProportionOfLength (getMinValue ())
-            * getLocalBounds ().getWidth ();
-        startOfDragMaxX = valueToProportionOfLength (getMaxValue ())
-            * getLocalBounds ().getWidth ();
+        return;
     }
-    else
-    {
-        dragEntireRange = false;
-        Slider::mouseDown (event);
-    }
+
+    dragVisibleRegion = isMouseDownInDragRange (event);
+    visibleRegionMinX = valueToProportionOfLength (getMinValue ())
+        * getLocalBounds ().getWidth ();
+    visibleRegionMaxX = valueToProportionOfLength (getMaxValue ())
+        * getLocalBounds ().getWidth ();
+
+    Slider::mouseDown (event);
 }
 
 void AudioScrollerComponent::mouseDrag (const MouseEvent & event)
 {
-    if (isEnabled () && dragEntireRange)
+    if (!isEnabled ())
     {
-        double distanceFromStartX = event.getDistanceFromDragStartX (),
-            newMinValue = offsetValue (
-                startOfDragMinX,
-                distanceFromStartX
-            ),
-            newMaxValue = offsetValue (
-                startOfDragMaxX,
-                distanceFromStartX
-            );
+        return;
+    }
 
+    double distanceFromMouseDownX = event.getDistanceFromDragStartX (),
+        newMinValue = offsetValue (
+            visibleRegionMinX,
+            distanceFromMouseDownX
+        ),
+        newMaxValue = offsetValue (
+            visibleRegionMaxX,
+            distanceFromMouseDownX
+        );
+
+    if (dragVisibleRegion)
+    {
         setMinAndMaxValuesWithCheck (newMinValue, newMaxValue);
     }
     else
     {
-        Slider::mouseDrag (event);
+        double mouseDownXBeforeDrag = event.getMouseDownX (),
+            minValueMouseDownXProximity =
+                std::abs (visibleRegionMinX - mouseDownXBeforeDrag),
+            maxValueMouseDownXProximity =
+                std::abs (visibleRegionMaxX - mouseDownXBeforeDrag),
+            distancePassed = std::abs (distanceFromMouseDownX),
+            distanceAllowed = visibleRegionMaxX - visibleRegionMinX;
+
+        if (minValueMouseDownXProximity < maxValueMouseDownXProximity)
+        {
+            if (distanceFromMouseDownX > 0 && distancePassed >= distanceAllowed)
+            {
+                return;
+            }
+            setMinAndMaxValuesWithCheck (newMinValue, getMaxValue());
+        }
+        else
+        {
+            if (distanceFromMouseDownX < 0 && distancePassed >= distanceAllowed)
+            {
+                return;
+            }
+            setMinAndMaxValuesWithCheck (getMinValue(), newMaxValue);
+        }
+
     }
 }
 
