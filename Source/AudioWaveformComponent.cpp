@@ -196,8 +196,8 @@ void AudioWaveformComponent::updateVisibleRegion (
     float visibleRegionEndTime
 )
 {
-    float startTimeFlattened = flattenTime (visibleRegionStartTime),
-        endTimeFlattened = flattenTime (visibleRegionEndTime);
+    float startTimeFlattened = flattenSeconds (visibleRegionStartTime),
+        endTimeFlattened = flattenSeconds (visibleRegionEndTime);
 
     if (!isVisibleRegionCorrect(startTimeFlattened, endTimeFlattened))
     {
@@ -295,13 +295,17 @@ void AudioWaveformComponent::paintIfFileLoaded (Graphics& g)
         selectedRegionEndTime < visibleRegionStartTime ||
         selectedRegionStartTime > visibleRegionEndTime
     );
+
     if (hasIntersectionWithSelectedRegion)
     {
-        float notSelectedRegionLeftWidth = flattenWidth (secondsToX (selectedRegionStartTime)),
-            notSelectedRegionRightWidth = flattenWidth (secondsToX (selectedRegionEndTime)),
+        float notSelectedRegionLeftWidth =
+                flattenX (secondsToX (selectedRegionStartTime)),
+            notSelectedRegionRightWidth =
+                flattenX (secondsToX (selectedRegionEndTime)),
             selectedRegionWidth =
-                flattenWidth (notSelectedRegionRightWidth - notSelectedRegionLeftWidth);
-
+                flattenX (
+                    notSelectedRegionRightWidth - notSelectedRegionLeftWidth
+                );
         juce::Rectangle<float> notSelectedRegionLeft =
                 thumbnailBounds.removeFromLeft (notSelectedRegionLeftWidth),
             selectedRegion =
@@ -415,30 +419,30 @@ float AudioWaveformComponent::secondsToX (float s)
         * thumbnailBounds.getWidth ();
 }
 
-float AudioWaveformComponent::flattenTime (float timeSeconds)
+float AudioWaveformComponent::flattenSeconds (float s)
 {
-    if (timeSeconds < 0.0f)
+    if (s < 0.0f)
     {
         return 0.0f;
     }
 
-    if (timeSeconds > audioSource.getLengthInSeconds ())
+    if (s > audioSource.getLengthInSeconds ())
     {
         return audioSource.getLengthInSeconds ();
     }
 
-    return timeSeconds;
+    return s;
 }
 
-float AudioWaveformComponent::flattenWidth (float width)
+float AudioWaveformComponent::flattenX (float x)
 {
-    if (width < 0)
+    if (x < 0)
     {
         return 0;
     }
-    if (width > getLocalBounds ().getWidth ())
+    if (x > getLocalBounds ().getWidth ())
     {
         return getLocalBounds ().getWidth ();
     }
-    return width;
+    return x;
 }

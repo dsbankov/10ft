@@ -92,9 +92,9 @@ private:
 
     float secondsToX (float s);
 
-    float flattenTime (float timeSeconds);
+    float flattenSeconds (float s);
 
-    float flattenWidth (float width);
+    float flattenX (float x);
 
 private:
     AudioFormatManager formatManager;
