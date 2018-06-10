@@ -42,15 +42,13 @@ AudioWaveformComponent::~AudioWaveformComponent ()
 
 void AudioWaveformComponent::paint (Graphics& g)
 {
-    juce::Rectangle<float> thumbnailBounds = getLocalBounds ().toFloat ();
-
     if (thumbnail.getNumChannels () == 0)
     {
-        paintIfNoFileLoaded (g, thumbnailBounds);
+        paintIfNoFileLoaded (g);
     }
     else
     {
-        paintIfFileLoaded (g, thumbnailBounds);
+        paintIfFileLoaded (g);
     }
 }
 
@@ -132,15 +130,18 @@ void AudioWaveformComponent::mouseDrag (const MouseEvent &event)
     }
     else
     {
-        float startOfDragX = secondsToX (
-                selectedRegionStartTime,
-                getLocalBounds ().toFloat ()
-            ),
+        float startOfDragX = secondsToX (selectedRegionStartTime),
             endOfDragX = startOfDragX + event.getDistanceFromDragStartX ();
 
         hasSelectedRegion = true;
-
         selectedRegionEndTime = xToSeconds (endOfDragX);
+
+        // when we drag left
+        if (selectedRegionStartTime > selectedRegionEndTime)
+        {
+            std::swap (selectedRegionStartTime, selectedRegionEndTime);
+        }
+
         audioSource.setPosition (selectedRegionStartTime);
     }
 
@@ -273,11 +274,9 @@ void AudioWaveformComponent::changeListenerCallback (
     }
 }
 
-void AudioWaveformComponent::paintIfNoFileLoaded (
-    Graphics& g,
-    juce::Rectangle<float> thumbnailBounds
-)
+void AudioWaveformComponent::paintIfNoFileLoaded (Graphics& g)
 {
+    juce::Rectangle<float> thumbnailBounds = getLocalBounds ().toFloat ();
     g.setColour (findColour(ColourIds::waveformBackgroundColour));
     g.fillRect (thumbnailBounds);
     g.setColour (findColour (ColourIds::waveformColour));
@@ -289,42 +288,39 @@ void AudioWaveformComponent::paintIfNoFileLoaded (
     );
 }
 
-void AudioWaveformComponent::paintIfFileLoaded (
-    Graphics& g,
-    juce::Rectangle<float> thumbnailBounds
-)
+void AudioWaveformComponent::paintIfFileLoaded (Graphics& g)
 {
-    if (hasSelectedRegion)
+    juce::Rectangle<float> thumbnailBounds = getLocalBounds ().toFloat ();
+    bool hasIntersectionWithSelectedRegion = !(
+        selectedRegionEndTime < visibleRegionStartTime ||
+        selectedRegionStartTime > visibleRegionEndTime
+    );
+    if (hasIntersectionWithSelectedRegion)
     {
-        if (selectedRegionStartTime > selectedRegionEndTime)
-        {
-            std::swap (selectedRegionStartTime, selectedRegionEndTime);
-        }
+        float notSelectedRegionLeftWidth = flattenWidth (secondsToX (selectedRegionStartTime)),
+            notSelectedRegionRightWidth = flattenWidth (secondsToX (selectedRegionEndTime)),
+            selectedRegionWidth =
+                flattenWidth (notSelectedRegionRightWidth - notSelectedRegionLeftWidth);
 
-        float startOfDragX = secondsToX (
-                selectedRegionStartTime,
-                thumbnailBounds
-            ),
-            endOfDragX = secondsToX (
-                selectedRegionEndTime,
-                thumbnailBounds
-            );
         juce::Rectangle<float> notSelectedRegionLeft =
-                thumbnailBounds.removeFromLeft (startOfDragX),
+                thumbnailBounds.removeFromLeft (notSelectedRegionLeftWidth),
             selectedRegion =
-                thumbnailBounds.removeFromLeft (endOfDragX - startOfDragX),
+                thumbnailBounds.removeFromLeft (selectedRegionWidth),
             notSelectedRegionRight = thumbnailBounds;
 
-        g.setColour (findColour (ColourIds::waveformBackgroundColour));
-        g.fillRect (notSelectedRegionLeft);
-        g.setColour (findColour (ColourIds::waveformColour));
-        thumbnail.drawChannels (
-            g,
-            notSelectedRegionLeft.toNearestInt (),
-            visibleRegionStartTime,
-            selectedRegionStartTime,
-            1.0f
-        );
+        if (visibleRegionStartTime < selectedRegionStartTime)
+        {
+            g.setColour (findColour (ColourIds::waveformBackgroundColour));
+            g.fillRect (notSelectedRegionLeft);
+            g.setColour (findColour (ColourIds::waveformColour));
+            thumbnail.drawChannels (
+                g,
+                notSelectedRegionLeft.toNearestInt (),
+                visibleRegionStartTime,
+                selectedRegionStartTime,
+                1.0f
+            );
+        }
 
         g.setColour (findColour (ColourIds::waveformSelectedRegionBackgroundColour));
         g.fillRect (selectedRegion);
@@ -332,21 +328,24 @@ void AudioWaveformComponent::paintIfFileLoaded (
         thumbnail.drawChannels (
             g,
             selectedRegion.toNearestInt (),
-            selectedRegionStartTime,
-            selectedRegionEndTime,
+            jmax(selectedRegionStartTime, visibleRegionStartTime),
+            jmin(selectedRegionEndTime, visibleRegionEndTime),
             1.0f
         );
 
-        g.setColour (findColour (ColourIds::waveformBackgroundColour));
-        g.fillRect (notSelectedRegionRight);
-        g.setColour (findColour (ColourIds::waveformColour));
-        thumbnail.drawChannels (
-            g,
-            notSelectedRegionRight.toNearestInt (),
-            selectedRegionEndTime,
-            visibleRegionEndTime,
-            1.0f
-        );
+        if (selectedRegionEndTime < visibleRegionEndTime)
+        {
+            g.setColour (findColour (ColourIds::waveformBackgroundColour));
+            g.fillRect (notSelectedRegionRight);
+            g.setColour (findColour (ColourIds::waveformColour));
+            thumbnail.drawChannels (
+                g,
+                notSelectedRegionRight.toNearestInt (),
+                selectedRegionEndTime,
+                visibleRegionEndTime,
+                1.0f
+            );
+        }
     }
     else
     {
@@ -368,25 +367,6 @@ float AudioWaveformComponent::getVisibleRegionLengthSeconds ()
     return visibleRegionEndTime - visibleRegionStartTime;
 }
 
-float AudioWaveformComponent::xToSeconds (float x)
-{
-    float visibleRegionLengthSeconds = getVisibleRegionLengthSeconds ();
-
-    return (x / getLocalBounds ().getWidth ()) * visibleRegionLengthSeconds
-        + visibleRegionStartTime;
-}
-
-float AudioWaveformComponent::secondsToX (
-    float s,
-    const juce::Rectangle<float> thumbnailBounds
-)
-{
-    float visibleRegionLengthSeconds = getVisibleRegionLengthSeconds ();
-
-    return ((s - visibleRegionStartTime) / visibleRegionLengthSeconds)
-        * thumbnailBounds.getWidth ();
-}
-
 void AudioWaveformComponent::updateSelectedRegion (float mouseDownSeconds)
 {
     float distanceFromStartOfDragSeconds =
@@ -404,6 +384,37 @@ void AudioWaveformComponent::updateSelectedRegion (float mouseDownSeconds)
     }
 }
 
+bool AudioWaveformComponent::isVisibleRegionCorrect (
+    float visibleRegionStartTime,
+    float visibleRegionEndTime)
+{
+    bool isAudioLoaded = audioSource.isAudioLoaded ();
+    return
+        (!isAudioLoaded &&
+            visibleRegionStartTime == 0.0f && visibleRegionEndTime == 0.0f) ||
+        (isAudioLoaded &&
+            visibleRegionStartTime < visibleRegionEndTime &&
+            visibleRegionStartTime >= 0 &&
+            visibleRegionEndTime <= audioSource.getLengthInSeconds ());
+}
+
+float AudioWaveformComponent::xToSeconds (float x)
+{
+    float visibleRegionLengthSeconds = getVisibleRegionLengthSeconds ();
+
+    return (x / getLocalBounds ().getWidth ()) * visibleRegionLengthSeconds
+        + visibleRegionStartTime;
+}
+
+float AudioWaveformComponent::secondsToX (float s)
+{
+    juce::Rectangle<float> thumbnailBounds = getLocalBounds ().toFloat ();
+    float visibleRegionLengthSeconds = getVisibleRegionLengthSeconds ();
+
+    return ((s - visibleRegionStartTime) / visibleRegionLengthSeconds)
+        * thumbnailBounds.getWidth ();
+}
+
 float AudioWaveformComponent::flattenTime (float timeSeconds)
 {
     if (timeSeconds < 0.0f)
@@ -419,16 +430,15 @@ float AudioWaveformComponent::flattenTime (float timeSeconds)
     return timeSeconds;
 }
 
-bool AudioWaveformComponent::isVisibleRegionCorrect (
-    float visibleRegionStartTime,
-    float visibleRegionEndTime)
+float AudioWaveformComponent::flattenWidth (float width)
 {
-    bool isAudioLoaded = audioSource.isAudioLoaded ();
-    return
-        (!isAudioLoaded &&
-            visibleRegionStartTime == 0.0f && visibleRegionEndTime == 0.0f) ||
-        (isAudioLoaded &&
-            visibleRegionStartTime < visibleRegionEndTime &&
-            visibleRegionStartTime >= 0 &&
-            visibleRegionEndTime <= audioSource.getLengthInSeconds ());
+    if (width < 0)
+    {
+        return 0;
+    }
+    if (width > getLocalBounds ().getWidth ())
+    {
+        return getLocalBounds ().getWidth ();
+    }
+    return width;
 }

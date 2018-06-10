@@ -78,30 +78,23 @@ private:
         ChangeBroadcaster* source
     ) override;
 
-    void paintIfNoFileLoaded (
-        Graphics& g,
-        juce::Rectangle<float> thumbnailBounds
-    );
+    void paintIfNoFileLoaded (Graphics& g);
 
-    void paintIfFileLoaded (
-        Graphics& g,
-        juce::Rectangle<float> thumbnailBounds
-    );
+    void paintIfFileLoaded (Graphics& g);
 
     float getVisibleRegionLengthSeconds ();
 
+    void updateSelectedRegion (float mouseDownSeconds);
+
+    bool isVisibleRegionCorrect (float visibleRegionStartTime, float visibleRegionEndTime);
+
     float xToSeconds (float x);
 
-    float secondsToX (
-        float s,
-        const juce::Rectangle<float> thumbnailBounds
-    );
-
-    void updateSelectedRegion (float mouseDownSeconds);
+    float secondsToX (float s);
 
     float flattenTime (float timeSeconds);
 
-    bool isVisibleRegionCorrect (float visibleRegionStartTime, float visibleRegionEndTime);
+    float flattenWidth (float width);
 
 private:
     AudioFormatManager formatManager;
