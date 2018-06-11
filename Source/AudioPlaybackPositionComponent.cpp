@@ -70,31 +70,5 @@ void AudioPlaybackPositionComponent::stopTimer ()
 
 void AudioPlaybackPositionComponent::timerCallback ()
 {
-    respondToChange ();
-}
-
-void AudioPlaybackPositionComponent::changeListenerCallback (
-    ChangeBroadcaster *source
-)
-{
-    respondToChange ();
-}
-
-void AudioPlaybackPositionComponent::respondToChange ()
-{
-    auto currentPosition = audioSource.getCurrentPosition ();
-
-    if (
-        hasSelectedRegion &&
-        currentPosition >= selectedRegionEndTime
-    )
-    {
-        audioSource.setPosition (selectedRegionStartTime);
-        if (!audioSource.isLooping ())
-        {
-            audioSource.pauseAudio ();
-        }
-    }
-
     repaint ();
 }

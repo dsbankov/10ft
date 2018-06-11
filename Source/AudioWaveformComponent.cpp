@@ -15,7 +15,7 @@
 AudioWaveformComponent::AudioWaveformComponent ()
     :
         formatManager (),
-        audioSource (formatManager),
+        audioSource (formatManager, hasSelectedRegion, selectedRegionStartTime, selectedRegionEndTime),
         thumbnailCache (5),
         thumbnail (2048, formatManager, thumbnailCache),
         visibleRegionStartTime (0.0),
@@ -32,7 +32,6 @@ AudioWaveformComponent::AudioWaveformComponent ()
     thumbnail.addChangeListener (this);
 
     addAndMakeVisible (&playbackPosition);
-    addChangeListener (&playbackPosition);
 }
 
 AudioWaveformComponent::~AudioWaveformComponent ()

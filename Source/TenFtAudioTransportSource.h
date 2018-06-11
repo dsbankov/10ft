@@ -40,10 +40,15 @@ public:
 
 public:
     TenFtAudioTransportSource (
-        AudioFormatManager& formatManager
+        AudioFormatManager& formatManager,
+        bool& hasSelectedRegion,
+        float& selectedRegionStartTime,
+        float& selectedRegionEndTime
     );
 
     ~TenFtAudioTransportSource ();
+
+    void getNextAudioBlock (const AudioSourceChannelInfo& info) override;
 
     bool loadAudio (File& file);
 
@@ -74,5 +79,9 @@ private:
     AudioFormatManager& formatManager;
     std::unique_ptr<AudioFormatReaderSource> readerSource;
     State state;
+    bool shouldLoop = false;
+    bool& hasSelectedRegion;
+    float& selectedRegionStartTime;
+    float& selectedRegionEndTime;
 
 };

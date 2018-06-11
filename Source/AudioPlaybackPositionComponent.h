@@ -18,8 +18,7 @@
 
 
 class AudioPlaybackPositionComponent :    public Component,
-                                          public Timer,
-                                          public ChangeListener
+                                          public Timer
 {
 public:
     enum ColourIds
@@ -44,12 +43,6 @@ public:
 
 private:
     void timerCallback () override;
-
-    void changeListenerCallback (
-        ChangeBroadcaster *source
-    ) override;
-
-    void respondToChange ();
 
 private:
     TenFtAudioTransportSource& audioSource;
