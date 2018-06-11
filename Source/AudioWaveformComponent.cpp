@@ -296,7 +296,7 @@ void AudioWaveformComponent::paintIfFileLoaded (Graphics& g)
         selectedRegionStartTime > visibleRegionEndTime
     );
 
-    if (hasIntersectionWithSelectedRegion)
+    if (hasSelectedRegion && hasIntersectionWithSelectedRegion)
     {
         float notSelectedRegionLeftWidth =
                 flattenX (secondsToX (selectedRegionStartTime)),
