@@ -31,7 +31,7 @@ void AudioPlaybackPositionComponent::paint (Graphics& g)
         }
 
         juce::Rectangle<float> localBounds = getLocalBounds ().toFloat ();
-        auto drawPosition = (
+        float drawPosition = (float) (
                 (currentPosition - visibleRegionStartTime) /
                 (visibleRegionEndTime - visibleRegionStartTime)
             )
@@ -74,7 +74,7 @@ void AudioPlaybackPositionComponent::visibleRegionChanged (
 }
 
 void AudioPlaybackPositionComponent::thumbnailCleared (
-    AudioWaveformComponent * waveform
+    AudioWaveformComponent*
 )
 {
     isAudioLoaded = false;

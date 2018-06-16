@@ -71,8 +71,8 @@ std::string AudioClockComponent::formatTime (
 )
 {
     RelativeTime relativeTime (timeInSeconds);
-    int minutes = round (floor (relativeTime.inMinutes ())),
-        seconds = round (
+    int minutes = (int) round (floor (relativeTime.inMinutes ())),
+        seconds = (int) round (
             floor (relativeTime.inSeconds ()) - (minutes * 60)
         );
     std::ostringstream time;

@@ -23,7 +23,7 @@
 
 class TenFtAudioTransportSource :    public AudioTransportSource,
                                      public AudioWaveformComponent::Listener,
-                                     public ChangeListener,
+                                     private ChangeListener,
                                      private Timer
 {
 public:

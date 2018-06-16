@@ -52,21 +52,21 @@ public:
 
     void clearThumbnail ();
 
-    float getTotalLength ();
+    double getTotalLength ();
 
-    float getVisibleRegionStartTime ();
+    double getVisibleRegionStartTime ();
 
-    float getVisibleRegionEndTime ();
+    double getVisibleRegionEndTime ();
 
-    void updateVisibleRegion (float newStartTime, float newEndTime);
+    void updateVisibleRegion (double newStartTime, double newEndTime);
 
     bool getHasSelectedRegion ();
 
-    float getSelectedRegionStartTime ();
+    double getSelectedRegionStartTime ();
 
-    float getSelectedRegionEndTime ();
+    double getSelectedRegionEndTime ();
 
-    void updateSelectedRegion (float newStartTime, float newRegionEndTime);
+    void updateSelectedRegion (double newStartTime, double newRegionEndTime);
 
     void clearSelectedRegion ();
 
@@ -96,24 +96,24 @@ private:
 
     void paintIfFileLoaded (Graphics& g);
 
-    void setSelectedRegionStartTime (float selectedRegionStartTime);
+    void setSelectedRegionStartTime (double selectedRegionStartTime);
 
-    void setSelectedRegionEndTime (float selectedRegionEndTime);
+    void setSelectedRegionEndTime (double selectedRegionEndTime);
 
-    void updateSelectedRegion (float mouseDownSeconds);
+    void updateSelectedRegion (double mouseDownSeconds);
 
-    float getVisibleRegionLengthInSeconds ();
+    double getVisibleRegionLengthInSeconds ();
 
     bool isVisibleRegionCorrect (
-        float visibleRegionStartTime,
-        float visibleRegionEndTime
+        double visibleRegionStartTime,
+        double visibleRegionEndTime
     );
 
-    float xToSeconds (float x);
+    double xToSeconds (float x);
 
-    float secondsToX (float s);
+    float secondsToX (double s);
 
-    float flattenSeconds (float s);
+    double flattenSeconds (double s);
 
     float flattenX (float x);
 
@@ -121,11 +121,11 @@ private:
     AudioFormatManager formatManager;
     AudioThumbnailCache thumbnailCache;
     AudioThumbnail thumbnail;
-    float visibleRegionStartTime;
-    float visibleRegionEndTime;
+    double visibleRegionStartTime;
+    double visibleRegionEndTime;
     bool hasSelectedRegion = false;
-    float selectedRegionStartTime;
-    float selectedRegionEndTime;
+    double selectedRegionStartTime;
+    double selectedRegionEndTime;
     ListenerList<Listener> listeners;
     OpenGLContext openGLContext;
 

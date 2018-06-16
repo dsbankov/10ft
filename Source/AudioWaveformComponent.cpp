@@ -64,12 +64,12 @@ void AudioWaveformComponent::mouseWheelMove (
 
     juce::Rectangle<float> bounds = getLocalBounds ().toFloat ();
     float leftRelativeAmmount =
-            float (event.getMouseDownX () - bounds.getX ())
-                / bounds.getWidth (),
-        rightRelativeAmmount = 1.0f - leftRelativeAmmount,
-        visibleRegionLengthInSeconds = getVisibleRegionLengthInSeconds ();
+        (float) (event.getMouseDownX () - bounds.getX ())
+        / bounds.getWidth (),
+        rightRelativeAmmount = 1.0f - leftRelativeAmmount;
+    double visibleRegionLengthInSeconds = getVisibleRegionLengthInSeconds ();
 
-    const float scrollAmmount = 0.1f * visibleRegionLengthInSeconds,
+    const double scrollAmmount = 0.1f * visibleRegionLengthInSeconds,
         scrollAmmountLeft = scrollAmmount * leftRelativeAmmount,
         scrollAmmountRight = scrollAmmount * rightRelativeAmmount;
 
@@ -100,7 +100,7 @@ void AudioWaveformComponent::mouseDoubleClick (const MouseEvent& event)
         return;
     }
 
-    float newPosition = xToSeconds (event.getMouseDownX ());
+    double newPosition = xToSeconds ((float) event.getMouseDownX ());
 
     clearSelectedRegion ();
     
@@ -116,17 +116,17 @@ void AudioWaveformComponent::mouseDrag (const MouseEvent &event)
 
     if (hasSelectedRegion)
     {
-        float mouseDownX = event.getMouseDownX ()
-                + event.getDistanceFromDragStartX (),
-            mouseDownSeconds = xToSeconds (mouseDownX);
+        int mouseDownX = event.getMouseDownX () +
+            event.getDistanceFromDragStartX ();
+        double mouseDownSeconds = xToSeconds ((float) mouseDownX);
 
         updateSelectedRegion (mouseDownSeconds);
     }
     else
     {
         float startOfDragX = secondsToX (selectedRegionStartTime),
-            endOfDragX = startOfDragX + event.getDistanceFromDragStartX (),
-            newStartTime = selectedRegionStartTime,
+            endOfDragX = startOfDragX + event.getDistanceFromDragStartX ();
+        double newStartTime = selectedRegionStartTime,
             newEndTime = xToSeconds (endOfDragX);
 
         hasSelectedRegion = true;
@@ -152,11 +152,11 @@ void AudioWaveformComponent::mouseDown (const MouseEvent &event)
         return;
     }
 
-    float mouseDownX = event.getMouseDownX ();
+    int mouseDownX = event.getMouseDownX ();
 
     if (hasSelectedRegion)
     {
-        float seconds = xToSeconds (mouseDownX);
+        double seconds = xToSeconds ((float) mouseDownX);
 
         updateSelectedRegion (seconds);
 
@@ -164,7 +164,7 @@ void AudioWaveformComponent::mouseDown (const MouseEvent &event)
     }
     else
     {
-        setSelectedRegionStartTime (xToSeconds (mouseDownX));
+        setSelectedRegionStartTime (xToSeconds ((float) mouseDownX));
     }
 }
 
@@ -206,17 +206,17 @@ void AudioWaveformComponent::clearThumbnail ()
     listeners.call ([this] (Listener& l) { l.thumbnailCleared (this); });
 }
 
-float AudioWaveformComponent::getTotalLength ()
+double AudioWaveformComponent::getTotalLength ()
 {
     return thumbnail.getTotalLength ();
 }
 
 void AudioWaveformComponent::updateVisibleRegion (
-    float newStartTime,
-    float newEndTime
+    double newStartTime,
+    double newEndTime
 )
 {
-    float startTimeFlattened = flattenSeconds (newStartTime),
+    double startTimeFlattened = flattenSeconds (newStartTime),
         endTimeFlattened = flattenSeconds (newEndTime);
 
     if (!isVisibleRegionCorrect(startTimeFlattened, endTimeFlattened))
@@ -241,7 +241,7 @@ void AudioWaveformComponent::updateVisibleRegion (
 }
 
 void AudioWaveformComponent::updateSelectedRegion (
-    float newStartTime, float newEndTime
+    double newStartTime, double newEndTime
 )
 {
     selectedRegionStartTime = newStartTime;
@@ -257,22 +257,22 @@ void AudioWaveformComponent::clearSelectedRegion ()
     listeners.call ([this] (Listener& l) { l.selectedRegionChanged (this); });
 }
 
-float AudioWaveformComponent::getVisibleRegionStartTime ()
+double AudioWaveformComponent::getVisibleRegionStartTime ()
 {
     return visibleRegionStartTime;
 }
 
-float AudioWaveformComponent::getVisibleRegionEndTime ()
+double AudioWaveformComponent::getVisibleRegionEndTime ()
 {
     return visibleRegionEndTime;
 }
 
-float AudioWaveformComponent::getSelectedRegionStartTime ()
+double AudioWaveformComponent::getSelectedRegionStartTime ()
 {
     return selectedRegionStartTime;
 }
 
-float AudioWaveformComponent::getSelectedRegionEndTime ()
+double AudioWaveformComponent::getSelectedRegionEndTime ()
 {
     return selectedRegionEndTime;
 }
@@ -304,7 +304,7 @@ void AudioWaveformComponent::paintIfNoFileLoaded (Graphics& g)
         "No File Loaded",
         thumbnailBounds.toNearestInt (),
         Justification::centred,
-        1.0f
+        1
     );
 }
 
@@ -388,24 +388,24 @@ void AudioWaveformComponent::paintIfFileLoaded (Graphics& g)
     }
 }
 
-void AudioWaveformComponent::setSelectedRegionStartTime (float newStartTime)
+void AudioWaveformComponent::setSelectedRegionStartTime (double newStartTime)
 {
     updateSelectedRegion (newStartTime, selectedRegionEndTime);
 }
 
-void AudioWaveformComponent::setSelectedRegionEndTime (float newEndTime)
+void AudioWaveformComponent::setSelectedRegionEndTime (double newEndTime)
 {
     updateSelectedRegion (selectedRegionStartTime, newEndTime);
 }
 
-float AudioWaveformComponent::getVisibleRegionLengthInSeconds ()
+double AudioWaveformComponent::getVisibleRegionLengthInSeconds ()
 {
     return visibleRegionEndTime - visibleRegionStartTime;
 }
 
-void AudioWaveformComponent::updateSelectedRegion (float mouseDownSeconds)
+void AudioWaveformComponent::updateSelectedRegion (double mouseDownSeconds)
 {
-    float distanceFromStartOfDragSeconds =
+    double distanceFromStartOfDragSeconds =
             std::abs (mouseDownSeconds - selectedRegionStartTime),
         distanceFromEndOfDragSeconds =
             std::abs (mouseDownSeconds - selectedRegionEndTime);
@@ -422,37 +422,37 @@ void AudioWaveformComponent::updateSelectedRegion (float mouseDownSeconds)
 }
 
 bool AudioWaveformComponent::isVisibleRegionCorrect (
-    float visibleRegionStartTime,
-    float visibleRegionEndTime)
+    double startTime, double endTime
+)
 {
     bool isAudioLoaded = thumbnail.getTotalLength () > 0.0;
     return
         (!isAudioLoaded &&
-            visibleRegionStartTime == 0.0f && visibleRegionEndTime == 0.0f) ||
+            startTime == 0.0f && endTime == 0.0f) ||
         (isAudioLoaded &&
-            visibleRegionStartTime < visibleRegionEndTime &&
-            visibleRegionStartTime >= 0 &&
-            visibleRegionEndTime <= thumbnail.getTotalLength ());
+            startTime < endTime &&
+            startTime >= 0 &&
+            endTime <= thumbnail.getTotalLength ());
 }
 
-float AudioWaveformComponent::xToSeconds (float x)
+double AudioWaveformComponent::xToSeconds (float x)
 {
-    float visibleRegionLengthSeconds = getVisibleRegionLengthInSeconds ();
+    double visibleRegionLengthSeconds = getVisibleRegionLengthInSeconds ();
 
-    return (x / getLocalBounds ().getWidth ()) * visibleRegionLengthSeconds
+    return ((double) x / (double) getLocalBounds ().getWidth ()) * visibleRegionLengthSeconds
         + visibleRegionStartTime;
 }
 
-float AudioWaveformComponent::secondsToX (float s)
+float AudioWaveformComponent::secondsToX (double s)
 {
     juce::Rectangle<float> thumbnailBounds = getLocalBounds ().toFloat ();
-    float visibleRegionLengthSeconds = getVisibleRegionLengthInSeconds ();
+    double visibleRegionLengthSeconds = getVisibleRegionLengthInSeconds ();
 
-    return ((s - visibleRegionStartTime) / visibleRegionLengthSeconds)
+    return (float) ((s - visibleRegionStartTime) / visibleRegionLengthSeconds)
         * thumbnailBounds.getWidth ();
 }
 
-float AudioWaveformComponent::flattenSeconds (float s)
+double AudioWaveformComponent::flattenSeconds (double s)
 {
     if (s < 0.0f)
     {
@@ -473,9 +473,10 @@ float AudioWaveformComponent::flattenX (float x)
     {
         return 0;
     }
-    if (x > getLocalBounds ().getWidth ())
+    juce::Rectangle<float> localBounds = getLocalBounds ().toFloat ();
+    if (x > localBounds.getWidth ())
     {
-        return getLocalBounds ().getWidth ();
+        return localBounds.getWidth ();
     }
     return x;
 }
