@@ -11,20 +11,7 @@
 
 #include "AudioPlaybackPositionComponent.h"
 
-AudioPlaybackPositionComponent::AudioPlaybackPositionComponent (
-    TenFtAudioTransportSource& audioSource,
-    float& visibleRegionStartTime,
-    float& visibleRegionEndTime,
-    bool& hasSelectedRegion,
-    float& selectedRegionStartTime,
-    float& selectedRegionEndTime
-) :
-    audioSource(audioSource),
-    visibleRegionStartTime(visibleRegionStartTime),
-    visibleRegionEndTime(visibleRegionEndTime),
-    selectedRegionStartTime(selectedRegionStartTime),
-    selectedRegionEndTime(selectedRegionEndTime),
-    hasSelectedRegion(hasSelectedRegion)
+AudioPlaybackPositionComponent::AudioPlaybackPositionComponent ()
 {
     setInterceptsMouseClicks (false, true);
 }
@@ -35,19 +22,20 @@ AudioPlaybackPositionComponent::~AudioPlaybackPositionComponent ()
 
 void AudioPlaybackPositionComponent::paint (Graphics& g)
 {
-    auto visibleRegionLength = visibleRegionEndTime - visibleRegionStartTime;
-
-    if (visibleRegionLength > 0)
+    if (isAudioLoaded)
     {
-        auto currentPosition = audioSource.getCurrentPosition ();
-        if (currentPosition < visibleRegionStartTime || currentPosition > visibleRegionEndTime)
+        if (currentPosition < visibleRegionStartTime ||
+            currentPosition > visibleRegionEndTime)
         {
             return;
         }
 
         juce::Rectangle<float> localBounds = getLocalBounds ().toFloat ();
-        auto drawPosition = ((currentPosition - visibleRegionStartTime) / visibleRegionLength)
-                * localBounds.getWidth () + localBounds.getX ();
+        auto drawPosition = (
+                (currentPosition - visibleRegionStartTime) /
+                (visibleRegionEndTime - visibleRegionStartTime)
+            )
+            * localBounds.getWidth () + localBounds.getX ();
 
         g.setColour (findColour (ColourIds::lineColour));
         g.drawLine (
@@ -60,15 +48,35 @@ void AudioPlaybackPositionComponent::paint (Graphics& g)
     } 
 }
 
-void AudioPlaybackPositionComponent::stopTimer ()
+void AudioPlaybackPositionComponent::resized ()
 {
-    Timer::stopTimer ();
-    repaint ();
+    setBounds (getLocalBounds());
 }
 
 // ==============================================================================
 
-void AudioPlaybackPositionComponent::timerCallback ()
+void AudioPlaybackPositionComponent::currentPositionChanged (
+    TenFtAudioTransportSource* audioSource
+)
 {
+    currentPosition = audioSource->getCurrentPosition ();
+    repaint ();
+}
+
+void AudioPlaybackPositionComponent::visibleRegionChanged (
+    AudioWaveformComponent* waveform
+)
+{
+    isAudioLoaded = true;
+    visibleRegionStartTime = waveform->getVisibleRegionStartTime ();
+    visibleRegionEndTime = waveform->getVisibleRegionEndTime ();
+    repaint ();
+}
+
+void AudioPlaybackPositionComponent::thumbnailCleared (
+    AudioWaveformComponent * waveform
+)
+{
+    isAudioLoaded = false;
     repaint ();
 }

@@ -15,27 +15,18 @@
 AudioWaveformComponent::AudioWaveformComponent ()
     :
         formatManager (),
-        audioSource (formatManager, hasSelectedRegion, selectedRegionStartTime, selectedRegionEndTime),
         thumbnailCache (5),
         thumbnail (2048, formatManager, thumbnailCache),
-        visibleRegionStartTime (0.0),
-        visibleRegionEndTime (0.0),
-        hasSelectedRegion (false),
-        selectedRegionStartTime (0.0),
-        selectedRegionEndTime (0.0),
-        playbackPosition (audioSource, visibleRegionStartTime,
-            visibleRegionEndTime, hasSelectedRegion,
-            selectedRegionStartTime, selectedRegionEndTime),
         openGLContext()
 {
+    formatManager.registerBasicFormats ();
     openGLContext.attachTo (*this);
     thumbnail.addChangeListener (this);
-
-    addAndMakeVisible (&playbackPosition);
 }
 
 AudioWaveformComponent::~AudioWaveformComponent ()
 {
+    thumbnail.clear ();
     openGLContext.detach ();
 }
 
@@ -51,9 +42,14 @@ void AudioWaveformComponent::paint (Graphics& g)
     }
 }
 
-void AudioWaveformComponent::resized ()
+void AudioWaveformComponent::addListener (Listener * newListener)
 {
-    playbackPosition.setBounds (getLocalBounds ());
+    listeners.add (newListener);
+}
+
+void AudioWaveformComponent::removeListener (Listener * listener)
+{
+    listeners.remove (listener);
 }
 
 void AudioWaveformComponent::mouseWheelMove (
@@ -61,7 +57,7 @@ void AudioWaveformComponent::mouseWheelMove (
     const MouseWheelDetails& wheelDetails
 )
 {
-    if (audioSource.getLengthInSeconds () <= 0)
+    if (thumbnail.getTotalLength () <= 0)
     {
         return;
     }
@@ -71,7 +67,7 @@ void AudioWaveformComponent::mouseWheelMove (
             float (event.getMouseDownX () - bounds.getX ())
                 / bounds.getWidth (),
         rightRelativeAmmount = 1.0f - leftRelativeAmmount,
-        visibleRegionLengthInSeconds = getVisibleRegionLengthSeconds ();
+        visibleRegionLengthInSeconds = getVisibleRegionLengthInSeconds ();
 
     const float scrollAmmount = 0.1f * visibleRegionLengthInSeconds,
         scrollAmmountLeft = scrollAmmount * leftRelativeAmmount,
@@ -99,22 +95,21 @@ void AudioWaveformComponent::mouseWheelMove (
 
 void AudioWaveformComponent::mouseDoubleClick (const MouseEvent& event)
 {
-    if (audioSource.getLengthInSeconds () <= 0)
+    if (thumbnail.getTotalLength () <= 0)
     {
         return;
     }
 
     float newPosition = xToSeconds (event.getMouseDownX ());
 
-    hasSelectedRegion = false;
-    audioSource.setPosition (newPosition);
-
-    sendChangeMessage ();
+    clearSelectedRegion ();
+    
+    onPositionChange (newPosition);
 }
 
 void AudioWaveformComponent::mouseDrag (const MouseEvent &event)
 {
-    if (audioSource.getLengthInSeconds () <= 0)
+    if (thumbnail.getTotalLength () <= 0)
     {
         return;
     }
@@ -130,18 +125,21 @@ void AudioWaveformComponent::mouseDrag (const MouseEvent &event)
     else
     {
         float startOfDragX = secondsToX (selectedRegionStartTime),
-            endOfDragX = startOfDragX + event.getDistanceFromDragStartX ();
+            endOfDragX = startOfDragX + event.getDistanceFromDragStartX (),
+            newStartTime = selectedRegionStartTime,
+            newEndTime = xToSeconds (endOfDragX);
 
         hasSelectedRegion = true;
-        selectedRegionEndTime = xToSeconds (endOfDragX);
 
-        // when we drag left
-        if (selectedRegionStartTime > selectedRegionEndTime)
+        // swap the values when we drag left
+        if (newStartTime > newEndTime)
         {
-            std::swap (selectedRegionStartTime, selectedRegionEndTime);
+            std::swap (newStartTime, newEndTime);
         }
 
-        audioSource.setPosition (selectedRegionStartTime);
+        updateSelectedRegion (newStartTime, newEndTime);
+
+        onPositionChange (newStartTime);
     }
 
     repaint ();
@@ -149,7 +147,7 @@ void AudioWaveformComponent::mouseDrag (const MouseEvent &event)
 
 void AudioWaveformComponent::mouseDown (const MouseEvent &event)
 {
-    if (audioSource.getLengthInSeconds () <= 0)
+    if (thumbnail.getTotalLength () <= 0)
     {
         return;
     }
@@ -166,44 +164,67 @@ void AudioWaveformComponent::mouseDown (const MouseEvent &event)
     }
     else
     {
-        selectedRegionStartTime = xToSeconds (mouseDownX);
+        setSelectedRegionStartTime (xToSeconds (mouseDownX));
     }
 }
 
-bool AudioWaveformComponent::loadAudio (File file)
+void AudioWaveformComponent::sliderValueChanged (Slider* slider)
 {
-    if (audioSource.loadAudio (file))
-    {
-        thumbnail.setSource (new FileInputSource (file));
-        updateVisibleRegion (0.0f, audioSource.getLengthInSeconds ());
+    double minValue = slider->getMinValue (),
+        maxValue = slider->getMaxValue ();
 
+    if (minValue == maxValue)
+    {
+        return;
+    }
+
+    double leftPositionSeconds = (minValue / 100.0) * getTotalLength (),
+        rightPositionSeconds = (maxValue / 100.0) * getTotalLength ();
+
+    updateVisibleRegion (leftPositionSeconds, rightPositionSeconds);
+}
+
+bool AudioWaveformComponent::loadThumbnail (File file)
+{
+    if (thumbnail.setSource (new FileInputSource (file)))
+    {
+        updateVisibleRegion (0.0f, thumbnail.getTotalLength());
         return true;
     }
     else
     {
-        hasSelectedRegion = false;
-
-        thumbnail.clear ();
-        updateVisibleRegion (0.0f, 0.0f);
-
+        clearThumbnail ();
         return false;
     }
 }
 
+void AudioWaveformComponent::clearThumbnail ()
+{
+    thumbnail.clear ();
+    clearSelectedRegion ();
+    updateVisibleRegion (0.0f, 0.0f);
+    listeners.call ([this] (Listener& l) { l.thumbnailCleared (this); });
+}
+
+float AudioWaveformComponent::getTotalLength ()
+{
+    return thumbnail.getTotalLength ();
+}
+
 void AudioWaveformComponent::updateVisibleRegion (
-    float visibleRegionStartTime,
-    float visibleRegionEndTime
+    float newStartTime,
+    float newEndTime
 )
 {
-    float startTimeFlattened = flattenSeconds (visibleRegionStartTime),
-        endTimeFlattened = flattenSeconds (visibleRegionEndTime);
+    float startTimeFlattened = flattenSeconds (newStartTime),
+        endTimeFlattened = flattenSeconds (newEndTime);
 
     if (!isVisibleRegionCorrect(startTimeFlattened, endTimeFlattened))
     {
         throw std::logic_error (
             "Incorrect visible region [" +
-                std::to_string(visibleRegionStartTime) + ", " +
-                std::to_string (visibleRegionEndTime) + "].");
+                std::to_string(newStartTime) + ", " +
+                std::to_string (newEndTime) + "].");
     }
 
     if (endTimeFlattened - startTimeFlattened < 0.05f)
@@ -211,24 +232,29 @@ void AudioWaveformComponent::updateVisibleRegion (
         return;
     }
 
-    this->visibleRegionStartTime = startTimeFlattened;
-    this->visibleRegionEndTime = endTimeFlattened;
+    visibleRegionStartTime = startTimeFlattened;
+    visibleRegionEndTime = endTimeFlattened;
 
-    sendChangeMessage ();
+    listeners.call ([this] (Listener& l) { l.visibleRegionChanged (this); });
 
     repaint ();
+}
+
+void AudioWaveformComponent::updateSelectedRegion (
+    float newStartTime, float newEndTime
+)
+{
+    selectedRegionStartTime = newStartTime;
+    selectedRegionEndTime = newEndTime;
+
+    listeners.call ([this] (Listener& l) { l.selectedRegionChanged (this); });
 }
 
 void AudioWaveformComponent::clearSelectedRegion ()
 {
     hasSelectedRegion = false;
 
-    repaint ();
-}
-
-TenFtAudioTransportSource& AudioWaveformComponent::getAudioSource ()
-{
-    return audioSource;
+    listeners.call ([this] (Listener& l) { l.selectedRegionChanged (this); });
 }
 
 float AudioWaveformComponent::getVisibleRegionStartTime ()
@@ -254,11 +280,6 @@ float AudioWaveformComponent::getSelectedRegionEndTime ()
 bool AudioWaveformComponent::getHasSelectedRegion ()
 {
     return hasSelectedRegion;
-}
-
-AudioPlaybackPositionComponent& AudioWaveformComponent::getPlaybackPositionComponent ()
-{
-    return playbackPosition;
 }
 
 // ==============================================================================
@@ -325,7 +346,9 @@ void AudioWaveformComponent::paintIfFileLoaded (Graphics& g)
             );
         }
 
-        g.setColour (findColour (ColourIds::waveformSelectedRegionBackgroundColour));
+        g.setColour (findColour (
+            ColourIds::waveformSelectedRegionBackgroundColour
+        ));
         g.fillRect (selectedRegion);
         g.setColour (findColour (ColourIds::waveformColour));
         thumbnail.drawChannels (
@@ -365,7 +388,17 @@ void AudioWaveformComponent::paintIfFileLoaded (Graphics& g)
     }
 }
 
-float AudioWaveformComponent::getVisibleRegionLengthSeconds ()
+void AudioWaveformComponent::setSelectedRegionStartTime (float newStartTime)
+{
+    updateSelectedRegion (newStartTime, selectedRegionEndTime);
+}
+
+void AudioWaveformComponent::setSelectedRegionEndTime (float newEndTime)
+{
+    updateSelectedRegion (selectedRegionStartTime, newEndTime);
+}
+
+float AudioWaveformComponent::getVisibleRegionLengthInSeconds ()
 {
     return visibleRegionEndTime - visibleRegionStartTime;
 }
@@ -379,31 +412,32 @@ void AudioWaveformComponent::updateSelectedRegion (float mouseDownSeconds)
 
     if (distanceFromStartOfDragSeconds < distanceFromEndOfDragSeconds)
     {
-        selectedRegionStartTime = mouseDownSeconds;
+        setSelectedRegionStartTime (mouseDownSeconds);
     }
     else
     {
-        selectedRegionEndTime = mouseDownSeconds;
+        setSelectedRegionEndTime (mouseDownSeconds);
     }
+
 }
 
 bool AudioWaveformComponent::isVisibleRegionCorrect (
     float visibleRegionStartTime,
     float visibleRegionEndTime)
 {
-    bool isAudioLoaded = audioSource.isAudioLoaded ();
+    bool isAudioLoaded = thumbnail.getTotalLength () > 0.0;
     return
         (!isAudioLoaded &&
             visibleRegionStartTime == 0.0f && visibleRegionEndTime == 0.0f) ||
         (isAudioLoaded &&
             visibleRegionStartTime < visibleRegionEndTime &&
             visibleRegionStartTime >= 0 &&
-            visibleRegionEndTime <= audioSource.getLengthInSeconds ());
+            visibleRegionEndTime <= thumbnail.getTotalLength ());
 }
 
 float AudioWaveformComponent::xToSeconds (float x)
 {
-    float visibleRegionLengthSeconds = getVisibleRegionLengthSeconds ();
+    float visibleRegionLengthSeconds = getVisibleRegionLengthInSeconds ();
 
     return (x / getLocalBounds ().getWidth ()) * visibleRegionLengthSeconds
         + visibleRegionStartTime;
@@ -412,7 +446,7 @@ float AudioWaveformComponent::xToSeconds (float x)
 float AudioWaveformComponent::secondsToX (float s)
 {
     juce::Rectangle<float> thumbnailBounds = getLocalBounds ().toFloat ();
-    float visibleRegionLengthSeconds = getVisibleRegionLengthSeconds ();
+    float visibleRegionLengthSeconds = getVisibleRegionLengthInSeconds ();
 
     return ((s - visibleRegionStartTime) / visibleRegionLengthSeconds)
         * thumbnailBounds.getWidth ();
@@ -425,9 +459,9 @@ float AudioWaveformComponent::flattenSeconds (float s)
         return 0.0f;
     }
 
-    if (s > audioSource.getLengthInSeconds ())
+    if (s > thumbnail.getTotalLength ())
     {
-        return audioSource.getLengthInSeconds ();
+        return thumbnail.getTotalLength ();
     }
 
     return s;

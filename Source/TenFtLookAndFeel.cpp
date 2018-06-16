@@ -10,16 +10,19 @@
 
 #include "TenFtLookAndFeel.h"
 #include "AudioWaveformComponent.h"
+#include "AudioPlaybackPositionComponent.h"
 
 TenFtLookAndFeel::TenFtLookAndFeel ()
 {
-    Colour mainColour = Colours::yellow.withBrightness (0.8f).withSaturation (0.5f),
+    Colour mainColour = 
+        Colours::yellow.withBrightness (0.8f).withSaturation (0.5f),
         contrastingColour = mainColour.contrasting (1.0f);
     setColour (TextButton::ColourIds::buttonColourId, mainColour.brighter ());
     setColour (TextButton::ColourIds::buttonOnColourId, mainColour.brighter ());
     setColour (TextButton::ColourIds::textColourOffId, contrastingColour);
     setColour (TextButton::ColourIds::textColourOnId, contrastingColour);
-    setColour (Slider::ColourIds::backgroundColourId, mainColour.contrasting(0.3f));
+    setColour (Slider::ColourIds::backgroundColourId,
+        mainColour.contrasting(0.3f));
     setColour (Slider::ColourIds::thumbColourId, mainColour.contrasting (0.8f));
     setColour (Slider::ColourIds::trackColourId, mainColour);
     setColour (Label::ColourIds::textColourId, contrastingColour);
@@ -37,7 +40,8 @@ TenFtLookAndFeel::TenFtLookAndFeel ()
 
     setColour (waveformColourId, contrastingColour);
     setColour (waveformBackgroundColourId, mainColour.contrasting (0.2f));
-    setColour (waveformSelectedRegionBackgroundColourId, mainColour.contrasting (0.4f));
+    setColour (waveformSelectedRegionBackgroundColourId,
+        mainColour.contrasting (0.4f));
     setColour (lineColourId,
         Colour::contrasting (
             Colour::contrasting (

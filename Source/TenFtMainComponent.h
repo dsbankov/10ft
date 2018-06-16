@@ -14,6 +14,7 @@ Author:  DBANKOV
 
 #include "TenFtAudioTransportSource.h"
 #include "AudioWaveformComponent.h"
+#include "AudioPlaybackPositionComponent.h"
 #include "AudioClockComponent.h"
 #include "AudioScrollerComponent.h"
 #include "TenFtLookAndFeel.h"
@@ -44,10 +45,6 @@ public:
 private:
     void openButtonClicked ();
 
-    void playButtonClicked ();
-
-    void stopButtonClicked ();
-
     void loopButtonClicked ();
 
     void onAudioSourceStateChange (
@@ -65,7 +62,9 @@ private:
     TextButton playButton;
     TextButton stopButton;
     ToggleButton loopButton;
+    TenFtAudioTransportSource audioSource;
     AudioWaveformComponent waveform;
+    AudioPlaybackPositionComponent playbackPosition;
     AudioClockComponent clock;
     AudioScrollerComponent scroller;
     TenFtLookAndFeel tenFtLookAndFeel;

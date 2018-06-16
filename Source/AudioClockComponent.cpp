@@ -12,18 +12,12 @@
 #include "AudioClockComponent.h"
 
 
-AudioClockComponent::AudioClockComponent (
-    AudioWaveformComponent& waveform
-)
-    :
-        waveform (waveform)
+AudioClockComponent::AudioClockComponent ()
 {
     addAndMakeVisible (&timeLabel);
     timeLabel.setJustificationType (
         Justification::horizontallyCentred
     );
-    updateText ();
-    waveform.addChangeListener (this);
 }
 
 AudioClockComponent::~AudioClockComponent ()
@@ -35,33 +29,17 @@ void AudioClockComponent::resized ()
     timeLabel.setBounds (getLocalBounds ());
 }
 
-void AudioClockComponent::stopTimer ()
-{
-    Timer::stopTimer ();
-    updateText ();
-}
-
 // ==============================================================================
 
-void AudioClockComponent::timerCallback ()
-{
-    updateText ();
-}
-
-void AudioClockComponent::changeListenerCallback (
-    ChangeBroadcaster *source
+void AudioClockComponent::currentPositionChanged (
+    TenFtAudioTransportSource* audioSource
 )
 {
-    if (source == &waveform)
-    {
-        updateText ();
-    }
-}
-
-void AudioClockComponent::updateText ()
-{
     std::string currentPositionFormatted =
-        getCurrentPositionFormatted (waveform.getAudioSource ());
+        getCurrentPositionFormatted (
+            audioSource->getLengthInSeconds(),
+            audioSource->getCurrentPosition()
+        );
     timeLabel.setText (
         currentPositionFormatted,
         NotificationType::dontSendNotification
@@ -69,12 +47,10 @@ void AudioClockComponent::updateText ()
 }
 
 std::string AudioClockComponent::getCurrentPositionFormatted (
-    AudioTransportSource& audioSource
+    double lengthInSeconds, double currentPosition
 )
 {
-    auto lengthInSeconds = audioSource.getLengthInSeconds (),
-        currentPosition = audioSource.getCurrentPosition ();
-    auto disabled = lengthInSeconds <= 0;
+    bool disabled = lengthInSeconds <= 0;
 
     timeLabel.setEnabled (!disabled);
 

@@ -14,9 +14,11 @@
 
 TenFtMainComponent::TenFtMainComponent ()
     :
+        audioSource (),
         waveform (),
-        clock (waveform),
-        scroller (waveform)
+        playbackPosition (),
+        clock (),
+        scroller ()
 {
     setLookAndFeel (&tenFtLookAndFeel);
 
@@ -29,38 +31,58 @@ TenFtMainComponent::TenFtMainComponent ()
     addAndMakeVisible (&playButton);
     playButton.setButtonText ("Play");
     playButton.onClick = [this] {
-        playButtonClicked ();
+        audioSource.playAudio ();
     };
     playButton.setEnabled (false);
 
     addAndMakeVisible (&stopButton);
     stopButton.setButtonText ("Stop");
     stopButton.onClick = [this] {
-        stopButtonClicked ();
+        audioSource.stopAudio ();
     };
     stopButton.setEnabled (false);
 
     addAndMakeVisible (&loopButton);
     loopButton.setButtonText ("Loop");
     loopButton.changeWidthToFitText ();
-    loopButton.setToggleState (false, NotificationType::dontSendNotification);
+    loopButton.setToggleState (false, 
+        NotificationType::dontSendNotification
+    );
     loopButton.onClick = [this] {
         loopButtonClicked ();
     };
     loopButton.setEnabled (false);
 
-    addAndMakeVisible (&waveform);
-    addAndMakeVisible (&scroller);
-    addAndMakeVisible (&clock);
-
-    setSize (1000, 800);
-    setAudioChannels (0, 2);
-
-    waveform.getAudioSource ().onStateChange = [this] (
+    audioSource.addListener (&clock);
+    audioSource.addListener (&playbackPosition);
+    audioSource.onStateChange = [this] (
         TenFtAudioTransportSource::State state
     ) {
         onAudioSourceStateChange (state);
     };
+
+    addAndMakeVisible (&waveform);
+    addAndMakeVisible (&scroller);
+    addAndMakeVisible (&clock);
+    waveform.addAndMakeVisible (&playbackPosition);
+
+    waveform.addListener (&audioSource);
+    waveform.addListener (&scroller);
+    waveform.addListener (&playbackPosition);
+    waveform.onPositionChange = [this] (double newPosition) {
+        audioSource.setPosition (newPosition);
+    };
+
+    scroller.addListener (&waveform);
+    scroller.onMouseWheelMove = [this] (
+        const MouseEvent& event,
+        const MouseWheelDetails& wheelDetails
+    ) {
+        waveform.mouseWheelMove (event, wheelDetails);
+    };
+
+    setSize (1000, 800);
+    setAudioChannels (0, 2);
 }
 
 TenFtMainComponent::~TenFtMainComponent ()
@@ -69,33 +91,37 @@ TenFtMainComponent::~TenFtMainComponent ()
     setLookAndFeel (nullptr);
 }
 
-void TenFtMainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
+void TenFtMainComponent::prepareToPlay (
+    int samplesPerBlockExpected,
+    double sampleRate
+)
 {
-    waveform
-        .getAudioSource ()
-        .prepareToPlay (samplesPerBlockExpected, sampleRate);
+    audioSource.prepareToPlay (samplesPerBlockExpected, sampleRate);
 }
 
-void TenFtMainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
+void TenFtMainComponent::getNextAudioBlock (
+    const AudioSourceChannelInfo& bufferToFill
+)
 {
-    if (! waveform.getAudioSource ().isAudioLoaded ())
+    if (!audioSource.isAudioLoaded ())
     {
         bufferToFill.clearActiveBufferRegion ();
 
         return;
     }
 
-    waveform.getAudioSource ().getNextAudioBlock (bufferToFill);
+    audioSource.getNextAudioBlock (bufferToFill);
 }
 
 void TenFtMainComponent::releaseResources ()
 {
-    waveform.getAudioSource ().releaseResources ();
+    audioSource.releaseResources ();
 }
 
 void TenFtMainComponent::resized ()
 {
-    juce::Rectangle<float> bounds = getLocalBounds ().toFloat ().reduced (10.0f);
+    juce::Rectangle<float> bounds = 
+        getLocalBounds ().toFloat ().reduced (10.0f);
     float width = bounds.getWidth (),
         height = bounds.getHeight (),
         delta = 5.0f;
@@ -108,19 +134,22 @@ void TenFtMainComponent::resized ()
         row1.reduced (delta).toNearestInt ()
     );
     playButton.setBounds (
-        row2.removeFromLeft (width * 0.42).reduced (delta).toNearestInt ()
+        row2.removeFromLeft (width * 0.42f).reduced (delta).toNearestInt ()
     );
     stopButton.setBounds (
-        row2.removeFromLeft (width * 0.42).reduced (delta).toNearestInt ()
+        row2.removeFromLeft (width * 0.42f).reduced (delta).toNearestInt ()
     );
     loopButton.setBounds (
-        row2.removeFromLeft (width * 0.07).reduced (delta).toNearestInt ()
+        row2.removeFromLeft (width * 0.07f).reduced (delta).toNearestInt ()
     );
     clock.setBounds (
         row2.reduced (delta).toNearestInt ()
     );
     waveform.setBounds (
         row3.reduced (delta).toNearestInt ()
+    );
+    playbackPosition.setBounds (
+        waveform.getBounds ()
     );
     scroller.setBounds (
         row4.reduced (delta).toNearestInt ()
@@ -129,7 +158,9 @@ void TenFtMainComponent::resized ()
 
 void TenFtMainComponent::paint (Graphics & g)
 {
-    g.fillAll (findColour (AudioWaveformComponent::ColourIds::waveformBackgroundColour).contrasting(0.2f));
+    g.fillAll (findColour (
+        AudioWaveformComponent::ColourIds::waveformBackgroundColour
+    ).contrasting(0.2f));
 }
 
 // ==============================================================================
@@ -145,17 +176,19 @@ void TenFtMainComponent::openButtonClicked ()
 
     if (fileSelected)
     {
-        auto file = chooser.getResult ();
+        File file = chooser.getResult ();
 
-        if (waveform.loadAudio (file))
+        if (audioSource.loadAudio (file))
         {
+            waveform.loadThumbnail (file);
             setupButton (playButton, "Play", true);
             setupButton (stopButton, "Stop", false);
             loopButton.setEnabled (true);
-            clock.startTimer (100);
         }
         else
         {
+            waveform.clearThumbnail ();
+            scroller.disable ();
             setupButton (playButton, "Play", false);
             setupButton (stopButton, "Stop", false);
             loopButton.setEnabled (false);
@@ -163,60 +196,53 @@ void TenFtMainComponent::openButtonClicked ()
                 false,
                 NotificationType::dontSendNotification
             );
-            clock.stopTimer ();
-            scroller.disable ();
         }
     }
-}
-
-void TenFtMainComponent::playButtonClicked ()
-{
-    waveform
-        .getAudioSource ()
-        .playAudio ();
-}
-
-void TenFtMainComponent::stopButtonClicked ()
-{
-    waveform
-        .getAudioSource ()
-        .stopAudio ();
 }
 
 void TenFtMainComponent::loopButtonClicked ()
 {
     const bool shouldLoop = loopButton.getToggleState ();
 
-    waveform.getAudioSource ().setLooping (shouldLoop);
+    if (shouldLoop)
+    {
+        double startTime = waveform.getHasSelectedRegion () ?
+            waveform.getSelectedRegionStartTime () : 0.0;
+        double endTime = waveform.getHasSelectedRegion () ?
+            waveform.getSelectedRegionEndTime () : waveform.getTotalLength ();
+        audioSource.setupLooping (startTime, endTime);
+    }
+    else
+    {
+        audioSource.disableLooping ();
+    }
 }
 
-void TenFtMainComponent::onAudioSourceStateChange (TenFtAudioTransportSource::State state)
+void TenFtMainComponent::onAudioSourceStateChange (
+    TenFtAudioTransportSource::State state
+)
 {
     if (state == TenFtAudioTransportSource::Stopped)
     {
         setupButton (playButton, "Play", true);
         setupButton (stopButton, "Stop", false);
-        waveform.getPlaybackPositionComponent ().stopTimer ();
         waveform.clearSelectedRegion ();
-        clock.stopTimer ();
     }
     else if (state == TenFtAudioTransportSource::Playing)
     {
         setupButton (playButton, "Pause", true);
         setupButton (stopButton, "Stop", true);
-        waveform.getPlaybackPositionComponent ().startTimer (100);
-        clock.startTimer (100);
     }
     else if (state == TenFtAudioTransportSource::Paused)
     {
         setupButton (playButton, "Play", true);
         setupButton (stopButton, "Return To Zero", true);
-        waveform.getPlaybackPositionComponent ().stopTimer ();
-        clock.stopTimer ();
     }
 }
 
-void TenFtMainComponent::setupButton (TextButton& button, std::string buttonText, bool enabled)
+void TenFtMainComponent::setupButton (
+    TextButton& button, std::string buttonText, bool enabled
+)
 {
     button.setButtonText (buttonText);
     button.setEnabled (enabled);

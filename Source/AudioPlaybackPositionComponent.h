@@ -15,10 +15,12 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 
 #include "TenFtAudioTransportSource.h"
+#include "AudioWaveformComponent.h"
 
 
 class AudioPlaybackPositionComponent :    public Component,
-                                          public Timer
+                                          public TenFtAudioTransportSource::Listener,
+                                          public AudioWaveformComponent::Listener
 {
 public:
     enum ColourIds
@@ -26,31 +28,27 @@ public:
         lineColour = 3
     };
 
-    AudioPlaybackPositionComponent (
-        TenFtAudioTransportSource& audioSource,
-        float& visibleRegionStartTime,
-        float& visibleRegionEndTime,
-        bool& hasSelectedRegion,
-        float& selectedRegionStartTime,
-        float& selectedRegionEndTime
-    );
+public:
+    AudioPlaybackPositionComponent ();
 
     ~AudioPlaybackPositionComponent ();
 
     void paint (Graphics& g) override;
 
-    void stopTimer ();
+    void resized () override;
 
 private:
-    void timerCallback () override;
+    void currentPositionChanged (TenFtAudioTransportSource* audioSource) override;
+
+    void visibleRegionChanged (AudioWaveformComponent* waveform) override;
+    
+    void thumbnailCleared (AudioWaveformComponent* waveform) override;
 
 private:
-    TenFtAudioTransportSource& audioSource;
-    float& visibleRegionStartTime;
-    float& visibleRegionEndTime;
-    float& selectedRegionStartTime;
-    float& selectedRegionEndTime;
-    bool& hasSelectedRegion;
+    bool isAudioLoaded = false;
+    double visibleRegionStartTime;
+    double visibleRegionEndTime;
+    double currentPosition;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPlaybackPositionComponent)
 };

@@ -12,7 +12,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-class TenFtLookAndFeel : public LookAndFeel_V4
+class TenFtLookAndFeel :    public LookAndFeel_V4
 {
 public:
     TenFtLookAndFeel ();

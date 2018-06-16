@@ -19,40 +19,28 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-#include "AudioWaveformComponent.h"
+#include "TenFtAudioTransportSource.h"
 
 
 class AudioClockComponent :    public Component,
-                               public Timer,
-                               public ChangeListener
+                               public TenFtAudioTransportSource::Listener
 {
 public:
-    AudioClockComponent (AudioWaveformComponent& waveform);
+    AudioClockComponent ();
 
     ~AudioClockComponent ();
 
     void resized () override;
 
-    void stopTimer ();
+    void currentPositionChanged (TenFtAudioTransportSource* audioSource) override;
 
 private:
-    void timerCallback () override;
-
-    void changeListenerCallback (
-        ChangeBroadcaster *source
-    ) override;
-
-    void updateText ();
-
-    std::string getCurrentPositionFormatted (
-        AudioTransportSource& audioSource
-    );
+    std::string getCurrentPositionFormatted (double lengthInSeconds, double currentPosition);
 
     std::string formatTime (double timeInSeconds);
 
 private:
     Label timeLabel;
-    AudioWaveformComponent& waveform;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioClockComponent)
 };

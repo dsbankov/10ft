@@ -12,15 +12,10 @@
 #include "AudioScrollerComponent.h"
 
 
-AudioScrollerComponent::AudioScrollerComponent (
-    AudioWaveformComponent& waveform
-)
-    :
-        Slider (),
-        waveform (waveform),
-        dragVisibleRegion (false),
-        visibleRegionMinX (0.0),
-        visibleRegionMaxX (0.0)
+AudioScrollerComponent::AudioScrollerComponent () :
+    dragVisibleRegion (false),
+    visibleRegionMinX (0.0),
+    visibleRegionMaxX (0.0)
 {
     setRange (0.0, 100.0, 0.1);
     setSliderStyle (Slider::TwoValueHorizontal);
@@ -35,30 +30,10 @@ AudioScrollerComponent::AudioScrollerComponent (
 
     visibleRegionMinX = getMinimum ();
     visibleRegionMaxX = getMaximum ();
-
-    waveform.addChangeListener (this);
 }
 
 AudioScrollerComponent::~AudioScrollerComponent ()
 {
-}
-
-void AudioScrollerComponent::valueChanged ()
-{
-    double minValue = getMinValue (),
-        maxValue = getMaxValue ();
-
-    if (minValue == maxValue)
-    {
-        return;
-    }
-
-    double lengthInSeconds =
-            waveform.getAudioSource ().getLengthInSeconds (),
-        leftPositionSeconds = (minValue / 100.0) * lengthInSeconds,
-        rightPositionSeconds = (maxValue / 100.0) * lengthInSeconds;
-
-    waveform.updateVisibleRegion (leftPositionSeconds, rightPositionSeconds);
 }
 
 void AudioScrollerComponent::mouseDown (const MouseEvent & event)
@@ -133,7 +108,35 @@ void AudioScrollerComponent::mouseWheelMove (
     const MouseWheelDetails& wheelDetails
 )
 {
-    waveform.mouseWheelMove (event, wheelDetails);
+    onMouseWheelMove (event, wheelDetails);
+}
+
+void AudioScrollerComponent::visibleRegionChanged (
+    AudioWaveformComponent* waveform
+)
+{
+    totalLength = waveform->getTotalLength ();
+    if (totalLength <= 0)
+    {
+        setMinAndMaxValuesWithCheck (
+            0.0,
+            100.0,
+            NotificationType::dontSendNotification
+        );
+    }
+    else
+    {
+        double minValue = waveform->getVisibleRegionStartTime ()
+            / totalLength,
+            maxValue = waveform->getVisibleRegionEndTime ()
+            / totalLength;
+
+        setMinAndMaxValuesWithCheck (
+            minValue * 100.0,
+            maxValue * 100.0,
+            NotificationType::dontSendNotification
+        );
+    }
 }
 
 void AudioScrollerComponent::disable ()
@@ -148,48 +151,18 @@ void AudioScrollerComponent::disable ()
 
 // ==============================================================================
 
-void AudioScrollerComponent::changeListenerCallback (
-    ChangeBroadcaster *source
-)
-{
-    if (source == &waveform)
-    {
-        if (waveform.getAudioSource ().getLengthInSeconds () <= 0)
-        {
-            setMinAndMaxValuesWithCheck (
-                0.0,
-                100.0,
-                NotificationType::dontSendNotification
-            );
-        }
-        else
-        {
-            double minValue = waveform.getVisibleRegionStartTime ()
-                    / waveform.getAudioSource ().getLengthInSeconds (),
-                maxValue = waveform.getVisibleRegionEndTime ()
-                    / waveform.getAudioSource ().getLengthInSeconds ();
-
-            setMinAndMaxValuesWithCheck (
-                minValue * 100.0,
-                maxValue * 100.0,
-                NotificationType::dontSendNotification
-            );
-        }
-    }
-}
-
 void AudioScrollerComponent::setMinAndMaxValuesWithCheck (
     double newMinValue,
     double newMaxValue,
     NotificationType notification
 )
 {
-    setEnabled (waveform.getAudioSource ().getLengthInSeconds () > 0);
+    setEnabled (totalLength > 0);
     setMinAndMaxValues (newMinValue, newMaxValue, notification);
 }
 
 bool AudioScrollerComponent::isMouseDownInDragRange (
-    const MouseEvent & event
+    const MouseEvent& event
 )
 {
     double proportionOfLength = ((double) event.getMouseDownX ())

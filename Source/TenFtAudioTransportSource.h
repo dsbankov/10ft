@@ -18,9 +18,13 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
+#include "AudioWaveformComponent.h"
 
-class TenFtAudioTransportSource :   public AudioTransportSource,
-                                    private ChangeListener
+
+class TenFtAudioTransportSource :    public AudioTransportSource,
+                                     public AudioWaveformComponent::Listener,
+                                     public ChangeListener,
+                                     private Timer
 {
 public:
     enum State
@@ -34,21 +38,24 @@ public:
         Paused
     };
 
+    class Listener
+    {
+    public:
+        virtual ~Listener () {}
+
+        virtual void currentPositionChanged (TenFtAudioTransportSource*) {}
+
+        virtual void stateChanged (TenFtAudioTransportSource*) {}
+    };
+
     std::function<void (
         TenFtAudioTransportSource::State
     )> onStateChange;
 
 public:
-    TenFtAudioTransportSource (
-        AudioFormatManager& formatManager,
-        bool& hasSelectedRegion,
-        float& selectedRegionStartTime,
-        float& selectedRegionEndTime
-    );
+    TenFtAudioTransportSource ();
 
     ~TenFtAudioTransportSource ();
-
-    void getNextAudioBlock (const AudioSourceChannelInfo& info) override;
 
     bool loadAudio (File& file);
 
@@ -60,9 +67,15 @@ public:
 
     void pauseAudio ();
 
-    void setLooping (bool shouldLoop) override;
+    void setupLooping (double startTime, double endTime);
 
-    bool isLooping () const override;
+    void disableLooping ();
+
+    void addListener (Listener* newListener);
+
+    void removeListener (Listener* listener);
+
+    void selectedRegionChanged (AudioWaveformComponent* waveform) override;
 
 private:
     void unloadAudio ();
@@ -75,13 +88,16 @@ private:
         ChangeBroadcaster* broadcaster
     ) override;
 
+    void timerCallback () override;
+
 private:
-    AudioFormatManager& formatManager;
+    AudioFormatManager formatManager;
     std::unique_ptr<AudioFormatReaderSource> readerSource;
-    State state;
+    State state = NoFileLoaded;
     bool shouldLoop = false;
-    bool& hasSelectedRegion;
-    float& selectedRegionStartTime;
-    float& selectedRegionEndTime;
+    bool hasSelectedRegion = false;
+    double selectedRegionStartTime;
+    double selectedRegionEndTime;
+    ListenerList<Listener> listeners;
 
 };

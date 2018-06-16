@@ -18,29 +18,33 @@
 
 
 class AudioScrollerComponent :    public Slider,
-                                  public ChangeListener
+                                  public AudioWaveformComponent::Listener
 {
 public:
-    AudioScrollerComponent (AudioWaveformComponent& waveform);
+    std::function<void (
+        const MouseEvent& event,
+        const MouseWheelDetails& wheelDetails
+    )> onMouseWheelMove;
+
+public:
+    AudioScrollerComponent ();
 
     ~AudioScrollerComponent ();
 
-    void valueChanged () override;
+    void mouseDown (const MouseEvent& event) override;
 
-    void mouseDown (const MouseEvent & event) override;
-
-    void mouseDrag (const MouseEvent & event) override;
+    void mouseDrag (const MouseEvent& event) override;
 
     void mouseWheelMove (
         const MouseEvent& event,
         const MouseWheelDetails& wheelDetails
     ) override;
 
+    void visibleRegionChanged (AudioWaveformComponent* waveform) override;
+
     void disable ();
 
 private:
-    void changeListenerCallback (ChangeBroadcaster *source) override;
-
     void setMinAndMaxValuesWithCheck (
         double newMinValue,
         double newMaxValue,
@@ -52,10 +56,10 @@ private:
     double offsetValue (double startX, double distanceFromStartX);
 
 private:
-    AudioWaveformComponent& waveform;
     bool dragVisibleRegion;
     double visibleRegionMinX;
     double visibleRegionMaxX;
+    double totalLength;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioScrollerComponent)
 };

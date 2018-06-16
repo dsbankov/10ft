@@ -14,12 +14,11 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-#include "TenFtAudioTransportSource.h"
-#include "AudioPlaybackPositionComponent.h"
+#include <string>
 
 
 class AudioWaveformComponent :    public Component,
-                                  public ChangeBroadcaster,
+                                  public Slider::Listener,
                                   private ChangeListener
 {
 public:
@@ -30,14 +29,52 @@ public:
         waveformSelectedRegionBackgroundColour = 2
     };
 
+    class Listener
+    {
+    public:
+        virtual ~Listener () {}
+
+        virtual void selectedRegionChanged (AudioWaveformComponent*) {}
+
+        virtual void visibleRegionChanged (AudioWaveformComponent*) {}
+
+        virtual void thumbnailCleared (AudioWaveformComponent*) {}
+    };
+    
+    std::function<void (double)> onPositionChange;
+
 public:
     AudioWaveformComponent ();
 
     ~AudioWaveformComponent ();
 
-    void paint (Graphics& g) override;
+    bool loadThumbnail (File file);
 
-    void resized () override;
+    void clearThumbnail ();
+
+    float getTotalLength ();
+
+    float getVisibleRegionStartTime ();
+
+    float getVisibleRegionEndTime ();
+
+    void updateVisibleRegion (float newStartTime, float newEndTime);
+
+    bool getHasSelectedRegion ();
+
+    float getSelectedRegionStartTime ();
+
+    float getSelectedRegionEndTime ();
+
+    void updateSelectedRegion (float newStartTime, float newRegionEndTime);
+
+    void clearSelectedRegion ();
+
+    void addListener (Listener* newListener);
+
+    void removeListener (Listener* listener);
+
+    void paint (Graphics& g) override;
 
     void mouseWheelMove (
         const MouseEvent& event,
@@ -50,43 +87,27 @@ public:
 
     void mouseDown (const MouseEvent& event) override;
 
-    bool loadAudio (File file);
-
-    void updateVisibleRegion (
-        float visibleRegionStartTime,
-        float visibleRegionEndTime
-    );
-
-    void clearSelectedRegion ();
-
-    TenFtAudioTransportSource& getAudioSource ();
-
-    float getVisibleRegionStartTime ();
-
-    float getVisibleRegionEndTime ();
-
-    float getSelectedRegionStartTime ();
-
-    float getSelectedRegionEndTime ();
-
-    bool getHasSelectedRegion ();
-
-    AudioPlaybackPositionComponent& getPlaybackPositionComponent ();
+    void sliderValueChanged (Slider* slider) override;
 
 private:
-    void changeListenerCallback (
-        ChangeBroadcaster* source
-    ) override;
+    void changeListenerCallback (ChangeBroadcaster* source) override;
 
     void paintIfNoFileLoaded (Graphics& g);
 
     void paintIfFileLoaded (Graphics& g);
 
-    float getVisibleRegionLengthSeconds ();
+    void setSelectedRegionStartTime (float selectedRegionStartTime);
+
+    void setSelectedRegionEndTime (float selectedRegionEndTime);
 
     void updateSelectedRegion (float mouseDownSeconds);
 
-    bool isVisibleRegionCorrect (float visibleRegionStartTime, float visibleRegionEndTime);
+    float getVisibleRegionLengthInSeconds ();
+
+    bool isVisibleRegionCorrect (
+        float visibleRegionStartTime,
+        float visibleRegionEndTime
+    );
 
     float xToSeconds (float x);
 
@@ -98,15 +119,14 @@ private:
 
 private:
     AudioFormatManager formatManager;
-    TenFtAudioTransportSource audioSource;
     AudioThumbnailCache thumbnailCache;
     AudioThumbnail thumbnail;
     float visibleRegionStartTime;
     float visibleRegionEndTime;
-    bool hasSelectedRegion;
+    bool hasSelectedRegion = false;
     float selectedRegionStartTime;
     float selectedRegionEndTime;
-    AudioPlaybackPositionComponent playbackPosition;
+    ListenerList<Listener> listeners;
     OpenGLContext openGLContext;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioWaveformComponent)
