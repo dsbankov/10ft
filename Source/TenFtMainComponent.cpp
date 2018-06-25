@@ -16,6 +16,7 @@ TenFtMainComponent::TenFtMainComponent ()
     :
         audioSource (),
         waveform (),
+        selectedRegion (),
         playbackPosition (),
         clock (),
         scroller ()
@@ -64,10 +65,12 @@ TenFtMainComponent::TenFtMainComponent ()
     addAndMakeVisible (&waveform);
     addAndMakeVisible (&scroller);
     addAndMakeVisible (&clock);
+    waveform.addAndMakeVisible (&selectedRegion);
     waveform.addAndMakeVisible (&playbackPosition);
 
     waveform.addListener (&audioSource);
     waveform.addListener (&scroller);
+    waveform.addListener (&selectedRegion);
     waveform.addListener (&playbackPosition);
     waveform.onPositionChange = [this] (double newPosition) {
         audioSource.setPosition (newPosition);
@@ -147,6 +150,9 @@ void TenFtMainComponent::resized ()
     );
     waveform.setBounds (
         row3.reduced (delta).toNearestInt ()
+    );
+    selectedRegion.setBounds (
+        waveform.getBounds ()
     );
     playbackPosition.setBounds (
         waveform.getBounds ()

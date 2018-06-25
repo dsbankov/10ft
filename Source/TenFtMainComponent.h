@@ -14,6 +14,7 @@ Author:  DBANKOV
 
 #include "TenFtAudioTransportSource.h"
 #include "AudioWaveformComponent.h"
+#include "AudioWaveformSelectedRegionComponent.h"
 #include "AudioPlaybackPositionComponent.h"
 #include "AudioClockComponent.h"
 #include "AudioScrollerComponent.h"
@@ -64,6 +65,7 @@ private:
     ToggleButton loopButton;
     TenFtAudioTransportSource audioSource;
     AudioWaveformComponent waveform;
+    AudioWaveformSelectedRegionComponent selectedRegion;
     AudioPlaybackPositionComponent playbackPosition;
     AudioClockComponent clock;
     AudioScrollerComponent scroller;

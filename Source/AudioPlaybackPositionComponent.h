@@ -25,7 +25,7 @@ class AudioPlaybackPositionComponent :    public Component,
 public:
     enum ColourIds
     {
-        lineColour = 3
+        lineColour = 4
     };
 
 public:

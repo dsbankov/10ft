@@ -22,6 +22,10 @@
             file="Source/AudioWaveformComponent.cpp"/>
       <FILE id="MsnmlH" name="AudioWaveformComponent.h" compile="0" resource="0"
             file="Source/AudioWaveformComponent.h"/>
+      <FILE id="SMYjNL" name="AudioWaveformSelectedRegionComponent.cpp" compile="1"
+            resource="0" file="Source/AudioWaveformSelectedRegionComponent.cpp"/>
+      <FILE id="FMxsck" name="AudioWaveformSelectedRegionComponent.h" compile="0"
+            resource="0" file="Source/AudioWaveformSelectedRegionComponent.h"/>
       <FILE id="k3fLwe" name="TenFtAudioTransportSource.cpp" compile="1"
             resource="0" file="Source/TenFtAudioTransportSource.cpp"/>
       <FILE id="nS4kDr" name="TenFtAudioTransportSource.h" compile="0" resource="0"
@@ -34,6 +38,8 @@
             file="Source/TenFtMainComponent.cpp"/>
       <FILE id="Zo1l0O" name="TenFtMainComponent.h" compile="0" resource="0"
             file="Source/TenFtMainComponent.h"/>
+      <FILE id="jSkGZo" name="TenFtUtil.cpp" compile="1" resource="0" file="Source/TenFtUtil.cpp"/>
+      <FILE id="FEK3GJ" name="TenFtUtil.h" compile="0" resource="0" file="Source/TenFtUtil.h"/>
     </GROUP>
   </MAINGROUP>
   <MODULES>
@@ -134,7 +140,7 @@
   </EXPORTFORMATS>
   <LIVE_SETTINGS>
     <OSX/>
-    <WINDOWS windowsTargetPlatformVersion="10.0.17134.0" buildEnabled="1"
+    <WINDOWS windowsTargetPlatformVersion="10.0.17134.0" buildEnabled="0"
              continuousRebuildEnabled="0"/>
   </LIVE_SETTINGS>
   <JUCEOPTIONS/>

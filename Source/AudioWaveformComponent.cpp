@@ -100,7 +100,12 @@ void AudioWaveformComponent::mouseDoubleClick (const MouseEvent& event)
         return;
     }
 
-    double newPosition = xToSeconds ((float) event.getMouseDownX ());
+    double newPosition = util::xToSeconds (
+        (float) event.getMouseDownX (),
+        visibleRegionStartTime,
+        visibleRegionEndTime,
+        getLocalBounds ().toFloat ()
+    );
 
     clearSelectedRegion ();
     
@@ -114,20 +119,37 @@ void AudioWaveformComponent::mouseDrag (const MouseEvent &event)
         return;
     }
 
+    juce::Rectangle<float> bounds = getLocalBounds ().toFloat ();
+
     if (hasSelectedRegion)
     {
         int mouseDownX = event.getMouseDownX () +
             event.getDistanceFromDragStartX ();
-        double mouseDownSeconds = xToSeconds ((float) mouseDownX);
+        double mouseDownSeconds = util::xToSeconds (
+            (float) mouseDownX,
+            visibleRegionStartTime,
+            visibleRegionEndTime,
+            bounds
+        );
 
         updateSelectedRegion (mouseDownSeconds);
     }
     else
     {
-        float startOfDragX = secondsToX (selectedRegionStartTime),
+        float startOfDragX = util::secondsToX (
+            selectedRegionStartTime,
+            visibleRegionStartTime,
+            visibleRegionEndTime,
+            bounds
+        ),
             endOfDragX = startOfDragX + event.getDistanceFromDragStartX ();
         double newStartTime = selectedRegionStartTime,
-            newEndTime = xToSeconds (endOfDragX);
+            newEndTime = util::xToSeconds (
+                endOfDragX,
+                visibleRegionStartTime,
+                visibleRegionEndTime,
+                bounds
+            );
 
         hasSelectedRegion = true;
 
@@ -153,10 +175,16 @@ void AudioWaveformComponent::mouseDown (const MouseEvent &event)
     }
 
     int mouseDownX = event.getMouseDownX ();
+    juce::Rectangle<float> bounds = getLocalBounds ().toFloat ();
 
     if (hasSelectedRegion)
     {
-        double seconds = xToSeconds ((float) mouseDownX);
+        double seconds = util::xToSeconds (
+            (float) mouseDownX,
+            visibleRegionStartTime,
+            visibleRegionEndTime,
+            bounds
+        );
 
         updateSelectedRegion (seconds);
 
@@ -164,7 +192,14 @@ void AudioWaveformComponent::mouseDown (const MouseEvent &event)
     }
     else
     {
-        setSelectedRegionStartTime (xToSeconds ((float) mouseDownX));
+        setSelectedRegionStartTime (
+            util::xToSeconds (
+                (float) mouseDownX,
+                visibleRegionStartTime,
+                visibleRegionEndTime,
+                bounds
+            )
+        );
     }
 }
 
@@ -216,8 +251,13 @@ void AudioWaveformComponent::updateVisibleRegion (
     double newEndTime
 )
 {
-    double startTimeFlattened = flattenSeconds (newStartTime),
-        endTimeFlattened = flattenSeconds (newEndTime);
+    double totalLength = thumbnail.getTotalLength (),
+        startTimeFlattened = util::flattenSeconds (
+            newStartTime, totalLength
+        ),
+        endTimeFlattened = util::flattenSeconds (
+            newEndTime, totalLength
+        );
 
     if (!isVisibleRegionCorrect(startTimeFlattened, endTimeFlattened))
     {
@@ -311,81 +351,16 @@ void AudioWaveformComponent::paintIfNoFileLoaded (Graphics& g)
 void AudioWaveformComponent::paintIfFileLoaded (Graphics& g)
 {
     juce::Rectangle<float> thumbnailBounds = getLocalBounds ().toFloat ();
-    bool hasIntersectionWithSelectedRegion = !(
-        selectedRegionEndTime < visibleRegionStartTime ||
-        selectedRegionStartTime > visibleRegionEndTime
+    g.setColour (findColour (ColourIds::waveformBackgroundColour));
+    g.fillRect (thumbnailBounds);
+    g.setColour (findColour (ColourIds::waveformColour));
+    thumbnail.drawChannels (
+        g,
+        thumbnailBounds.toNearestInt (),
+        visibleRegionStartTime,
+        visibleRegionEndTime,
+        1.0f
     );
-
-    if (hasSelectedRegion && hasIntersectionWithSelectedRegion)
-    {
-        float notSelectedRegionLeftWidth =
-                flattenX (secondsToX (selectedRegionStartTime)),
-            notSelectedRegionRightWidth =
-                flattenX (secondsToX (selectedRegionEndTime)),
-            selectedRegionWidth =
-                flattenX (
-                    notSelectedRegionRightWidth - notSelectedRegionLeftWidth
-                );
-        juce::Rectangle<float> notSelectedRegionLeft =
-                thumbnailBounds.removeFromLeft (notSelectedRegionLeftWidth),
-            selectedRegion =
-                thumbnailBounds.removeFromLeft (selectedRegionWidth),
-            notSelectedRegionRight = thumbnailBounds;
-
-        if (visibleRegionStartTime < selectedRegionStartTime)
-        {
-            g.setColour (findColour (ColourIds::waveformBackgroundColour));
-            g.fillRect (notSelectedRegionLeft);
-            g.setColour (findColour (ColourIds::waveformColour));
-            thumbnail.drawChannels (
-                g,
-                notSelectedRegionLeft.toNearestInt (),
-                visibleRegionStartTime,
-                selectedRegionStartTime,
-                1.0f
-            );
-        }
-
-        g.setColour (findColour (
-            ColourIds::waveformSelectedRegionBackgroundColour
-        ));
-        g.fillRect (selectedRegion);
-        g.setColour (findColour (ColourIds::waveformColour));
-        thumbnail.drawChannels (
-            g,
-            selectedRegion.toNearestInt (),
-            jmax(selectedRegionStartTime, visibleRegionStartTime),
-            jmin(selectedRegionEndTime, visibleRegionEndTime),
-            1.0f
-        );
-
-        if (selectedRegionEndTime < visibleRegionEndTime)
-        {
-            g.setColour (findColour (ColourIds::waveformBackgroundColour));
-            g.fillRect (notSelectedRegionRight);
-            g.setColour (findColour (ColourIds::waveformColour));
-            thumbnail.drawChannels (
-                g,
-                notSelectedRegionRight.toNearestInt (),
-                selectedRegionEndTime,
-                visibleRegionEndTime,
-                1.0f
-            );
-        }
-    }
-    else
-    {
-        g.setColour (findColour (ColourIds::waveformBackgroundColour));
-        g.fillRect (thumbnailBounds);
-        g.setColour (findColour (ColourIds::waveformColour));
-        thumbnail.drawChannels (
-            g,
-            thumbnailBounds.toNearestInt (),
-            visibleRegionStartTime,
-            visibleRegionEndTime,
-            1.0f
-        );
-    }
 }
 
 void AudioWaveformComponent::setSelectedRegionStartTime (double newStartTime)
@@ -433,50 +408,4 @@ bool AudioWaveformComponent::isVisibleRegionCorrect (
             startTime < endTime &&
             startTime >= 0 &&
             endTime <= thumbnail.getTotalLength ());
-}
-
-double AudioWaveformComponent::xToSeconds (float x)
-{
-    double visibleRegionLengthSeconds = getVisibleRegionLengthInSeconds ();
-
-    return ((double) x / (double) getLocalBounds ().getWidth ()) * visibleRegionLengthSeconds
-        + visibleRegionStartTime;
-}
-
-float AudioWaveformComponent::secondsToX (double s)
-{
-    juce::Rectangle<float> thumbnailBounds = getLocalBounds ().toFloat ();
-    double visibleRegionLengthSeconds = getVisibleRegionLengthInSeconds ();
-
-    return (float) ((s - visibleRegionStartTime) / visibleRegionLengthSeconds)
-        * thumbnailBounds.getWidth ();
-}
-
-double AudioWaveformComponent::flattenSeconds (double s)
-{
-    if (s < 0.0f)
-    {
-        return 0.0f;
-    }
-
-    if (s > thumbnail.getTotalLength ())
-    {
-        return thumbnail.getTotalLength ();
-    }
-
-    return s;
-}
-
-float AudioWaveformComponent::flattenX (float x)
-{
-    if (x < 0)
-    {
-        return 0;
-    }
-    juce::Rectangle<float> localBounds = getLocalBounds ().toFloat ();
-    if (x > localBounds.getWidth ())
-    {
-        return localBounds.getWidth ();
-    }
-    return x;
 }

@@ -16,6 +16,8 @@
 
 #include <string>
 
+#include "TenFtUtil.h"
+
 
 class AudioWaveformComponent :    public Component,
                                   public Slider::Listener,
@@ -25,8 +27,7 @@ public:
     enum ColourIds
     {
         waveformColour = 0,
-        waveformBackgroundColour = 1,
-        waveformSelectedRegionBackgroundColour = 2
+        waveformBackgroundColour = 1
     };
 
     class Listener
@@ -108,14 +109,6 @@ private:
         double visibleRegionStartTime,
         double visibleRegionEndTime
     );
-
-    double xToSeconds (float x);
-
-    float secondsToX (double s);
-
-    double flattenSeconds (double s);
-
-    float flattenX (float x);
 
 private:
     AudioFormatManager formatManager;

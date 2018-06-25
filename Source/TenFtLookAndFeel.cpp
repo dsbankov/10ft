@@ -11,6 +11,8 @@
 #include "TenFtLookAndFeel.h"
 #include "AudioWaveformComponent.h"
 #include "AudioPlaybackPositionComponent.h"
+#include "AudioWaveformSelectedRegionComponent.h"
+
 
 TenFtLookAndFeel::TenFtLookAndFeel ()
 {
@@ -34,14 +36,14 @@ TenFtLookAndFeel::TenFtLookAndFeel ()
         waveformBackgroundColourId =
             AudioWaveformComponent::ColourIds::waveformBackgroundColour,
         waveformSelectedRegionBackgroundColourId =
-            AudioWaveformComponent::ColourIds::waveformSelectedRegionBackgroundColour,
+            AudioWaveformSelectedRegionComponent::ColourIds::waveformSelectedRegionBackgroundColour,
         lineColourId =
             AudioPlaybackPositionComponent::ColourIds::lineColour;
 
     setColour (waveformColourId, contrastingColour);
     setColour (waveformBackgroundColourId, mainColour.contrasting (0.2f));
     setColour (waveformSelectedRegionBackgroundColourId,
-        mainColour.contrasting (0.4f));
+        mainColour.contrasting (1.0f));
     setColour (lineColourId,
         Colour::contrasting (
             Colour::contrasting (
