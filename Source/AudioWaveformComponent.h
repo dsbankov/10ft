@@ -11,10 +11,9 @@
 
 #pragma once
 
+#include <string>
 
 #include "../JuceLibraryCode/JuceHeader.h"
-
-#include <string>
 
 #include "TenFtUtil.h"
 
