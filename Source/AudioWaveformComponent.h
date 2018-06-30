@@ -44,11 +44,11 @@ public:
     std::function<void (double)> onPositionChange;
 
 public:
-    AudioWaveformComponent ();
+    AudioWaveformComponent (AudioFormatManager& formatManager);
 
     ~AudioWaveformComponent ();
 
-    bool loadThumbnail (File file);
+    bool loadThumbnail (AudioFormatReader* reader);
 
     void clearThumbnail ();
 
@@ -110,7 +110,7 @@ private:
     );
 
 private:
-    AudioFormatManager formatManager;
+    //AudioBuffer<float> buffer; // TODO to be used for drawing with OpenGL instead of AudioThumbnail
     AudioThumbnailCache thumbnailCache;
     AudioThumbnail thumbnail;
     double visibleRegionStartTime;
