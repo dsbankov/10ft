@@ -12,10 +12,8 @@
 #include "TenFtAudioTransportSource.h"
 
 
-TenFtAudioTransportSource::TenFtAudioTransportSource () :
-    formatManager ()
+TenFtAudioTransportSource::TenFtAudioTransportSource ()
 {
-    formatManager.registerBasicFormats ();
     selectedRegionStartTime = 0.0f;
     selectedRegionEndTime = getLengthInSeconds ();
     addChangeListener (this);
@@ -28,14 +26,12 @@ TenFtAudioTransportSource::~TenFtAudioTransportSource ()
     setSource (nullptr);
 }
 
-bool TenFtAudioTransportSource::loadAudio (File& file)
+bool TenFtAudioTransportSource::loadAudio (AudioFormatReader* reader)
 {
-    AudioFormatReader* reader = formatManager.createReaderFor (file);
-
     if (reader != nullptr)
     {
         std::unique_ptr<AudioFormatReaderSource> tempReaderSource (
-            new AudioFormatReaderSource (reader, true)
+            new AudioFormatReaderSource (reader, false)
         );
 
         setSource (

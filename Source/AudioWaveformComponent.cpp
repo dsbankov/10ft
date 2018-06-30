@@ -12,14 +12,12 @@
 #include "AudioWaveformComponent.h"
 
 
-AudioWaveformComponent::AudioWaveformComponent ()
+AudioWaveformComponent::AudioWaveformComponent (AudioFormatManager& formatManager)
     :
-        formatManager (),
         thumbnailCache (5),
         thumbnail (2048, formatManager, thumbnailCache),
         openGLContext()
 {
-    formatManager.registerBasicFormats ();
     openGLContext.attachTo (*this);
     thumbnail.addChangeListener (this);
 }
@@ -219,10 +217,24 @@ void AudioWaveformComponent::sliderValueChanged (Slider* slider)
     updateVisibleRegion (leftPositionSeconds, rightPositionSeconds);
 }
 
-bool AudioWaveformComponent::loadThumbnail (File file)
+bool AudioWaveformComponent::loadThumbnail (AudioFormatReader* reader)
 {
-    if (thumbnail.setSource (new FileInputSource (file)))
+    if (reader != nullptr)
     {
+        //AudioBuffer<float> newBuffer (reader->numChannels, reader->lengthInSamples);
+        //reader->read (&newBuffer, 0, reader->lengthInSamples, 0, true, true);
+        //buffer = newBuffer;
+
+        //for (int channelIndex = 0; channelIndex < buffer.getNumChannels (); channelIndex++)
+        //{
+        //    const float* readBuffer = buffer.getReadPointer (channelIndex);
+        //    for (int sampleIndex = 0; sampleIndex < buffer.getNumSamples (); sampleIndex++)
+        //    {
+        //        Logger::outputDebugString (std::to_string(readBuffer[sampleIndex]));
+        //    }
+        //}
+
+        thumbnail.setReader (reader, reader->lengthInSamples);
         updateVisibleRegion (0.0f, thumbnail.getTotalLength());
         return true;
     }

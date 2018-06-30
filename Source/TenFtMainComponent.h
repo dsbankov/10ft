@@ -63,12 +63,18 @@ private:
     TextButton playButton;
     TextButton stopButton;
     ToggleButton loopButton;
+
+    AudioFormatManager formatManager;
+    AudioFormatReader* reader;
+
     TenFtAudioTransportSource audioSource;
+
     AudioWaveformComponent waveform;
     AudioWaveformSelectedRegionComponent selectedRegion;
     AudioPlaybackPositionComponent playbackPosition;
     AudioClockComponent clock;
     AudioScrollerComponent scroller;
+
     TenFtLookAndFeel tenFtLookAndFeel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TenFtMainComponent)

@@ -14,12 +14,8 @@
 
 TenFtMainComponent::TenFtMainComponent ()
     :
-        audioSource (),
-        waveform (),
-        selectedRegion (),
-        playbackPosition (),
-        clock (),
-        scroller ()
+        formatManager(),
+        waveform(formatManager)
 {
     setLookAndFeel (&tenFtLookAndFeel);
 
@@ -53,6 +49,8 @@ TenFtMainComponent::TenFtMainComponent ()
         loopButtonClicked ();
     };
     loopButton.setEnabled (false);
+
+    formatManager.registerBasicFormats ();
 
     audioSource.addListener (&clock);
     audioSource.addListener (&playbackPosition);
@@ -184,9 +182,11 @@ void TenFtMainComponent::openButtonClicked ()
     {
         File file = chooser.getResult ();
 
-        if (audioSource.loadAudio (file))
+        reader = formatManager.createReaderFor (file);
+
+        if (audioSource.loadAudio (reader))
         {
-            waveform.loadThumbnail (file);
+            waveform.loadThumbnail (reader);
             setupButton (playButton, "Play", true);
             setupButton (stopButton, "Stop", false);
             loopButton.setEnabled (true);
