@@ -219,20 +219,12 @@ void AudioWaveformComponent::sliderValueChanged (Slider* slider)
 
 bool AudioWaveformComponent::loadThumbnail (AudioFormatReader* reader)
 {
+    this->reader = reader;
     if (reader != nullptr)
     {
-        //AudioBuffer<float> newBuffer (reader->numChannels, reader->lengthInSamples);
-        //reader->read (&newBuffer, 0, reader->lengthInSamples, 0, true, true);
-        //buffer = newBuffer;
-
-        //for (int channelIndex = 0; channelIndex < buffer.getNumChannels (); channelIndex++)
-        //{
-        //    const float* readBuffer = buffer.getReadPointer (channelIndex);
-        //    for (int sampleIndex = 0; sampleIndex < buffer.getNumSamples (); sampleIndex++)
-        //    {
-        //        Logger::outputDebugString (std::to_string(readBuffer[sampleIndex]));
-        //    }
-        //}
+        AudioBuffer<float> buffer (reader->numChannels, reader->lengthInSamples);
+        reader->read (&buffer, 0, reader->lengthInSamples, 0, true, true);
+        readerBuffer = buffer;
 
         thumbnail.setReader (reader, reader->lengthInSamples);
         updateVisibleRegion (0.0f, thumbnail.getTotalLength());
@@ -240,6 +232,7 @@ bool AudioWaveformComponent::loadThumbnail (AudioFormatReader* reader)
     }
     else
     {
+        readerBuffer.clear ();
         clearThumbnail ();
         return false;
     }
@@ -286,6 +279,24 @@ void AudioWaveformComponent::updateVisibleRegion (
 
     visibleRegionStartTime = startTimeFlattened;
     visibleRegionEndTime = endTimeFlattened;
+
+    //int startSample = visibleRegionStartTime * reader->sampleRate,
+    //    endSample = visibleRegionEndTime * reader->sampleRate;
+    ////Logger::outputDebugString (std::to_string (startSample) + ", " + std::to_string (endSample));
+    //if (endSample - startSample < 4000)
+    //{
+    //    Logger::outputDebugString ("*********************************************");
+    //    for (int channelIndex = 0; channelIndex < readerBuffer.getNumChannels (); channelIndex++)
+    //    {
+    //        const float* readBuffer = readerBuffer.getReadPointer (channelIndex);
+    //        for (int sampleIndex = startSample; sampleIndex < endSample; sampleIndex++)
+    //        {
+    //            //samples += std::to_string (readBuffer[sampleIndex]) + "\n";
+    //            Logger::outputDebugString (std::to_string (readBuffer[sampleIndex]));
+    //        }
+    //    }
+    //    Logger::outputDebugString ("*********************************************");
+    //}
 
     listeners.call ([this] (Listener& l) { l.visibleRegionChanged (this); });
 
@@ -366,6 +377,9 @@ void AudioWaveformComponent::paintIfFileLoaded (Graphics& g)
     g.setColour (findColour (ColourIds::waveformBackgroundColour));
     g.fillRect (thumbnailBounds);
     g.setColour (findColour (ColourIds::waveformColour));
+
+    // TODO draw with OpenGL here!
+
     thumbnail.drawChannels (
         g,
         thumbnailBounds.toNearestInt (),
