@@ -110,7 +110,8 @@ private:
     );
 
 private:
-    //AudioBuffer<float> buffer; // TODO to be used for drawing with OpenGL instead of AudioThumbnail
+    AudioFormatReader* reader;
+    AudioBuffer<float> readerBuffer;
     AudioThumbnailCache thumbnailCache;
     AudioThumbnail thumbnail;
     double visibleRegionStartTime;
