@@ -182,14 +182,15 @@ void TenFtMainComponent::openButtonClicked ()
     {
         File file = chooser.getResult ();
 
-        reader = formatManager.createReaderFor (file);
+        std::unique_ptr<AudioFormatReader> newReader(formatManager.createReaderFor (file));
 
-        if (audioSource.loadAudio (reader))
+        if (audioSource.loadAudio (newReader.get ()))
         {
-            waveform.loadThumbnail (reader);
+            waveform.loadThumbnail (newReader.get ());
             setupButton (playButton, "Play", true);
             setupButton (stopButton, "Stop", false);
             loopButton.setEnabled (true);
+            reader.swap (newReader);
         }
         else
         {

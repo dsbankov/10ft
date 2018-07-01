@@ -65,7 +65,7 @@ private:
     ToggleButton loopButton;
 
     AudioFormatManager formatManager;
-    AudioFormatReader* reader;
+    std::unique_ptr<AudioFormatReader> reader;
 
     TenFtAudioTransportSource audioSource;
 

@@ -18,9 +18,8 @@
 #include "TenFtUtil.h"
 
 
-class AudioWaveformComponent :    public Component,
-                                  public Slider::Listener,
-                                  private ChangeListener
+class AudioWaveformComponent :    public OpenGLAppComponent,
+                                  public Slider::Listener
 {
 public:
     enum ColourIds
@@ -47,6 +46,12 @@ public:
     AudioWaveformComponent (AudioFormatManager& formatManager);
 
     ~AudioWaveformComponent ();
+
+    void initialise () override;
+
+    void shutdown () override;
+
+    void render () override;
 
     bool loadThumbnail (AudioFormatReader* reader);
 
@@ -90,11 +95,7 @@ public:
     void sliderValueChanged (Slider* slider) override;
 
 private:
-    void changeListenerCallback (ChangeBroadcaster* source) override;
-
     void paintIfNoFileLoaded (Graphics& g);
-
-    void paintIfFileLoaded (Graphics& g);
 
     void setSelectedRegionStartTime (double selectedRegionStartTime);
 
@@ -110,17 +111,24 @@ private:
     );
 
 private:
-    AudioFormatReader* reader;
-    AudioBuffer<float> readerBuffer;
-    AudioThumbnailCache thumbnailCache;
-    AudioThumbnail thumbnail;
     double visibleRegionStartTime;
     double visibleRegionEndTime;
     bool hasSelectedRegion = false;
     double selectedRegionStartTime;
     double selectedRegionEndTime;
     ListenerList<Listener> listeners;
-    OpenGLContext openGLContext;
+
+    struct SampleVertex
+    {
+        GLfloat x, y;
+        SampleVertex (GLfloat x, GLfloat y) : x (x), y (y) { }
+    };
+    AudioFormatReader* reader = nullptr;
+    AudioBuffer<float> readerBuffer;
+    std::unique_ptr<OpenGLShaderProgram> shaderProgram;
+    GLuint vertexBufferId;
+
+    
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioWaveformComponent)
 };
