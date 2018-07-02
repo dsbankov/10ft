@@ -54,6 +54,25 @@ public:
 
     void render () override;
 
+    void paint (Graphics& g) override;
+
+    void mouseWheelMove (
+        const MouseEvent& event,
+        const MouseWheelDetails& wheelDetails
+    ) override;
+
+    void mouseDoubleClick (const MouseEvent& event) override;
+
+    void mouseDrag (const MouseEvent& event) override;
+
+    void mouseDown (const MouseEvent& event) override;
+
+    void sliderValueChanged (Slider* slider) override;
+
+    void addListener (Listener* newListener);
+
+    void removeListener (Listener* listener);
+
     bool loadWaveform (AudioFormatReader* reader);
 
     void clearWaveform ();
@@ -75,25 +94,6 @@ public:
     void updateSelectedRegion (double newStartTime, double newRegionEndTime);
 
     void clearSelectedRegion ();
-
-    void addListener (Listener* newListener);
-
-    void removeListener (Listener* listener);
-
-    void paint (Graphics& g) override;
-
-    void mouseWheelMove (
-        const MouseEvent& event,
-        const MouseWheelDetails& wheelDetails
-    ) override;
-
-    void mouseDoubleClick (const MouseEvent& event) override;
-
-    void mouseDrag (const MouseEvent& event) override;
-
-    void mouseDown (const MouseEvent& event) override;
-
-    void sliderValueChanged (Slider* slider) override;
 
 private:
     void paintIfNoFileLoaded (Graphics& g);

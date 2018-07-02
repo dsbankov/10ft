@@ -44,20 +44,27 @@ void AudioWaveformComponent::initialise ()
         "    FragColor = vec4(vertexColor, 1.0);\n"
         "}";
 
-    std::unique_ptr<OpenGLShaderProgram> newShaderProgram (new OpenGLShaderProgram (openGLContext));
+    std::unique_ptr<OpenGLShaderProgram> newShaderProgram (
+        new OpenGLShaderProgram (openGLContext)
+    );
     String statusText;
 
-    if (newShaderProgram->addVertexShader (OpenGLHelpers::translateVertexShaderToV3 (vertexShader))
-        && newShaderProgram->addFragmentShader (OpenGLHelpers::translateFragmentShaderToV3 (fragmentShader))
-        && newShaderProgram->link ())
+    if (
+        newShaderProgram->addVertexShader (
+            OpenGLHelpers::translateVertexShaderToV3 (vertexShader)) &&
+        newShaderProgram->addFragmentShader (
+            OpenGLHelpers::translateFragmentShaderToV3 (fragmentShader)) &&
+        newShaderProgram->link ())
     {
         shaderProgram.reset (newShaderProgram.release ());
         vertexBuffer.reset (new VertexBuffer(openGLContext));
-        statusText = "GLSL: v" + String (OpenGLShaderProgram::getLanguageVersion (), 2);
+        statusText = "GLSL: v" +
+            String (OpenGLShaderProgram::getLanguageVersion (), 2);
     }
     else
     {
         statusText = newShaderProgram->getLastError ();
+        Logger::outputDebugString (statusText);
     }
 }
 
@@ -77,12 +84,15 @@ void AudioWaveformComponent::render ()
     jassert (OpenGLHelpers::isContextActive ());
 
     auto desktopScale = (float) openGLContext.getRenderingScale ();
-    OpenGLHelpers::clear (getLookAndFeel ().findColour (ColourIds::waveformBackgroundColour));
+    OpenGLHelpers::clear (
+        getLookAndFeel ().findColour (ColourIds::waveformBackgroundColour)
+    );
 
     glEnable (GL_BLEND);
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glViewport (0, 0, roundToInt (desktopScale * getWidth ()), roundToInt (desktopScale * getHeight ()));
+    glViewport (0, 0, roundToInt (desktopScale * getWidth ()),
+        roundToInt (desktopScale * getHeight ()));
 
     shaderProgram->use ();
 
@@ -101,16 +111,6 @@ void AudioWaveformComponent::paint (Graphics& g)
     {
         paintIfNoFileLoaded (g);
     }
-}
-
-void AudioWaveformComponent::addListener (Listener * newListener)
-{
-    listeners.add (newListener);
-}
-
-void AudioWaveformComponent::removeListener (Listener * listener)
-{
-    listeners.remove (listener);
 }
 
 void AudioWaveformComponent::mouseWheelMove (
@@ -137,7 +137,7 @@ void AudioWaveformComponent::mouseWheelMove (
     if (wheelDetails.deltaY < 0)
     {
         // downwards
-        
+
         updateVisibleRegion (
             visibleRegionStartTime - scrollAmmountLeft,
             visibleRegionEndTime + scrollAmmountRight
@@ -146,7 +146,7 @@ void AudioWaveformComponent::mouseWheelMove (
     else if (wheelDetails.deltaY > 0)
     {
         // upwards
-        
+
         updateVisibleRegion (
             visibleRegionStartTime + scrollAmmountLeft,
             visibleRegionEndTime - scrollAmmountRight
@@ -169,7 +169,7 @@ void AudioWaveformComponent::mouseDoubleClick (const MouseEvent& event)
     );
 
     clearSelectedRegion ();
-    
+
     onPositionChange (newPosition);
 }
 
@@ -255,7 +255,7 @@ void AudioWaveformComponent::mouseDown (const MouseEvent &event)
     {
         setSelectedRegionStartTime (
             util::xToSeconds (
-                (float) mouseDownX,
+            (float) mouseDownX,
                 visibleRegionStartTime,
                 visibleRegionEndTime,
                 bounds
@@ -278,6 +278,16 @@ void AudioWaveformComponent::sliderValueChanged (Slider* slider)
         rightPositionSeconds = (maxValue / 100.0) * getTotalLength ();
 
     updateVisibleRegion (leftPositionSeconds, rightPositionSeconds);
+}
+
+void AudioWaveformComponent::addListener (Listener * newListener)
+{
+    listeners.add (newListener);
+}
+
+void AudioWaveformComponent::removeListener (Listener * listener)
+{
+    listeners.remove (listener);
 }
 
 bool AudioWaveformComponent::loadWaveform (AudioFormatReader* reader)
@@ -455,7 +465,8 @@ void AudioWaveformComponent::fillVertices ()
     int startSample = visibleRegionStartTime * reader->sampleRate,
         endSample = visibleRegionEndTime * reader->sampleRate,
         samplesCount = endSample - startSample;
-    const GLfloat* readBuffer = readerBuffer.getReadPointer (0); // TODO for now use only the left channel
+    // TODO use both channels (not only left)
+    const GLfloat* readBuffer = readerBuffer.getReadPointer (0);
 
     for (int sampleIndex = startSample; sampleIndex < endSample; sampleIndex++)
     {
