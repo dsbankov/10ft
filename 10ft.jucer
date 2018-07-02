@@ -40,6 +40,9 @@
             file="Source/TenFtMainComponent.h"/>
       <FILE id="jSkGZo" name="TenFtUtil.cpp" compile="1" resource="0" file="Source/TenFtUtil.cpp"/>
       <FILE id="FEK3GJ" name="TenFtUtil.h" compile="0" resource="0" file="Source/TenFtUtil.h"/>
+      <FILE id="VSYJQD" name="VertexBuffer.cpp" compile="1" resource="0"
+            file="Source/VertexBuffer.cpp"/>
+      <FILE id="dxgUJ4" name="VertexBuffer.h" compile="0" resource="0" file="Source/VertexBuffer.h"/>
     </GROUP>
   </MAINGROUP>
   <MODULES>
