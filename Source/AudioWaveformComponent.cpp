@@ -285,9 +285,8 @@ bool AudioWaveformComponent::loadWaveform (AudioFormatReader* reader)
     this->reader = reader;
     if (reader != nullptr)
     {
-        AudioBuffer<float> buffer (reader->numChannels, reader->lengthInSamples);
-        reader->read (&buffer, 0, reader->lengthInSamples, 0, true, true);
-        readerBuffer = buffer;
+        readerBuffer.setSize (reader->numChannels, reader->lengthInSamples);
+        reader->read (&readerBuffer, 0, reader->lengthInSamples, 0, true, true);
         updateVisibleRegion (0.0f, getTotalLength());
         return true;
     }
