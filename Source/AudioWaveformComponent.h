@@ -16,6 +16,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 
 #include "TenFtUtil.h"
+#include "VertexBuffer.h"
 
 
 class AudioWaveformComponent :    public OpenGLAppComponent,
@@ -43,7 +44,7 @@ public:
     std::function<void (double)> onPositionChange;
 
 public:
-    AudioWaveformComponent (AudioFormatManager& formatManager);
+    AudioWaveformComponent ();
 
     ~AudioWaveformComponent ();
 
@@ -53,9 +54,9 @@ public:
 
     void render () override;
 
-    bool loadThumbnail (AudioFormatReader* reader);
+    bool loadWaveform (AudioFormatReader* reader);
 
-    void clearThumbnail ();
+    void clearWaveform ();
 
     double getTotalLength ();
 
@@ -110,7 +111,11 @@ private:
         double visibleRegionEndTime
     );
 
+    void fillVertices ();
+
 private:
+    AudioFormatReader* reader = nullptr;
+    AudioBuffer<float> readerBuffer;
     double visibleRegionStartTime;
     double visibleRegionEndTime;
     bool hasSelectedRegion = false;
@@ -118,17 +123,9 @@ private:
     double selectedRegionEndTime;
     ListenerList<Listener> listeners;
 
-    struct SampleVertex
-    {
-        GLfloat x, y;
-        SampleVertex (GLfloat x, GLfloat y) : x (x), y (y) { }
-    };
-    AudioFormatReader* reader = nullptr;
-    AudioBuffer<float> readerBuffer;
     std::unique_ptr<OpenGLShaderProgram> shaderProgram;
-    GLuint vertexBufferId;
-
-    
+    std::unique_ptr<VertexBuffer> vertexBuffer;
+    Array<Vertex> vertices;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioWaveformComponent)
 };

@@ -12,7 +12,7 @@
 #include "AudioWaveformComponent.h"
 
 
-AudioWaveformComponent::AudioWaveformComponent (AudioFormatManager& formatManager)
+AudioWaveformComponent::AudioWaveformComponent ()
 {
 }
 
@@ -26,11 +26,11 @@ void AudioWaveformComponent::initialise ()
     String vertexShader =
         "#version 330 core\n"
         "\n"
-        "layout (location = 0) in vec2 aPos;\n"
+        "layout (location = 0) in vec2 position;\n"
         "\n"
         "void main()\n"
-        "{  \n"
-        "    gl_Position = vec4(aPos.x, aPos.y, 1.0, 1.0);\n"
+        "{\n"
+        "    gl_Position = vec4(position.x, position.y, 1.0, 1.0);\n"
         "};";
     String fragmentShader =
         "#version 330 core\n"
@@ -51,20 +51,8 @@ void AudioWaveformComponent::initialise ()
         && newShaderProgram->addFragmentShader (OpenGLHelpers::translateFragmentShaderToV3 (fragmentShader))
         && newShaderProgram->link ())
     {
-        //shape.reset ();
-        //attributes.reset ();
-        //uniforms.reset ();
-
         shaderProgram.reset (newShaderProgram.release ());
-        shaderProgram->use ();
-
-        //GLuint vertexBufferId;
-        openGLContext.extensions.glGenBuffers (1, &vertexBufferId);
-
-        //shape.reset (new Shape (openGLContext));
-        //attributes.reset (new Attributes (openGLContext, *shader));
-        //uniforms.reset (new Uniforms (openGLContext, *shader));
-
+        vertexBuffer.reset (new VertexBuffer(openGLContext));
         statusText = "GLSL: v" + String (OpenGLShaderProgram::getLanguageVersion (), 2);
     }
     else
@@ -75,7 +63,7 @@ void AudioWaveformComponent::initialise ()
 
 void AudioWaveformComponent::shutdown ()
 {
-    openGLContext.extensions.glDeleteBuffers (1, &vertexBufferId);
+    vertexBuffer.reset ();
     shaderProgram.reset ();
 }
 
@@ -98,31 +86,13 @@ void AudioWaveformComponent::render ()
 
     shaderProgram->use ();
 
-    int startSample = visibleRegionStartTime * reader->sampleRate,
-        endSample = visibleRegionEndTime * reader->sampleRate,
-        samplesCount = endSample - startSample;
-    Array<SampleVertex> vertexBuffer;
+    fillVertices ();
 
-    // TODO for now use only the left channel
-    const GLfloat* readBuffer = readerBuffer.getReadPointer (0);
-    for (int sampleIndex = startSample; sampleIndex < endSample; sampleIndex++)
-    {
-        GLfloat x = (((GLfloat) (sampleIndex - startSample) / samplesCount) * 2) - 1,
-            y = readBuffer[sampleIndex];
-        vertexBuffer.add (SampleVertex(x, y));
-    }
-    
-    openGLContext.extensions.glBindBuffer (GL_ARRAY_BUFFER, vertexBufferId);
-    openGLContext.extensions.glBufferData (GL_ARRAY_BUFFER,
-        static_cast<GLsizeiptr> (static_cast<size_t> (vertexBuffer.size ()) * sizeof (SampleVertex)),
-        vertexBuffer.getRawDataPointer (), GL_STATIC_DRAW);
+    vertexBuffer->bind (vertices);
 
-    openGLContext.extensions.glVertexAttribPointer (0, 2, GL_FLOAT, GL_FALSE, sizeof (SampleVertex), (void*) 0);
-    openGLContext.extensions.glEnableVertexAttribArray (0);
+    glDrawArrays (GL_LINE_STRIP, 0, vertices.size ());
 
-    glDrawArrays (GL_LINE_STRIP, 0, vertexBuffer.size ());
-
-    openGLContext.extensions.glBindBuffer (GL_ARRAY_BUFFER, 0);
+    vertexBuffer->unbind ();
 }
 
 void AudioWaveformComponent::paint (Graphics& g)
@@ -310,7 +280,7 @@ void AudioWaveformComponent::sliderValueChanged (Slider* slider)
     updateVisibleRegion (leftPositionSeconds, rightPositionSeconds);
 }
 
-bool AudioWaveformComponent::loadThumbnail (AudioFormatReader* reader)
+bool AudioWaveformComponent::loadWaveform (AudioFormatReader* reader)
 {
     this->reader = reader;
     if (reader != nullptr)
@@ -324,12 +294,12 @@ bool AudioWaveformComponent::loadThumbnail (AudioFormatReader* reader)
     else
     {
         readerBuffer.clear ();
-        clearThumbnail ();
+        clearWaveform ();
         return false;
     }
 }
 
-void AudioWaveformComponent::clearThumbnail ()
+void AudioWaveformComponent::clearWaveform ()
 {
     clearSelectedRegion ();
     updateVisibleRegion (0.0f, 0.0f);
@@ -478,4 +448,21 @@ bool AudioWaveformComponent::isVisibleRegionCorrect (
             startTime < endTime &&
             startTime >= 0 &&
             endTime <= getTotalLength ());
+}
+
+void AudioWaveformComponent::fillVertices ()
+{
+    vertices.clear ();
+    int startSample = visibleRegionStartTime * reader->sampleRate,
+        endSample = visibleRegionEndTime * reader->sampleRate,
+        samplesCount = endSample - startSample;
+    const GLfloat* readBuffer = readerBuffer.getReadPointer (0); // TODO for now use only the left channel
+
+    for (int sampleIndex = startSample; sampleIndex < endSample; sampleIndex++)
+    {
+        Vertex vertex;
+        vertex.x = (((GLfloat)(sampleIndex - startSample) / samplesCount) * 2) - 1;
+        vertex.y = readBuffer[sampleIndex];
+        vertices.add (vertex);
+    }
 }

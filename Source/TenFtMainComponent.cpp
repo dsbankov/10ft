@@ -13,9 +13,6 @@
 
 
 TenFtMainComponent::TenFtMainComponent ()
-    :
-        formatManager(),
-        waveform(formatManager)
 {
     setLookAndFeel (&tenFtLookAndFeel);
 
@@ -186,7 +183,7 @@ void TenFtMainComponent::openButtonClicked ()
 
         if (audioSource.loadAudio (newReader.get ()))
         {
-            waveform.loadThumbnail (newReader.get ());
+            waveform.loadWaveform (newReader.get ());
             setupButton (playButton, "Play", true);
             setupButton (stopButton, "Stop", false);
             loopButton.setEnabled (true);
@@ -194,7 +191,7 @@ void TenFtMainComponent::openButtonClicked ()
         }
         else
         {
-            waveform.clearThumbnail ();
+            waveform.clearWaveform ();
             scroller.disable ();
             setupButton (playButton, "Play", false);
             setupButton (stopButton, "Stop", false);
