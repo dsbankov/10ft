@@ -255,6 +255,7 @@ bool AudioWaveformComponent::loadWaveform (AudioFormatReader* reader)
 
 void AudioWaveformComponent::clearWaveform ()
 {
+    reader = nullptr;
     clearSelectedRegion ();
     updateVisibleRegion (0.0f, 0.0f);
     listeners.call ([this] (Listener& l) { l.thumbnailCleared (this); });
@@ -278,13 +279,7 @@ void AudioWaveformComponent::updateVisibleRegion (
             newEndTime, totalLength
         );
 
-    if (!isVisibleRegionCorrect(startTimeFlattened, endTimeFlattened))
-    {
-        throw std::logic_error (
-            "Incorrect visible region [" +
-                std::to_string(newStartTime) + ", " +
-                std::to_string (newEndTime) + "].");
-    }
+    jassert (isVisibleRegionCorrect (startTimeFlattened, endTimeFlattened));
 
     if (endTimeFlattened - startTimeFlattened < 0.05f)
     {
