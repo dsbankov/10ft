@@ -18,10 +18,9 @@ AudioWaveformChannelComponent::AudioWaveformChannelComponent ()
 
 AudioWaveformChannelComponent::~AudioWaveformChannelComponent ()
 {
-    shutdownOpenGL ();
 }
 
-void AudioWaveformChannelComponent::initialise ()
+void AudioWaveformChannelComponent::initialise (OpenGLContext& openGLContext)
 {
     String vertexShader =
         //"#version 330 core\n"
@@ -44,12 +43,12 @@ void AudioWaveformChannelComponent::initialise ()
         "{\n"
         "    gl_FragColor = vec4(vertexColor, 1.0);\n"
         "}";
-
+    
     std::unique_ptr<OpenGLShaderProgram> newShaderProgram (
         new OpenGLShaderProgram (openGLContext)
     );
     String statusText;
-
+    
     if (
         newShaderProgram->addVertexShader (
             OpenGLHelpers::translateVertexShaderToV3 (vertexShader)) &&
@@ -58,11 +57,11 @@ void AudioWaveformChannelComponent::initialise ()
         newShaderProgram->link ())
     {
         shaderProgram.reset (newShaderProgram.release ());
-
+    
         shaderProgram->use ();
-
+    
         openGLContext.extensions.glGenBuffers (1, &vertexBufferId);
-
+    
         statusText = "GLSL: v" +
             String (OpenGLShaderProgram::getLanguageVersion (), 2);
     }
@@ -73,58 +72,49 @@ void AudioWaveformChannelComponent::initialise ()
     }
 }
 
-void AudioWaveformChannelComponent::shutdown ()
+void AudioWaveformChannelComponent::shutdown (OpenGLContext& openGLContext)
 {
     openGLContext.extensions.glDeleteBuffers (1, &vertexBufferId);
     shaderProgram.reset ();
 }
 
-void AudioWaveformChannelComponent::render ()
+void AudioWaveformChannelComponent::render (OpenGLContext& openGLContext)
 {
-    //if (vertices.isEmpty())
-    //{
-    //    return;
-    //}
-
     jassert (OpenGLHelpers::isContextActive ());
-
+    
     auto desktopScale = (float)openGLContext.getRenderingScale ();
     OpenGLHelpers::clear (
         //getLookAndFeel ().findColour (AudioWaveformComponent::ColourIds::waveformBackgroundColour)
         Colours::yellow
     );
-
+    
     //AudioWaveformComponent::ColourIds::waveformColour; // TODO use this for the waveform,\ coor itself (pass to the fragment shader)
-
+    
     glEnable (GL_BLEND);
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+    
     glViewport (0, 0, roundToInt (desktopScale * getWidth ()),
         roundToInt (desktopScale * getHeight ()));
-
+    
     OpenGLShaderProgram::Attribute position (*shaderProgram, "position");
-
+    
     shaderProgram->use ();
-
+    
     updateVertices ();
-
+    
     openGLContext.extensions.glBindBuffer (GL_ARRAY_BUFFER, vertexBufferId);
     openGLContext.extensions.glBufferData (GL_ARRAY_BUFFER,
             static_cast<GLsizeiptr> (static_cast<size_t> (vertices.size ()) * sizeof (Vertex)),
             vertices.getRawDataPointer (), GL_STATIC_DRAW);
-
+    
     openGLContext.extensions.glVertexAttribPointer (position.attributeID, 2,
         GL_FLOAT, GL_FALSE, sizeof (Vertex), 0);
     openGLContext.extensions.glEnableVertexAttribArray (position.attributeID);
-
+    
     glDrawArrays (GL_LINE_STRIP, 0, vertices.size ());
-
+    
     openGLContext.extensions.glDisableVertexAttribArray (position.attributeID);
     openGLContext.extensions.glBindBuffer (GL_ARRAY_BUFFER, 0);
-}
-
-void AudioWaveformChannelComponent::paint (Graphics& g)
-{
 }
 
 void AudioWaveformChannelComponent::redraw (int startSample, int numSamples)
@@ -154,7 +144,7 @@ void AudioWaveformChannelComponent::updateVertices ()
             vertex.y = readBuffer[sampleIndex];
             newArray.add (vertex);
         }
-        vertices.swapWithArray (newArray);
+        vertices.swapWith (newArray);
         isVisibleRegionChanged = false;
         Logger::outputDebugString ("fillVertices ()");
     }

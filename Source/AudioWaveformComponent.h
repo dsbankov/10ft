@@ -17,10 +17,10 @@
 
 #include "TenFtUtil.h"
 #include "AudioWaveformChannelComponent.h"
-//#include "AudioWaveformNotLoadedComponent.h"
 
 
 class AudioWaveformComponent :    public Component,
+                                  public OpenGLRenderer,
                                   public Slider::Listener
 {
 public:
@@ -49,7 +49,13 @@ public:
 
     ~AudioWaveformComponent ();
 
-    //void paint (Graphics& g) override;
+    void newOpenGLContextCreated () override;
+
+    void openGLContextClosing () override;
+
+    void renderOpenGL () override;
+
+    void paint (Graphics& g) override;
 
     void resized () override;
 
@@ -93,7 +99,7 @@ public:
     void clearSelectedRegion ();
 
 private:
-    //void paintIfNoFileLoaded (Graphics& g);
+    void paintIfNoFileLoaded (Graphics& g);
 
     void setSelectedRegionStartTime (double selectedRegionStartTime);
 
@@ -111,8 +117,8 @@ private:
 private:
     AudioFormatReader* reader = nullptr;
     AudioBuffer<float> readerBuffer;
+    OpenGLContext openGLContext;
     AudioWaveformChannelComponent waveformChannel;
-    //AudioWaveformNotLoadedComponent waveformEmpty;
     double visibleRegionStartTime;
     double visibleRegionEndTime;
     bool hasSelectedRegion = false;

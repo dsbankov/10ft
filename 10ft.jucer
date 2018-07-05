@@ -30,6 +30,8 @@
             resource="0" file="Source/AudioWaveformSelectedRegionComponent.cpp"/>
       <FILE id="FMxsck" name="AudioWaveformSelectedRegionComponent.h" compile="0"
             resource="0" file="Source/AudioWaveformSelectedRegionComponent.h"/>
+      <FILE id="LVYIUE" name="OpenGLComponent.h" compile="0" resource="0"
+            file="Source/OpenGLComponent.h"/>
       <FILE id="k3fLwe" name="TenFtAudioTransportSource.cpp" compile="1"
             resource="0" file="Source/TenFtAudioTransportSource.cpp"/>
       <FILE id="nS4kDr" name="TenFtAudioTransportSource.h" compile="0" resource="0"
