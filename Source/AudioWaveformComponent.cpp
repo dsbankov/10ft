@@ -14,103 +14,28 @@
 
 AudioWaveformComponent::AudioWaveformComponent ()
 {
+    setInterceptsMouseClicks (true, false);
+    addAndMakeVisible (&waveformChannel);
+    //addAndMakeVisible (&waveformEmpty);
 }
 
 AudioWaveformComponent::~AudioWaveformComponent ()
 {
-    shutdownOpenGL ();
 }
 
-void AudioWaveformComponent::initialise ()
+//void AudioWaveformComponent::paint (Graphics& g)
+//{
+//    if (getTotalLength () <= 0)
+//    {
+//        paintIfNoFileLoaded (g);
+//    }
+//}
+
+void AudioWaveformComponent::resized ()
 {
-    String vertexShader =
-        "#version 330 core\n"
-        "\n"
-        "layout (location = 0) in vec2 position;\n"
-        "\n"
-        "void main()\n"
-        "{\n"
-        "    gl_Position = vec4(position.x, position.y, 1.0, 1.0);\n"
-        "};";
-    String fragmentShader =
-        "#version 330 core\n"
-        "\n"
-        "in vec3 vertexColor;\n"
-        "\n"
-        "out vec4 FragColor;\n"
-        "\n"
-        "void main()\n"
-        "{\n"
-        "    FragColor = vec4(vertexColor, 1.0);\n"
-        "}";
-
-    std::unique_ptr<OpenGLShaderProgram> newShaderProgram (
-        new OpenGLShaderProgram (openGLContext)
-    );
-    String statusText;
-
-    if (
-        newShaderProgram->addVertexShader (
-            OpenGLHelpers::translateVertexShaderToV3 (vertexShader)) &&
-        newShaderProgram->addFragmentShader (
-            OpenGLHelpers::translateFragmentShaderToV3 (fragmentShader)) &&
-        newShaderProgram->link ())
-    {
-        shaderProgram.reset (newShaderProgram.release ());
-        vertexBuffer.reset (new VertexBuffer(openGLContext));
-        statusText = "GLSL: v" +
-            String (OpenGLShaderProgram::getLanguageVersion (), 2);
-    }
-    else
-    {
-        statusText = newShaderProgram->getLastError ();
-        Logger::outputDebugString (statusText);
-    }
-}
-
-void AudioWaveformComponent::shutdown ()
-{
-    vertexBuffer.reset ();
-    shaderProgram.reset ();
-}
-
-void AudioWaveformComponent::render ()
-{
-    if (getTotalLength() <= 0)
-    {
-        return;
-    }
-
-    jassert (OpenGLHelpers::isContextActive ());
-
-    auto desktopScale = (float) openGLContext.getRenderingScale ();
-    OpenGLHelpers::clear (
-        getLookAndFeel ().findColour (ColourIds::waveformBackgroundColour)
-    );
-
-    glEnable (GL_BLEND);
-    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    glViewport (0, 0, roundToInt (desktopScale * getWidth ()),
-        roundToInt (desktopScale * getHeight ()));
-
-    shaderProgram->use ();
-
-    fillVertices ();
-
-    vertexBuffer->bind (vertices);
-
-    glDrawArrays (GL_LINE_STRIP, 0, vertices.size ());
-
-    vertexBuffer->unbind ();
-}
-
-void AudioWaveformComponent::paint (Graphics& g)
-{
-    if (getTotalLength () <= 0)
-    {
-        paintIfNoFileLoaded (g);
-    }
+    //setBounds (getLocalBounds ());
+    waveformChannel.setBounds (getLocalBounds ());
+    //waveformEmpty.setBounds (getLocalBounds ());
 }
 
 void AudioWaveformComponent::mouseWheelMove (
@@ -297,6 +222,9 @@ bool AudioWaveformComponent::loadWaveform (AudioFormatReader* reader)
     {
         readerBuffer.setSize (reader->numChannels, reader->lengthInSamples);
         reader->read (&readerBuffer, 0, reader->lengthInSamples, 0, true, true);
+
+        waveformChannel.loadBuffer (readerBuffer.getReadPointer(0));
+
         updateVisibleRegion (0.0f, getTotalLength());
         return true;
     }
@@ -349,6 +277,13 @@ void AudioWaveformComponent::updateVisibleRegion (
     visibleRegionStartTime = startTimeFlattened;
     visibleRegionEndTime = endTimeFlattened;
 
+    //const float* channelBuffer = readerBuffer.getReadPointer (0);
+    int64 startSample = visibleRegionStartTime * reader->sampleRate,
+        endSample = visibleRegionEndTime * reader->sampleRate,
+        numSamples = endSample - startSample + 1;
+
+    waveformChannel.redraw (startSample, numSamples); // TODO use the listener instead?
+
     listeners.call ([this] (Listener& l) { l.visibleRegionChanged (this); });
 
     repaint ();
@@ -398,19 +333,19 @@ bool AudioWaveformComponent::getHasSelectedRegion ()
 
 // ==============================================================================
 
-void AudioWaveformComponent::paintIfNoFileLoaded (Graphics& g)
-{
-    juce::Rectangle<float> thumbnailBounds = getLocalBounds ().toFloat ();
-    g.setColour (findColour(ColourIds::waveformBackgroundColour));
-    g.fillRect (thumbnailBounds);
-    g.setColour (findColour (ColourIds::waveformColour));
-    g.drawFittedText (
-        "No File Loaded",
-        thumbnailBounds.toNearestInt (),
-        Justification::centred,
-        1
-    );
-}
+//void AudioWaveformComponent::paintIfNoFileLoaded (Graphics& g)
+//{
+//    juce::Rectangle<float> thumbnailBounds = getLocalBounds ().toFloat ();
+//    g.setColour (findColour(ColourIds::waveformBackgroundColour));
+//    g.fillRect (thumbnailBounds);
+//    g.setColour (findColour (ColourIds::waveformColour));
+//    g.drawFittedText (
+//        "No File Loaded",
+//        thumbnailBounds.toNearestInt (),
+//        Justification::centred,
+//        1
+//    );
+//}
 
 void AudioWaveformComponent::setSelectedRegionStartTime (double newStartTime)
 {
@@ -457,22 +392,4 @@ bool AudioWaveformComponent::isVisibleRegionCorrect (
             startTime < endTime &&
             startTime >= 0 &&
             endTime <= getTotalLength ());
-}
-
-void AudioWaveformComponent::fillVertices ()
-{
-    vertices.clear ();
-    int startSample = visibleRegionStartTime * reader->sampleRate,
-        endSample = visibleRegionEndTime * reader->sampleRate,
-        samplesCount = endSample - startSample;
-    // TODO use both channels (not only left)
-    const GLfloat* readBuffer = readerBuffer.getReadPointer (0);
-
-    for (int sampleIndex = startSample; sampleIndex < endSample; sampleIndex++)
-    {
-        Vertex vertex;
-        vertex.x = (((GLfloat)(sampleIndex - startSample) / samplesCount) * 2) - 1;
-        vertex.y = readBuffer[sampleIndex];
-        vertices.add (vertex);
-    }
 }

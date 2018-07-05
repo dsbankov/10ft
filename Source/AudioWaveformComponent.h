@@ -16,10 +16,11 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 
 #include "TenFtUtil.h"
-#include "VertexBuffer.h"
+#include "AudioWaveformChannelComponent.h"
+//#include "AudioWaveformNotLoadedComponent.h"
 
 
-class AudioWaveformComponent :    public OpenGLAppComponent,
+class AudioWaveformComponent :    public Component,
                                   public Slider::Listener
 {
 public:
@@ -48,13 +49,9 @@ public:
 
     ~AudioWaveformComponent ();
 
-    void initialise () override;
+    //void paint (Graphics& g) override;
 
-    void shutdown () override;
-
-    void render () override;
-
-    void paint (Graphics& g) override;
+    void resized () override;
 
     void mouseWheelMove (
         const MouseEvent& event,
@@ -96,7 +93,7 @@ public:
     void clearSelectedRegion ();
 
 private:
-    void paintIfNoFileLoaded (Graphics& g);
+    //void paintIfNoFileLoaded (Graphics& g);
 
     void setSelectedRegionStartTime (double selectedRegionStartTime);
 
@@ -111,21 +108,17 @@ private:
         double visibleRegionEndTime
     );
 
-    void fillVertices ();
-
 private:
     AudioFormatReader* reader = nullptr;
     AudioBuffer<float> readerBuffer;
+    AudioWaveformChannelComponent waveformChannel;
+    //AudioWaveformNotLoadedComponent waveformEmpty;
     double visibleRegionStartTime;
     double visibleRegionEndTime;
     bool hasSelectedRegion = false;
     double selectedRegionStartTime;
     double selectedRegionEndTime;
     ListenerList<Listener> listeners;
-
-    std::unique_ptr<OpenGLShaderProgram> shaderProgram;
-    std::unique_ptr<VertexBuffer> vertexBuffer;
-    Array<Vertex> vertices;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioWaveformComponent)
 };

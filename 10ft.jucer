@@ -18,6 +18,10 @@
             file="Source/AudioScrollerComponent.cpp"/>
       <FILE id="clblof" name="AudioScrollerComponent.h" compile="0" resource="0"
             file="Source/AudioScrollerComponent.h"/>
+      <FILE id="paLHjV" name="AudioWaveformChannelComponent.cpp" compile="1"
+            resource="0" file="Source/AudioWaveformChannelComponent.cpp"/>
+      <FILE id="TOTVrZ" name="AudioWaveformChannelComponent.h" compile="0"
+            resource="0" file="Source/AudioWaveformChannelComponent.h"/>
       <FILE id="xqRhXb" name="AudioWaveformComponent.cpp" compile="1" resource="0"
             file="Source/AudioWaveformComponent.cpp"/>
       <FILE id="MsnmlH" name="AudioWaveformComponent.h" compile="0" resource="0"
