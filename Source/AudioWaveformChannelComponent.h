@@ -18,6 +18,12 @@
 
 class AudioWaveformChannelComponent : public OpenGLComponent
 {
+public:
+    enum ColourIds
+    {
+        waveformColour = 0,
+        waveformBackgroundColour = 1
+    };
 
 public:
     AudioWaveformChannelComponent ();
@@ -35,17 +41,18 @@ public:
     void loadBuffer (const float* readBuffer);
 
 private:
-    void updateVertices ();
+    void calculateVertices ();
 
 private:
     std::unique_ptr<OpenGLShaderProgram> shaderProgram;
+    // TODO use VertexBuffer?
     //std::unique_ptr<VertexBuffer> vertexBuffer;
     Array<Vertex> vertices;
     int startSample;
     int numSamples;
     const float* readBuffer = nullptr;
     GLuint vertexBufferId;
-    bool isVisibleRegionChanged = true;
+    bool calculateVerticesTrigger = true;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioWaveformChannelComponent)
 };

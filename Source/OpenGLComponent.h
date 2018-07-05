@@ -19,7 +19,7 @@ public:
 
     virtual ~OpenGLComponent () { }
 
-    void paint (Graphics& g) override { }
+    void paint (Graphics&) override { }
 
     virtual void initialise (OpenGLContext& openGLContext) = 0;
 

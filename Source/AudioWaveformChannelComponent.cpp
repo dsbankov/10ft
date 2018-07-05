@@ -23,9 +23,6 @@ AudioWaveformChannelComponent::~AudioWaveformChannelComponent ()
 void AudioWaveformChannelComponent::initialise (OpenGLContext& openGLContext)
 {
     String vertexShader =
-        //"#version 330 core\n"
-        //"\n"
-        //"layout (location = 0) in vec2 position;\n"
         "attribute vec2 position;\n"
         "\n"
         "void main()\n"
@@ -33,12 +30,8 @@ void AudioWaveformChannelComponent::initialise (OpenGLContext& openGLContext)
         "    gl_Position = vec4(position.x, position.y, 1.0, 1.0);\n"
         "};";
     String fragmentShader =
-        //"#version 330 core\n"
-        //"\n"
         "in vec3 vertexColor;\n"
         "\n"
-        //"out vec4 FragColor;\n"
-        //"\n"
         "void main()\n"
         "{\n"
         "    gl_FragColor = vec4(vertexColor, 1.0);\n"
@@ -84,12 +77,9 @@ void AudioWaveformChannelComponent::render (OpenGLContext& openGLContext)
     
     auto desktopScale = (float)openGLContext.getRenderingScale ();
     OpenGLHelpers::clear (
-        //getLookAndFeel ().findColour (AudioWaveformComponent::ColourIds::waveformBackgroundColour)
-        Colours::yellow
+        getLookAndFeel ().findColour (ColourIds::waveformBackgroundColour)
     );
-    
-    //AudioWaveformComponent::ColourIds::waveformColour; // TODO use this for the waveform,\ coor itself (pass to the fragment shader)
-    
+
     glEnable (GL_BLEND);
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
@@ -100,8 +90,13 @@ void AudioWaveformChannelComponent::render (OpenGLContext& openGLContext)
     
     shaderProgram->use ();
     
-    updateVertices ();
+    if (calculateVerticesTrigger)
+    {
+        calculateVertices ();
+        calculateVerticesTrigger = false;
+    }
     
+    // TODO pass ColourIds::waveformColour to the fragment shader
     openGLContext.extensions.glBindBuffer (GL_ARRAY_BUFFER, vertexBufferId);
     openGLContext.extensions.glBufferData (GL_ARRAY_BUFFER,
             static_cast<GLsizeiptr> (static_cast<size_t> (vertices.size ()) * sizeof (Vertex)),
@@ -121,7 +116,7 @@ void AudioWaveformChannelComponent::redraw (int startSample, int numSamples)
 {
     this->startSample = startSample;
     this->numSamples = numSamples;
-    isVisibleRegionChanged = true;
+    calculateVerticesTrigger = true;
 }
 
 void AudioWaveformChannelComponent::loadBuffer (const float* readBuffer)
@@ -131,21 +126,19 @@ void AudioWaveformChannelComponent::loadBuffer (const float* readBuffer)
 
 // ==============================================================================
 
-void AudioWaveformChannelComponent::updateVertices ()
+void AudioWaveformChannelComponent::calculateVertices ()
 {
-    if (isVisibleRegionChanged)
+    Array<Vertex> newArray;
+    int endSample = startSample + numSamples;
+    for (int sampleIndex = startSample; sampleIndex < endSample; sampleIndex++)
     {
-        Array<Vertex> newArray;
-        for (int sampleIndex = startSample; sampleIndex < startSample + numSamples; sampleIndex++)
-        {
-            Vertex vertex;
-            vertex.x = (((GLfloat)(sampleIndex - startSample) /
-                numSamples) * 2) - 1;
-            vertex.y = readBuffer[sampleIndex];
-            newArray.add (vertex);
-        }
-        vertices.swapWith (newArray);
-        isVisibleRegionChanged = false;
-        Logger::outputDebugString ("fillVertices ()");
+        Vertex vertex;
+        vertex.x = (((GLfloat)(sampleIndex - startSample) /
+            numSamples) * 2) - 1;
+        vertex.y = readBuffer[sampleIndex];
+        newArray.add (vertex);
     }
+    vertices.swapWith (newArray);
+    Logger::outputDebugString ("calculateVertices [" +
+        String(startSample) + ", " + String(endSample) + "]");
 }
