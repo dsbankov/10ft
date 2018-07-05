@@ -299,7 +299,8 @@ void AudioWaveformComponent::updateVisibleRegion (
         endSample = visibleRegionEndTime * reader->sampleRate,
         numSamples = endSample - startSample + 1;
 
-    waveformChannel.redraw (startSample, numSamples); // TODO use the listener instead?
+    // TODO use the listener instead?
+    waveformChannel.redraw (startSample, numSamples); 
 
     listeners.call ([this] (Listener& l) { l.visibleRegionChanged (this); });
 
@@ -353,9 +354,13 @@ bool AudioWaveformComponent::getHasSelectedRegion ()
 void AudioWaveformComponent::paintIfNoFileLoaded (Graphics& g)
 {
     juce::Rectangle<float> thumbnailBounds = getLocalBounds ().toFloat ();
-    g.setColour (findColour(ColourIds::waveformBackgroundColour));
+    g.setColour (findColour(
+        AudioWaveformChannelComponent::ColourIds::waveformBackgroundColour)
+    );
     g.fillRect (thumbnailBounds);
-    g.setColour (findColour (ColourIds::waveformColour));
+    g.setColour (findColour (
+        AudioWaveformChannelComponent::ColourIds::waveformColour)
+    );
     g.drawFittedText (
         "No File Loaded",
         thumbnailBounds.toNearestInt (),

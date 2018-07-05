@@ -24,12 +24,6 @@ class AudioWaveformComponent :    public Component,
                                   public Slider::Listener
 {
 public:
-    enum ColourIds
-    {
-        waveformColour = 0,
-        waveformBackgroundColour = 1
-    };
-
     class Listener
     {
     public:
