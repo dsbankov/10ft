@@ -14,28 +14,47 @@
 
 AudioWaveformComponent::AudioWaveformComponent ()
 {
+    openGLContext.setContinuousRepainting (true);
+    openGLContext.setRenderer (this);
+    openGLContext.attachTo (*getTopLevelComponent ());
+
     setInterceptsMouseClicks (true, false);
+
     addAndMakeVisible (&waveformChannel);
-    //addAndMakeVisible (&waveformEmpty);
 }
 
 AudioWaveformComponent::~AudioWaveformComponent ()
 {
+    openGLContext.detach ();
+    openGLContext.setRenderer (nullptr);
 }
 
-//void AudioWaveformComponent::paint (Graphics& g)
-//{
-//    if (getTotalLength () <= 0)
-//    {
-//        paintIfNoFileLoaded (g);
-//    }
-//}
+void AudioWaveformComponent::newOpenGLContextCreated ()
+{
+    waveformChannel.initialise (openGLContext);
+}
+
+void AudioWaveformComponent::openGLContextClosing ()
+{
+    waveformChannel.shutdown (openGLContext);
+}
+
+void AudioWaveformComponent::renderOpenGL ()
+{
+    waveformChannel.render (openGLContext);
+}
+
+void AudioWaveformComponent::paint (Graphics& g)
+{
+    if (getTotalLength () <= 0)
+    {
+        paintIfNoFileLoaded (g);
+    }
+}
 
 void AudioWaveformComponent::resized ()
 {
-    //setBounds (getLocalBounds ());
     waveformChannel.setBounds (getLocalBounds ());
-    //waveformEmpty.setBounds (getLocalBounds ());
 }
 
 void AudioWaveformComponent::mouseWheelMove (
@@ -62,7 +81,6 @@ void AudioWaveformComponent::mouseWheelMove (
     if (wheelDetails.deltaY < 0)
     {
         // downwards
-
         updateVisibleRegion (
             visibleRegionStartTime - scrollAmmountLeft,
             visibleRegionEndTime + scrollAmmountRight
@@ -71,7 +89,6 @@ void AudioWaveformComponent::mouseWheelMove (
     else if (wheelDetails.deltaY > 0)
     {
         // upwards
-
         updateVisibleRegion (
             visibleRegionStartTime + scrollAmmountLeft,
             visibleRegionEndTime - scrollAmmountRight
@@ -333,19 +350,19 @@ bool AudioWaveformComponent::getHasSelectedRegion ()
 
 // ==============================================================================
 
-//void AudioWaveformComponent::paintIfNoFileLoaded (Graphics& g)
-//{
-//    juce::Rectangle<float> thumbnailBounds = getLocalBounds ().toFloat ();
-//    g.setColour (findColour(ColourIds::waveformBackgroundColour));
-//    g.fillRect (thumbnailBounds);
-//    g.setColour (findColour (ColourIds::waveformColour));
-//    g.drawFittedText (
-//        "No File Loaded",
-//        thumbnailBounds.toNearestInt (),
-//        Justification::centred,
-//        1
-//    );
-//}
+void AudioWaveformComponent::paintIfNoFileLoaded (Graphics& g)
+{
+    juce::Rectangle<float> thumbnailBounds = getLocalBounds ().toFloat ();
+    g.setColour (findColour(ColourIds::waveformBackgroundColour));
+    g.fillRect (thumbnailBounds);
+    g.setColour (findColour (ColourIds::waveformColour));
+    g.drawFittedText (
+        "No File Loaded",
+        thumbnailBounds.toNearestInt (),
+        Justification::centred,
+        1
+    );
+}
 
 void AudioWaveformComponent::setSelectedRegionStartTime (double newStartTime)
 {

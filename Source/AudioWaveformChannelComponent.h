@@ -12,11 +12,11 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
+#include "OpenGLComponent.h"
 #include "VertexBuffer.h"
-//#include "AudioWaveformComponent.h"
 
 
-class AudioWaveformChannelComponent : public OpenGLAppComponent
+class AudioWaveformChannelComponent : public OpenGLComponent
 {
 
 public:
@@ -24,13 +24,11 @@ public:
 
     ~AudioWaveformChannelComponent ();
 
-    void initialise () override;
+    void initialise (OpenGLContext& openGLContext) override;
 
-    void shutdown () override;
+    void shutdown (OpenGLContext& openGLContext) override;
 
-    void render () override;
-
-    void paint (Graphics& g) override;
+    void render (OpenGLContext& openGLContext) override;
 
     void redraw (int startSample, int numSamples);
 
