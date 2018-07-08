@@ -53,7 +53,9 @@ void AudioWaveformChannelComponent::initialise (OpenGLContext& openGLContext)
     
         shaderProgram->use ();
     
-        Colour waveformColour = getLookAndFeel ().findColour (ColourIds::waveformColour);
+        Colour waveformColour = getLookAndFeel ().findColour (
+            ColourIds::waveformColour
+        );
         uniform.reset (new OpenGLShaderProgram::Uniform (*shaderProgram, "colour"));
         uniform->set (waveformColour.getFloatRed (),
             waveformColour.getFloatGreen (),
@@ -104,25 +106,25 @@ void AudioWaveformChannelComponent::render (OpenGLContext& openGLContext)
         calculateVerticesTrigger = false;
     }
 
-    vertexBuffer->bind (vertices);
+    vertexBuffer->bind (sampleVertices);
     attributes->enable ();
     
-    glDrawArrays (GL_LINE_STRIP, 0, vertices.size ());
+    glDrawArrays (GL_LINE_STRIP, 0, sampleVertices.size ());
     
     attributes->disable ();
     vertexBuffer->unbind ();
 }
 
-void AudioWaveformChannelComponent::redraw (int startSample, int numSamples)
+void AudioWaveformChannelComponent::load (const float* samples)
 {
-    this->startSample = startSample;
-    this->numSamples = numSamples;
-    calculateVerticesTrigger = true;
+    samplesArray = samples;
 }
 
-void AudioWaveformChannelComponent::loadBuffer (const float* readBuffer)
+void AudioWaveformChannelComponent::display (int startSample, int numSamples)
 {
-    this->readBuffer = readBuffer;
+    visibleRegionStartSample = startSample;
+    visibleRegionNumSamples = numSamples;
+    calculateVerticesTrigger = true;
 }
 
 // ==============================================================================
@@ -130,16 +132,18 @@ void AudioWaveformChannelComponent::loadBuffer (const float* readBuffer)
 void AudioWaveformChannelComponent::calculateVertices ()
 {
     Array<Vertex> newArray;
-    int endSample = startSample + numSamples;
-    for (int sampleIndex = startSample; sampleIndex < endSample; sampleIndex++)
+    int endSample = visibleRegionStartSample + visibleRegionNumSamples;
+    for (int sampleIndex = visibleRegionStartSample;
+        sampleIndex < endSample;
+        sampleIndex++)
     {
         Vertex vertex;
-        vertex.x = (((GLfloat)(sampleIndex - startSample) /
-            numSamples) * 2) - 1;
-        vertex.y = readBuffer[sampleIndex];
+        vertex.x = (((GLfloat)(sampleIndex - visibleRegionStartSample) /
+            visibleRegionNumSamples) * 2) - 1;
+        vertex.y = samplesArray[sampleIndex];
         newArray.add (vertex);
     }
-    vertices.swapWith (newArray);
+    sampleVertices.swapWith (newArray);
     Logger::outputDebugString ("calculateVertices [" +
-        String(startSample) + ", " + String(endSample) + "]");
+        String(visibleRegionStartSample) + ", " + String(endSample) + "]");
 }

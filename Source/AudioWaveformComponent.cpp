@@ -232,30 +232,30 @@ void AudioWaveformComponent::removeListener (Listener * listener)
     listeners.remove (listener);
 }
 
-bool AudioWaveformComponent::loadWaveform (AudioFormatReader* reader)
+bool AudioWaveformComponent::load (AudioFormatReader* reader)
 {
-    this->reader = reader;
-    if (reader != nullptr)
+    audioReader = reader;
+    if (audioReader != nullptr)
     {
-        readerBuffer.setSize (reader->numChannels, reader->lengthInSamples);
-        reader->read (&readerBuffer, 0, reader->lengthInSamples, 0, true, true);
+        audioBuffer.setSize (audioReader->numChannels, audioReader->lengthInSamples);
+        audioReader->read (&audioBuffer, 0, audioReader->lengthInSamples, 0, true, true);
 
-        waveformChannel.loadBuffer (readerBuffer.getReadPointer(0));
+        waveformChannel.load (audioBuffer.getReadPointer(0));
 
         updateVisibleRegion (0.0f, getTotalLength());
         return true;
     }
     else
     {
-        readerBuffer.clear ();
-        clearWaveform ();
+        audioBuffer.clear ();
+        clear ();
         return false;
     }
 }
 
-void AudioWaveformComponent::clearWaveform ()
+void AudioWaveformComponent::clear ()
 {
-    reader = nullptr;
+    audioReader = nullptr;
     clearSelectedRegion ();
     updateVisibleRegion (0.0f, 0.0f);
     listeners.call ([this] (Listener& l) { l.thumbnailCleared (this); });
@@ -263,7 +263,7 @@ void AudioWaveformComponent::clearWaveform ()
 
 double AudioWaveformComponent::getTotalLength ()
 {
-    return reader != nullptr ? reader->lengthInSamples / reader->sampleRate : 0.0;
+    return audioReader != nullptr ? audioReader->lengthInSamples / audioReader->sampleRate : 0.0;
 }
 
 void AudioWaveformComponent::updateVisibleRegion (
@@ -290,12 +290,12 @@ void AudioWaveformComponent::updateVisibleRegion (
     visibleRegionEndTime = endTimeFlattened;
 
     //const float* channelBuffer = readerBuffer.getReadPointer (0);
-    int64 startSample = visibleRegionStartTime * reader->sampleRate,
-        endSample = visibleRegionEndTime * reader->sampleRate,
+    int64 startSample = visibleRegionStartTime * audioReader->sampleRate,
+        endSample = visibleRegionEndTime * audioReader->sampleRate,
         numSamples = endSample - startSample + 1;
 
     // TODO use the listener instead?
-    waveformChannel.redraw (startSample, numSamples); 
+    waveformChannel.display (startSample, numSamples); 
 
     listeners.call ([this] (Listener& l) { l.visibleRegionChanged (this); });
 

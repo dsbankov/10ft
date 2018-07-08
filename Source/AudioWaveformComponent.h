@@ -70,9 +70,9 @@ public:
 
     void removeListener (Listener* listener);
 
-    bool loadWaveform (AudioFormatReader* reader);
+    bool load (AudioFormatReader* reader);
 
-    void clearWaveform ();
+    void clear ();
 
     double getTotalLength ();
 
@@ -109,9 +109,9 @@ private:
     );
 
 private:
-    AudioFormatReader* reader = nullptr;
-    AudioBuffer<float> readerBuffer;
     OpenGLContext openGLContext;
+    AudioFormatReader* audioReader = nullptr;
+    AudioBuffer<float> audioBuffer;
     AudioWaveformChannelComponent waveformChannel; // should be array
     double visibleRegionStartTime;
     double visibleRegionEndTime;

@@ -26,7 +26,7 @@ TenFtAudioTransportSource::~TenFtAudioTransportSource ()
     setSource (nullptr);
 }
 
-bool TenFtAudioTransportSource::loadAudio (AudioFormatReader* reader)
+bool TenFtAudioTransportSource::load (AudioFormatReader* reader)
 {
     if (reader != nullptr)
     {
@@ -41,7 +41,7 @@ bool TenFtAudioTransportSource::loadAudio (AudioFormatReader* reader)
             reader->sampleRate
         );
 
-        readerSource.swap (tempReaderSource);
+        audioReaderSource.swap (tempReaderSource);
 
         changeState (Stopped);
         setPosition (0.0);
@@ -91,7 +91,7 @@ void TenFtAudioTransportSource::pauseAudio ()
 
 void TenFtAudioTransportSource::setupLooping (double startTime, double endTime)
 {
-    readerSource.get ()->setLooping (true);
+    audioReaderSource.get ()->setLooping (true);
     shouldLoop = true;
     selectedRegionStartTime = startTime;
     selectedRegionEndTime = endTime;
@@ -99,7 +99,7 @@ void TenFtAudioTransportSource::setupLooping (double startTime, double endTime)
 
 void TenFtAudioTransportSource::disableLooping ()
 {
-    readerSource.get ()->setLooping (false);
+    audioReaderSource.get ()->setLooping (false);
     shouldLoop = false;
 }
 
