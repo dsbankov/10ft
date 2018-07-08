@@ -48,6 +48,7 @@ private:
     std::unique_ptr<OpenGLShaderProgram> shaderProgram;
     std::unique_ptr<VertexBuffer> vertexBuffer;
     std::unique_ptr<Attributes> attributes;
+    std::unique_ptr<OpenGLShaderProgram::Uniform> uniform;
     const float* readBuffer = nullptr;
     Array<Vertex> vertices;
     int startSample;
