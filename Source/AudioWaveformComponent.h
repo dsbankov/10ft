@@ -112,7 +112,7 @@ private:
     AudioFormatReader* reader = nullptr;
     AudioBuffer<float> readerBuffer;
     OpenGLContext openGLContext;
-    AudioWaveformChannelComponent waveformChannel;
+    AudioWaveformChannelComponent waveformChannel; // should be array
     double visibleRegionStartTime;
     double visibleRegionEndTime;
     bool hasSelectedRegion = false;
