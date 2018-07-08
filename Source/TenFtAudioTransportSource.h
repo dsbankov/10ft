@@ -57,7 +57,7 @@ public:
 
     ~TenFtAudioTransportSource ();
 
-    bool loadAudio (AudioFormatReader* reader);
+    bool load (AudioFormatReader* reader);
 
     bool isAudioLoaded ();
 
@@ -91,7 +91,7 @@ private:
     void timerCallback () override;
 
 private:
-    std::unique_ptr<AudioFormatReaderSource> readerSource;
+    std::unique_ptr<AudioFormatReaderSource> audioReaderSource;
     State state = NoFileLoaded;
     bool shouldLoop = false;
     bool hasSelectedRegion = false;

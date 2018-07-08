@@ -37,9 +37,9 @@ public:
 
     void render (OpenGLContext& openGLContext) override;
 
-    void redraw (int startSample, int numSamples);
+    void load (const float* samples);
 
-    void loadBuffer (const float* readBuffer);
+    void display (int startSample, int numSamples);
 
 private:
     void calculateVertices ();
@@ -49,10 +49,10 @@ private:
     std::unique_ptr<VertexBuffer> vertexBuffer;
     std::unique_ptr<Attributes> attributes;
     std::unique_ptr<OpenGLShaderProgram::Uniform> uniform;
-    const float* readBuffer = nullptr;
-    Array<Vertex> vertices;
-    int startSample;
-    int numSamples;
+    const float* samplesArray = nullptr;
+    Array<Vertex> sampleVertices;
+    int visibleRegionStartSample;
+    int visibleRegionNumSamples;
     bool calculateVerticesTrigger = true;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioWaveformChannelComponent)
