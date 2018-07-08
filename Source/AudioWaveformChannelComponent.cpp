@@ -53,7 +53,8 @@ void AudioWaveformChannelComponent::initialise (OpenGLContext& openGLContext)
     
         shaderProgram->use ();
     
-        openGLContext.extensions.glGenBuffers (1, &vertexBufferId);
+        attributes.reset (new Attributes (openGLContext, *shaderProgram));
+        vertexBuffer.reset (new VertexBuffer (openGLContext));
     
         statusText = "GLSL: v" +
             String (OpenGLShaderProgram::getLanguageVersion (), 2);
@@ -67,7 +68,8 @@ void AudioWaveformChannelComponent::initialise (OpenGLContext& openGLContext)
 
 void AudioWaveformChannelComponent::shutdown (OpenGLContext& openGLContext)
 {
-    openGLContext.extensions.glDeleteBuffers (1, &vertexBufferId);
+    attributes.reset ();
+    vertexBuffer.reset ();
     shaderProgram.reset ();
 }
 
@@ -86,8 +88,6 @@ void AudioWaveformChannelComponent::render (OpenGLContext& openGLContext)
     glViewport (0, 0, roundToInt (desktopScale * getWidth ()),
         roundToInt (desktopScale * getHeight ()));
     
-    OpenGLShaderProgram::Attribute position (*shaderProgram, "position");
-    
     shaderProgram->use ();
     
     if (calculateVerticesTrigger)
@@ -95,21 +95,15 @@ void AudioWaveformChannelComponent::render (OpenGLContext& openGLContext)
         calculateVertices ();
         calculateVerticesTrigger = false;
     }
-    
+
     // TODO pass ColourIds::waveformColour to the fragment shader
-    openGLContext.extensions.glBindBuffer (GL_ARRAY_BUFFER, vertexBufferId);
-    openGLContext.extensions.glBufferData (GL_ARRAY_BUFFER,
-            static_cast<GLsizeiptr> (static_cast<size_t> (vertices.size ()) * sizeof (Vertex)),
-            vertices.getRawDataPointer (), GL_STATIC_DRAW);
-    
-    openGLContext.extensions.glVertexAttribPointer (position.attributeID, 2,
-        GL_FLOAT, GL_FALSE, sizeof (Vertex), 0);
-    openGLContext.extensions.glEnableVertexAttribArray (position.attributeID);
+    vertexBuffer->bind (vertices);
+    attributes->enable ();
     
     glDrawArrays (GL_LINE_STRIP, 0, vertices.size ());
     
-    openGLContext.extensions.glDisableVertexAttribArray (position.attributeID);
-    openGLContext.extensions.glBindBuffer (GL_ARRAY_BUFFER, 0);
+    attributes->disable ();
+    vertexBuffer->unbind ();
 }
 
 void AudioWaveformChannelComponent::redraw (int startSample, int numSamples)

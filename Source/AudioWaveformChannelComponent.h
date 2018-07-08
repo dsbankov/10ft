@@ -14,6 +14,7 @@
 
 #include "OpenGLComponent.h"
 #include "VertexBuffer.h"
+#include "Attributes.h"
 
 
 class AudioWaveformChannelComponent : public OpenGLComponent
@@ -45,13 +46,12 @@ private:
 
 private:
     std::unique_ptr<OpenGLShaderProgram> shaderProgram;
-    // TODO use VertexBuffer?
-    //std::unique_ptr<VertexBuffer> vertexBuffer;
+    std::unique_ptr<VertexBuffer> vertexBuffer;
+    std::unique_ptr<Attributes> attributes;
+    const float* readBuffer = nullptr;
     Array<Vertex> vertices;
     int startSample;
     int numSamples;
-    const float* readBuffer = nullptr;
-    GLuint vertexBufferId;
     bool calculateVerticesTrigger = true;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioWaveformChannelComponent)
