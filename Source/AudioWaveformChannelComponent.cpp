@@ -30,11 +30,11 @@ void AudioWaveformChannelComponent::initialise (OpenGLContext& openGLContext)
         "    gl_Position = vec4(position.x, position.y, 1.0, 1.0);\n"
         "};";
     String fragmentShader =
-        "in vec3 vertexColor;\n"
+        "uniform vec4 colour;\n"
         "\n"
         "void main()\n"
         "{\n"
-        "    gl_FragColor = vec4(vertexColor, 1.0);\n"
+        "    gl_FragColor = colour;\n"
         "}";
     
     std::unique_ptr<OpenGLShaderProgram> newShaderProgram (
@@ -53,6 +53,13 @@ void AudioWaveformChannelComponent::initialise (OpenGLContext& openGLContext)
     
         shaderProgram->use ();
     
+        Colour waveformColour = getLookAndFeel ().findColour (ColourIds::waveformColour);
+        uniform.reset (new OpenGLShaderProgram::Uniform (*shaderProgram, "colour"));
+        uniform->set (waveformColour.getFloatRed (),
+            waveformColour.getFloatGreen (),
+            waveformColour.getFloatBlue (),
+            waveformColour.getFloatAlpha ());
+
         attributes.reset (new Attributes (openGLContext, *shaderProgram));
         vertexBuffer.reset (new VertexBuffer (openGLContext));
     
@@ -69,6 +76,7 @@ void AudioWaveformChannelComponent::initialise (OpenGLContext& openGLContext)
 void AudioWaveformChannelComponent::shutdown (OpenGLContext& openGLContext)
 {
     attributes.reset ();
+    uniform.reset ();
     vertexBuffer.reset ();
     shaderProgram.reset ();
 }
@@ -96,7 +104,6 @@ void AudioWaveformChannelComponent::render (OpenGLContext& openGLContext)
         calculateVerticesTrigger = false;
     }
 
-    // TODO pass ColourIds::waveformColour to the fragment shader
     vertexBuffer->bind (vertices);
     attributes->enable ();
     
