@@ -15,15 +15,6 @@
 #include "OpenGLComponent.h"
 
 
-//==============================================================================
-/*
-!!! CURRENTLY NOT WOKRING !!!
-Draws a single audio channel using OpenGL. The idea was to add multiple such
-components for every audio channel as children of a parent component. The
-parent component had a single OpenGLContext attached and dispatched the OpenGL
-rendering callbacks back to these components. Couldn't get it to work because
-somehow only one of the channels gets drawn.
-*/
 class AudioWaveformOpenGLComponent : public OpenGLComponent
 {
 public:
@@ -46,15 +37,15 @@ public:
 
     void load (AudioFormatReader* reader);
 
-    void display (int startSample, int numSamples);
+    void display (int64 displayStartSample, int64 displayNumSamples);
 
 private:
     void calculateVertices (unsigned int channel);
 
+    void clearVertices ();
+
 private:
-    struct Vertex {
-        GLfloat x, y;
-    };
+    struct Vertex { GLfloat x, y; };
 
     class VertexBuffer
     {
@@ -63,7 +54,7 @@ private:
 
         ~VertexBuffer ();
 
-        void bind (Array<Vertex>& buffer);
+        void bind (Vertex* vertices, int64 verticesCount);
 
         void unbind ();
 
@@ -78,13 +69,17 @@ private:
     std::unique_ptr<OpenGLShaderProgram::Attribute> position;
     std::unique_ptr<OpenGLShaderProgram::Uniform> uniform;
     std::unique_ptr<VertexBuffer> vertexBuffer;
+
     AudioBuffer<float> audioBuffer;
     const float** samplesPerChannel;
     unsigned int numChannels;
     int64 lengthInSamples;
-    OwnedArray<Array<Vertex>> verticesPerChannel;
-    int visibleRegionStartSample;
-    int visibleRegionNumSamples;
+
+    Vertex** verticesPerChannel = nullptr;
+
+    int64 startSample;
+    int64 numSamples;
+
     bool calculateVerticesTrigger = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioWaveformOpenGLComponent)
