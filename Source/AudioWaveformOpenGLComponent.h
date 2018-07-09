@@ -49,7 +49,7 @@ public:
     void display (int startSample, int numSamples);
 
 private:
-    void calculateVertices (const float* samplesArray);
+    void calculateVertices (unsigned int channel);
 
 private:
     struct Vertex {
@@ -79,7 +79,10 @@ private:
     std::unique_ptr<OpenGLShaderProgram::Uniform> uniform;
     std::unique_ptr<VertexBuffer> vertexBuffer;
     AudioBuffer<float> audioBuffer;
-    Array<Vertex> sampleVertices;
+    const float** samplesPerChannel;
+    unsigned int numChannels;
+    int64 lengthInSamples;
+    OwnedArray<Array<Vertex>> verticesPerChannel;
     int visibleRegionStartSample;
     int visibleRegionNumSamples;
     bool calculateVerticesTrigger = false;

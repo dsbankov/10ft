@@ -92,6 +92,11 @@ void AudioWaveformOpenGLComponent::render (OpenGLContext& openGLContext)
 {
     jassert (OpenGLHelpers::isContextActive ());
 
+    if (verticesPerChannel.isEmpty ())
+    {
+        return;
+    }
+
     OpenGLHelpers::clear (
         getLookAndFeel ().findColour (ColourIds::waveformBackgroundColour)
     );
@@ -106,13 +111,10 @@ void AudioWaveformOpenGLComponent::render (OpenGLContext& openGLContext)
     Component* parentComponent = getParentComponent ();
     Rectangle<int> parentBounds = parentComponent->getBounds (),
         globalBounds = parentComponent->getLocalArea (this, getLocalBounds ());
-    globalBounds.removeFromTop (10);
-    globalBounds.removeFromBottom (10);
     GLint x = scale * globalBounds.getX ();
     GLsizei width = scale * globalBounds.getWidth ();
-    int numChannels = audioBuffer.getNumChannels ();
 
-    for (int channel = 0; channel < numChannels; channel++)
+    for (unsigned int channel = 0; channel < numChannels; channel++)
     {
         GLint y = scale * (
             parentBounds.getHeight () - globalBounds.getBottom () +
@@ -124,16 +126,18 @@ void AudioWaveformOpenGLComponent::render (OpenGLContext& openGLContext)
 
         if (calculateVerticesTrigger)
         {
-            calculateVertices (audioBuffer.getReadPointer (channel));
+            calculateVertices (channel);
         }
 
-        vertexBuffer->bind (sampleVertices);
+        Array<Vertex>* vertices = verticesPerChannel.getUnchecked (channel);
+
+        vertexBuffer->bind (*vertices);
 
         openGLContext.extensions.glVertexAttribPointer (position->attributeID, 2,
             GL_FLOAT, GL_FALSE, sizeof (Vertex), 0);
         openGLContext.extensions.glEnableVertexAttribArray (position->attributeID);
 
-        glDrawArrays (GL_LINE_STRIP, 0, sampleVertices.size ());
+        glDrawArrays (GL_LINE_STRIP, 0, vertices->size ());
 
         openGLContext.extensions.glDisableVertexAttribArray (position->attributeID);
 
@@ -151,8 +155,20 @@ void AudioWaveformOpenGLComponent::render (OpenGLContext& openGLContext)
 
 void AudioWaveformOpenGLComponent::load (AudioFormatReader* audioReader)
 {
-    audioBuffer.setSize (audioReader->numChannels, audioReader->lengthInSamples);
+    audioBuffer.setSize(audioReader->numChannels, audioReader->lengthInSamples);
     audioReader->read (&audioBuffer, 0, audioReader->lengthInSamples, 0, true, true);
+
+    numChannels = audioReader->numChannels;
+    lengthInSamples = audioReader->lengthInSamples;
+    samplesPerChannel = audioBuffer.getArrayOfReadPointers ();
+
+    verticesPerChannel.ensureStorageAllocated (audioReader->numChannels);
+    for (unsigned int channel = 0; channel < audioReader->numChannels; channel++)
+    {
+        Array<Vertex>* vertices = new Array<Vertex> ();
+        vertices->ensureStorageAllocated (audioReader->lengthInSamples);
+        verticesPerChannel.add (vertices);
+    }
 }
 
 void AudioWaveformOpenGLComponent::display (
@@ -165,25 +181,30 @@ void AudioWaveformOpenGLComponent::display (
 
 // ==============================================================================
 
-void AudioWaveformOpenGLComponent::calculateVertices (const float* samplesArray)
+void AudioWaveformOpenGLComponent::calculateVertices (unsigned int channel)
 {
-    Array<Vertex> newArray;
+    Array<Vertex>* vertices = verticesPerChannel.getUnchecked (channel);
+
+    vertices->clearQuick ();
+
     int endSample = visibleRegionStartSample + visibleRegionNumSamples;
-    for (int sampleIndex = visibleRegionStartSample;
-        sampleIndex < endSample;
-        sampleIndex++)
+
+    for (int sample = visibleRegionStartSample; sample < endSample; sample++)
     {
         Vertex vertex;
-        vertex.x = (((GLfloat)(sampleIndex - visibleRegionStartSample) /
+        vertex.x = (((GLfloat)(sample - visibleRegionStartSample) /
             visibleRegionNumSamples) * 2) - 1;
-        vertex.y = samplesArray[sampleIndex];
-        newArray.add (vertex);
+        vertex.y = samplesPerChannel[channel][sample];
+        vertices->add (vertex);
     }
-    sampleVertices.swapWith (newArray);
-    //Logger::outputDebugString ("calculateVertices @ Program " +
-    //    String (shaderProgram->getProgramID ()) + " [" +
-    //    String (visibleRegionStartSample) + ", " + String (endSample) +
-    //    "]");
+
+    Logger::outputDebugString ("calculateVertices" +
+        String(" @ Program ") +
+        String (shaderProgram->getProgramID ()) +
+        " @ Channel " + String(channel) +
+        " [" +
+        String (visibleRegionStartSample) + ", " + String (endSample) +
+        "]");
 }
 
 // ==============================================================================
@@ -208,7 +229,7 @@ void AudioWaveformOpenGLComponent::VertexBuffer::bind (
     openGLContext.extensions.glBufferData (GL_ARRAY_BUFFER,
         static_cast<GLsizeiptr> (
             static_cast<size_t> (buffer.size ()) * sizeof (Vertex)
-            ),
+        ),
         buffer.getRawDataPointer (),
         GL_STATIC_DRAW
     );
