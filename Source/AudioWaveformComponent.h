@@ -16,7 +16,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 
 #include "TenFtUtil.h"
-#include "AudioWaveformChannelComponent.h"
+#include "AudioWaveformOpenGLComponent.h"
 
 
 class AudioWaveformComponent :    public Component,
@@ -112,7 +112,7 @@ private:
     OpenGLContext openGLContext;
     AudioFormatReader* audioReader = nullptr;
     AudioBuffer<float> audioBuffer;
-    AudioWaveformChannelComponent waveformChannel; // should be array
+    AudioWaveformOpenGLComponent waveform;
     double visibleRegionStartTime;
     double visibleRegionEndTime;
     bool hasSelectedRegion = false;

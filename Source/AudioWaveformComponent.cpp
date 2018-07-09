@@ -14,34 +14,34 @@
 
 AudioWaveformComponent::AudioWaveformComponent ()
 {
+    openGLContext.setComponentPaintingEnabled (true);
     openGLContext.setContinuousRepainting (true);
     openGLContext.setRenderer (this);
-    openGLContext.attachTo (*getTopLevelComponent ());
+    openGLContext.attachTo (*this);
+
+    addAndMakeVisible (&waveform);
 
     setInterceptsMouseClicks (true, false);
-
-    addAndMakeVisible (&waveformChannel);
 }
 
 AudioWaveformComponent::~AudioWaveformComponent ()
 {
     openGLContext.detach ();
-    openGLContext.setRenderer (nullptr);
 }
 
 void AudioWaveformComponent::newOpenGLContextCreated ()
 {
-    waveformChannel.initialise (openGLContext);
+    waveform.initialise (openGLContext);
 }
 
 void AudioWaveformComponent::openGLContextClosing ()
 {
-    waveformChannel.shutdown (openGLContext);
+    waveform.shutdown (openGLContext);
 }
 
 void AudioWaveformComponent::renderOpenGL ()
 {
-    waveformChannel.render (openGLContext);
+    waveform.render (openGLContext);
 }
 
 void AudioWaveformComponent::paint (Graphics& g)
@@ -54,7 +54,7 @@ void AudioWaveformComponent::paint (Graphics& g)
 
 void AudioWaveformComponent::resized ()
 {
-    waveformChannel.setBounds (getLocalBounds ());
+    waveform.setBounds (getLocalBounds ());
 }
 
 void AudioWaveformComponent::mouseWheelMove (
@@ -240,7 +240,7 @@ bool AudioWaveformComponent::load (AudioFormatReader* reader)
         audioBuffer.setSize (audioReader->numChannels, audioReader->lengthInSamples);
         audioReader->read (&audioBuffer, 0, audioReader->lengthInSamples, 0, true, true);
 
-        waveformChannel.load (audioBuffer.getReadPointer(0));
+        waveform.load (audioBuffer.getReadPointer(0));
 
         updateVisibleRegion (0.0f, getTotalLength());
         return true;
@@ -289,13 +289,12 @@ void AudioWaveformComponent::updateVisibleRegion (
     visibleRegionStartTime = startTimeFlattened;
     visibleRegionEndTime = endTimeFlattened;
 
-    //const float* channelBuffer = readerBuffer.getReadPointer (0);
     int64 startSample = visibleRegionStartTime * audioReader->sampleRate,
         endSample = visibleRegionEndTime * audioReader->sampleRate,
         numSamples = endSample - startSample + 1;
 
-    // TODO use the listener instead?
-    waveformChannel.display (startSample, numSamples); 
+    // TODO use listener instead?
+    waveform.display (startSample, numSamples);
 
     listeners.call ([this] (Listener& l) { l.visibleRegionChanged (this); });
 
@@ -350,11 +349,11 @@ void AudioWaveformComponent::paintIfNoFileLoaded (Graphics& g)
 {
     juce::Rectangle<float> thumbnailBounds = getLocalBounds ().toFloat ();
     g.setColour (findColour(
-        AudioWaveformChannelComponent::ColourIds::waveformBackgroundColour)
+        AudioWaveformOpenGLComponent::ColourIds::waveformBackgroundColour)
     );
     g.fillRect (thumbnailBounds);
     g.setColour (findColour (
-        AudioWaveformChannelComponent::ColourIds::waveformColour)
+        AudioWaveformOpenGLComponent::ColourIds::waveformColour)
     );
     g.drawFittedText (
         "No File Loaded",

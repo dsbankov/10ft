@@ -32,9 +32,9 @@ TenFtLookAndFeel::TenFtLookAndFeel ()
     setColour (ToggleButton::ColourIds::tickColourId, contrastingColour);
 
     int waveformColourId =
-            AudioWaveformChannelComponent::ColourIds::waveformColour,
+            AudioWaveformOpenGLComponent::ColourIds::waveformColour,
         waveformBackgroundColourId =
-            AudioWaveformChannelComponent::ColourIds::waveformBackgroundColour,
+            AudioWaveformOpenGLComponent::ColourIds::waveformBackgroundColour,
         waveformSelectedRegionBackgroundColourId =
             AudioWaveformSelectedRegionComponent::ColourIds::waveformSelectedRegionBackgroundColour,
         lineColourId =

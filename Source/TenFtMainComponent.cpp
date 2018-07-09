@@ -160,7 +160,7 @@ void TenFtMainComponent::resized ()
 void TenFtMainComponent::paint (Graphics & g)
 {
     g.fillAll (findColour (
-        AudioWaveformChannelComponent::ColourIds::waveformBackgroundColour
+        AudioWaveformOpenGLComponent::ColourIds::waveformBackgroundColour
     ).contrasting(0.2f));
 }
 
