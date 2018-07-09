@@ -237,17 +237,12 @@ bool AudioWaveformComponent::load (AudioFormatReader* reader)
     audioReader = reader;
     if (audioReader != nullptr)
     {
-        audioBuffer.setSize (audioReader->numChannels, audioReader->lengthInSamples);
-        audioReader->read (&audioBuffer, 0, audioReader->lengthInSamples, 0, true, true);
-
-        waveform.load (audioBuffer.getReadPointer(0));
-
+        waveform.load (audioReader);
         updateVisibleRegion (0.0f, getTotalLength());
         return true;
     }
     else
     {
-        audioBuffer.clear ();
         clear ();
         return false;
     }

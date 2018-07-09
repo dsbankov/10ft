@@ -92,14 +92,6 @@ void AudioWaveformOpenGLComponent::render (OpenGLContext& openGLContext)
 {
     jassert (OpenGLHelpers::isContextActive ());
 
-    float scale = openGLContext.getRenderingScale ();
-    Component* parent = getParentComponent ();
-    Rectangle<int> parentBounds = parent->getBounds ();
-    Rectangle<int> globalBounds = parent->getLocalArea (this, getLocalBounds ());
-    glViewport (scale * globalBounds.getX (),
-        scale * (parentBounds.getHeight () - globalBounds.getBottom ()),
-        scale * globalBounds.getWidth (), scale * globalBounds.getHeight ());
-
     OpenGLHelpers::clear (
         getLookAndFeel ().findColour (ColourIds::waveformBackgroundColour)
     );
@@ -110,30 +102,57 @@ void AudioWaveformOpenGLComponent::render (OpenGLContext& openGLContext)
 
     shaderProgram->use ();
 
+    float scale = openGLContext.getRenderingScale ();
+    Component* parentComponent = getParentComponent ();
+    Rectangle<int> parentBounds = parentComponent->getBounds (),
+        globalBounds = parentComponent->getLocalArea (this, getLocalBounds ());
+    globalBounds.removeFromTop (10);
+    globalBounds.removeFromBottom (10);
+    GLint x = scale * globalBounds.getX ();
+    GLsizei width = scale * globalBounds.getWidth ();
+    int numChannels = audioBuffer.getNumChannels ();
+
+    for (int channel = 0; channel < numChannels; channel++)
+    {
+        GLint y = scale * (
+            parentBounds.getHeight () - globalBounds.getBottom () +
+            channel * (globalBounds.getHeight () / numChannels)
+        );
+        GLsizei height = scale * (globalBounds.getHeight () / numChannels);
+
+        glViewport (x, y, width, height);
+
+        if (calculateVerticesTrigger)
+        {
+            calculateVertices (audioBuffer.getReadPointer (channel));
+        }
+
+        vertexBuffer->bind (sampleVertices);
+
+        openGLContext.extensions.glVertexAttribPointer (position->attributeID, 2,
+            GL_FLOAT, GL_FALSE, sizeof (Vertex), 0);
+        openGLContext.extensions.glEnableVertexAttribArray (position->attributeID);
+
+        glDrawArrays (GL_LINE_STRIP, 0, sampleVertices.size ());
+
+        openGLContext.extensions.glDisableVertexAttribArray (position->attributeID);
+
+        vertexBuffer->unbind ();
+    }
+
     if (calculateVerticesTrigger)
     {
-        calculateVertices ();
         calculateVerticesTrigger = false;
     }
 
-    vertexBuffer->bind (sampleVertices);
-
-    openGLContext.extensions.glVertexAttribPointer (position->attributeID, 2,
-        GL_FLOAT, GL_FALSE, sizeof (Vertex), 0);
-    openGLContext.extensions.glEnableVertexAttribArray (position->attributeID);
-
-    glDrawArrays (GL_LINE_STRIP, 0, sampleVertices.size ());
-
-    openGLContext.extensions.glDisableVertexAttribArray (position->attributeID);
-
-    vertexBuffer->unbind ();
-
     glDisable (GL_LINE_SMOOTH);
+    glDisable (GL_BLEND);
 }
 
-void AudioWaveformOpenGLComponent::load (const float* samples)
+void AudioWaveformOpenGLComponent::load (AudioFormatReader* audioReader)
 {
-    samplesArray = samples;
+    audioBuffer.setSize (audioReader->numChannels, audioReader->lengthInSamples);
+    audioReader->read (&audioBuffer, 0, audioReader->lengthInSamples, 0, true, true);
 }
 
 void AudioWaveformOpenGLComponent::display (
@@ -146,7 +165,7 @@ void AudioWaveformOpenGLComponent::display (
 
 // ==============================================================================
 
-void AudioWaveformOpenGLComponent::calculateVertices ()
+void AudioWaveformOpenGLComponent::calculateVertices (const float* samplesArray)
 {
     Array<Vertex> newArray;
     int endSample = visibleRegionStartSample + visibleRegionNumSamples;
@@ -161,10 +180,10 @@ void AudioWaveformOpenGLComponent::calculateVertices ()
         newArray.add (vertex);
     }
     sampleVertices.swapWith (newArray);
-    Logger::outputDebugString ("calculateVertices @ Program " +
-        String (shaderProgram->getProgramID ()) + " [" +
-        String (visibleRegionStartSample) + ", " + String (endSample) +
-        "]");
+    //Logger::outputDebugString ("calculateVertices @ Program " +
+    //    String (shaderProgram->getProgramID ()) + " [" +
+    //    String (visibleRegionStartSample) + ", " + String (endSample) +
+    //    "]");
 }
 
 // ==============================================================================
