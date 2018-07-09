@@ -6,8 +6,6 @@
   <MAINGROUP id="YFGFpb" name="10ft">
     <GROUP id="{9E117A82-4BFD-3F75-60D8-A4662BCEA3A5}" name="Source">
       <FILE id="xQAgO0" name="Application.cpp" compile="1" resource="0" file="Source/Application.cpp"/>
-      <FILE id="vwSXdI" name="Attributes.cpp" compile="1" resource="0" file="Source/Attributes.cpp"/>
-      <FILE id="hsyZBF" name="Attributes.h" compile="0" resource="0" file="Source/Attributes.h"/>
       <FILE id="Olz56J" name="AudioClockComponent.cpp" compile="1" resource="0"
             file="Source/AudioClockComponent.cpp"/>
       <FILE id="HNVPxA" name="AudioClockComponent.h" compile="0" resource="0"
@@ -20,14 +18,18 @@
             file="Source/AudioScrollerComponent.cpp"/>
       <FILE id="clblof" name="AudioScrollerComponent.h" compile="0" resource="0"
             file="Source/AudioScrollerComponent.h"/>
-      <FILE id="paLHjV" name="AudioWaveformChannelComponent.cpp" compile="1"
-            resource="0" file="Source/AudioWaveformChannelComponent.cpp"/>
-      <FILE id="TOTVrZ" name="AudioWaveformChannelComponent.h" compile="0"
-            resource="0" file="Source/AudioWaveformChannelComponent.h"/>
+      <FILE id="paLHjV" name="NOTUSED_AudioWaveformChannelOpenGLComponent.cpp"
+            compile="1" resource="0" file="Source/NOTUSED_AudioWaveformChannelOpenGLComponent.cpp"/>
+      <FILE id="TOTVrZ" name="NOTUSED_AudioWaveformChannelOpenGLComponent.h"
+            compile="0" resource="0" file="Source/NOTUSED_AudioWaveformChannelOpenGLComponent.h"/>
       <FILE id="xqRhXb" name="AudioWaveformComponent.cpp" compile="1" resource="0"
             file="Source/AudioWaveformComponent.cpp"/>
       <FILE id="MsnmlH" name="AudioWaveformComponent.h" compile="0" resource="0"
             file="Source/AudioWaveformComponent.h"/>
+      <FILE id="hj8Ev5" name="AudioWaveformOpenGLComponent.cpp" compile="1"
+            resource="0" file="Source/AudioWaveformOpenGLComponent.cpp"/>
+      <FILE id="UCItmw" name="AudioWaveformOpenGLComponent.h" compile="0"
+            resource="0" file="Source/AudioWaveformOpenGLComponent.h"/>
       <FILE id="SMYjNL" name="AudioWaveformSelectedRegionComponent.cpp" compile="1"
             resource="0" file="Source/AudioWaveformSelectedRegionComponent.cpp"/>
       <FILE id="FMxsck" name="AudioWaveformSelectedRegionComponent.h" compile="0"
@@ -48,9 +50,6 @@
             file="Source/TenFtMainComponent.h"/>
       <FILE id="jSkGZo" name="TenFtUtil.cpp" compile="1" resource="0" file="Source/TenFtUtil.cpp"/>
       <FILE id="FEK3GJ" name="TenFtUtil.h" compile="0" resource="0" file="Source/TenFtUtil.h"/>
-      <FILE id="VSYJQD" name="VertexBuffer.cpp" compile="1" resource="0"
-            file="Source/VertexBuffer.cpp"/>
-      <FILE id="dxgUJ4" name="VertexBuffer.h" compile="0" resource="0" file="Source/VertexBuffer.h"/>
     </GROUP>
   </MAINGROUP>
   <MODULES>
