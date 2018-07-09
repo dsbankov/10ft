@@ -286,7 +286,7 @@ void AudioWaveformComponent::updateVisibleRegion (
 
     int64 startSample = visibleRegionStartTime * audioReader->sampleRate,
         endSample = visibleRegionEndTime * audioReader->sampleRate,
-        numSamples = endSample - startSample + 1;
+        numSamples = endSample - startSample;
 
     // TODO use listener instead?
     waveform.display (startSample, numSamples);
