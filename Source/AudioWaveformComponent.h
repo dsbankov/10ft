@@ -111,7 +111,6 @@ private:
 private:
     OpenGLContext openGLContext;
     AudioFormatReader* audioReader = nullptr;
-    AudioBuffer<float> audioBuffer;
     AudioWaveformOpenGLComponent waveform;
     double visibleRegionStartTime;
     double visibleRegionEndTime;

@@ -44,12 +44,12 @@ public:
 
     void render (OpenGLContext& openGLContext) override;
 
-    void load (const float* samples);
+    void load (AudioFormatReader* reader);
 
     void display (int startSample, int numSamples);
 
 private:
-    void calculateVertices ();
+    void calculateVertices (const float* samplesArray);
 
 private:
     struct Vertex {
@@ -78,11 +78,11 @@ private:
     std::unique_ptr<OpenGLShaderProgram::Attribute> position;
     std::unique_ptr<OpenGLShaderProgram::Uniform> uniform;
     std::unique_ptr<VertexBuffer> vertexBuffer;
-    const float* samplesArray = nullptr;
+    AudioBuffer<float> audioBuffer;
     Array<Vertex> sampleVertices;
     int visibleRegionStartSample;
     int visibleRegionNumSamples;
-    bool calculateVerticesTrigger = true;
+    bool calculateVerticesTrigger = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioWaveformOpenGLComponent)
 };
