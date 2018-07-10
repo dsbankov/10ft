@@ -211,12 +211,13 @@ void AudioWaveformOpenGLComponent::calculateVertices (unsigned int channel)
     {
         GLfloat skippedSamplesSum = 0;
         unsigned int skippedSamplesCount = 0;
-        int64 innerEndSample = sample + skipSamples;
-        for (int64 innerSample = sample;
-            innerSample < innerEndSample && innerSample < endSample;
-            innerSample++)
+        int64 skippedEndSample = sample + skipSamples;
+
+        for (int64 skippedSample = sample;
+            skippedSample < skippedEndSample && skippedSample < endSample;
+            skippedSample++)
         {
-            skippedSamplesSum += samplesPerChannel[channel][innerSample];
+            skippedSamplesSum += samplesPerChannel[channel][skippedSample];
             skippedSamplesCount++;
         }
 
