@@ -76,6 +76,7 @@ private:
     const float** samplesPerChannel;
     unsigned int numChannels;
     int64 lengthInSamples;
+    double sampleRate;
 
     Vertex** verticesPerChannel = nullptr;
 
