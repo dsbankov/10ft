@@ -163,6 +163,7 @@ void AudioWaveformOpenGLComponent::load (AudioFormatReader* audioReader)
     audioBuffer.setSize(audioReader->numChannels, audioReader->lengthInSamples);
     audioReader->read (&audioBuffer, 0, audioBuffer.getNumSamples(), 0, true, true);
 
+    sampleRate = audioReader->sampleRate;
     numChannels = audioBuffer.getNumChannels ();
     lengthInSamples = audioBuffer.getNumSamples ();
     samplesPerChannel = audioBuffer.getArrayOfReadPointers ();
@@ -190,24 +191,45 @@ void AudioWaveformOpenGLComponent::display (
 void AudioWaveformOpenGLComponent::calculateVertices (unsigned int channel)
 {
     auto start = std::chrono::system_clock::now ();
+
+    // More accurate because we depend on the count of the samples 
+    // of the current file. The larger the file the less samples 
+    // we use when zoomed out
+    skipSamples = numSamples / (lengthInSamples * 0.04);
+    skipSamples = (skipSamples > 0) ? skipSamples : 1;
+
+    // Alternative approach:
+    // skipSamples = numSamples / (sampleRate * 12);
+    // More of a constant UI speed but not very accurate
+
     int64 endSample = startSample + numSamples,
         numVertices = numSamples / skipSamples;
 
-    for (int64 sample = startSample, i = 0; sample < endSample; sample += skipSamples, i++)
+    for (int64 sample = startSample, i = 0;
+        sample < endSample;
+        sample += skipSamples, i++)
     {
-        GLfloat maxValue = -1.0f;
+        GLfloat skippedSamplesSum = 0;
+        unsigned int skippedSamplesCount = 0;
         int64 innerEndSample = sample + skipSamples;
-        for (int64 innerSample = sample; innerSample < innerEndSample && innerSample < endSample; innerSample++)
+        for (int64 innerSample = sample;
+            innerSample < innerEndSample && innerSample < endSample;
+            innerSample++)
         {
-            if (samplesPerChannel[channel][innerSample] > maxValue)
-            {
-                maxValue = samplesPerChannel[channel][innerSample];
-            }
+            skippedSamplesSum += samplesPerChannel[channel][innerSample];
+            skippedSamplesCount++;
         }
 
         Vertex vertex;
+        // should be in the [-1,+1] range
         vertex.x = (((GLfloat) i / (GLfloat) numVertices) * 2) - 1;
-        vertex.y = maxValue;
+        // We take the average value out of the samples we skipped.
+        // This way, when zoomed out, we will see more of an RMS
+        // display of the waveform.
+        // Alternative approach: get the max value out of the skipped
+        // samples
+        vertex.y = skippedSamplesSum / skippedSamplesCount;
+
         verticesPerChannel[channel][i] = vertex;
     }
 
@@ -216,7 +238,8 @@ void AudioWaveformOpenGLComponent::calculateVertices (unsigned int channel)
 
     Logger::outputDebugString (
         String(numSamples) + " samples / " +
-        String(numVertices) + " vertices @ " +
+        String(numVertices) + " vertices / " +
+        String(skipSamples) + " skipping @ " +
         String(diff.count()) + " s");
 }
 
