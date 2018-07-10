@@ -96,7 +96,7 @@ void AudioWaveformOpenGLComponent::render (OpenGLContext& openGLContext)
 {
     jassert (OpenGLHelpers::isContextActive ());
 
-    if (verticesPerChannel == nullptr)
+    if (areVerticesCleared())
     {
         return;
     }
@@ -133,13 +133,14 @@ void AudioWaveformOpenGLComponent::render (OpenGLContext& openGLContext)
             calculateVertices (channel);
         }
 
-        vertexBuffer->bind (verticesPerChannel[channel], numSamples);
+        int64 numVertices = numSamples / skipSamples;
+        vertexBuffer->bind (verticesPerChannel[channel], numVertices);
 
         openGLContext.extensions.glVertexAttribPointer (position->attributeID, 2,
             GL_FLOAT, GL_FALSE, 2 * sizeof (GLfloat), 0);
         openGLContext.extensions.glEnableVertexAttribArray (position->attributeID);
 
-        glDrawArrays (GL_LINE_STRIP, 0, numSamples);
+        glDrawArrays (GL_LINE_STRIP, 0, numVertices);
 
         openGLContext.extensions.glDisableVertexAttribArray (position->attributeID);
 
@@ -157,14 +158,17 @@ void AudioWaveformOpenGLComponent::render (OpenGLContext& openGLContext)
 
 void AudioWaveformOpenGLComponent::load (AudioFormatReader* audioReader)
 {
-    audioBuffer.setSize(audioReader->numChannels, audioReader->lengthInSamples);
-    audioReader->read (&audioBuffer, 0, audioReader->lengthInSamples, 0, true, true);
+    clearVertices ();
 
-    numChannels = audioReader->numChannels;
-    lengthInSamples = audioReader->lengthInSamples;
+    audioBuffer.setSize(audioReader->numChannels, audioReader->lengthInSamples);
+    audioReader->read (&audioBuffer, 0, audioBuffer.getNumSamples(), 0, true, true);
+
+    numChannels = audioBuffer.getNumChannels ();
+    lengthInSamples = audioBuffer.getNumSamples ();
     samplesPerChannel = audioBuffer.getArrayOfReadPointers ();
 
-    clearVertices ();
+    startSample = 0;
+    numSamples = lengthInSamples;
 
     verticesPerChannel = new Vertex*[numChannels];
     for (unsigned int channel = 0; channel < numChannels; channel++)
@@ -186,13 +190,24 @@ void AudioWaveformOpenGLComponent::display (
 void AudioWaveformOpenGLComponent::calculateVertices (unsigned int channel)
 {
     auto start = std::chrono::system_clock::now ();
-    int64 endSample = startSample + numSamples;
+    int64 endSample = startSample + numSamples,
+        numVertices = numSamples / skipSamples;
 
-    for (int64 sample = startSample, i = 0; sample < endSample; sample++, i++)
+    for (int64 sample = startSample, i = 0; sample < endSample; sample += skipSamples, i++)
     {
+        GLfloat maxValue = -1.0f;
+        int64 innerEndSample = sample + skipSamples;
+        for (int64 innerSample = sample; innerSample < innerEndSample && innerSample < endSample; innerSample++)
+        {
+            if (samplesPerChannel[channel][innerSample] > maxValue)
+            {
+                maxValue = samplesPerChannel[channel][innerSample];
+            }
+        }
+
         Vertex vertex;
-        vertex.x = (((GLfloat)(sample - startSample) / numSamples) * 2) - 1;
-        vertex.y = samplesPerChannel[channel][sample];
+        vertex.x = (((GLfloat) i / (GLfloat) numVertices) * 2) - 1;
+        vertex.y = maxValue;
         verticesPerChannel[channel][i] = vertex;
     }
 
@@ -200,7 +215,8 @@ void AudioWaveformOpenGLComponent::calculateVertices (unsigned int channel)
     std::chrono::duration<double> diff = end - start;
 
     Logger::outputDebugString (
-        String(numSamples) + " samples @ " +
+        String(numSamples) + " samples / " +
+        String(numVertices) + " vertices @ " +
         String(diff.count()) + " s");
 }
 
@@ -215,6 +231,22 @@ void AudioWaveformOpenGLComponent::clearVertices ()
         delete[] verticesPerChannel;
         verticesPerChannel = nullptr;
     }
+}
+
+bool AudioWaveformOpenGLComponent::areVerticesCleared ()
+{
+    if (verticesPerChannel == nullptr)
+    {
+        return true;
+    }
+    for (unsigned int channel = 0; channel < numChannels; channel++)
+    {
+        if (verticesPerChannel[channel] != nullptr)
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 // ==============================================================================

@@ -237,7 +237,10 @@ bool AudioWaveformComponent::load (AudioFormatReader* reader)
     audioReader = reader;
     if (audioReader != nullptr)
     {
+        openGLContext.detach ();
         waveform.load (audioReader);
+        openGLContext.attachTo (*this);
+
         updateVisibleRegion (0.0f, getTotalLength());
         return true;
     }
