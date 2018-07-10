@@ -44,6 +44,8 @@ private:
 
     void clearVertices ();
 
+    bool areVerticesCleared ();
+
 private:
     struct Vertex { GLfloat x, y; };
 
@@ -79,6 +81,7 @@ private:
 
     int64 startSample;
     int64 numSamples;
+    unsigned int skipSamples = 8;
 
     bool calculateVerticesTrigger = false;
 
