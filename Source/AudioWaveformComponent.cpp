@@ -287,12 +287,14 @@ void AudioWaveformComponent::updateVisibleRegion (
     visibleRegionStartTime = startTimeFlattened;
     visibleRegionEndTime = endTimeFlattened;
 
+    // *******************************************************************
+    // TODO: use listener instead - move Listener out of this class'
+    // definition so it can be included in AudioWaveformOpenGLComponent
     int64 startSample = visibleRegionStartTime * audioReader->sampleRate,
         endSample = visibleRegionEndTime * audioReader->sampleRate,
         numSamples = endSample - startSample;
-
-    // TODO use listener instead?
     waveform.display (startSample, numSamples);
+    // *******************************************************************
 
     listeners.call ([this] (Listener& l) { l.visibleRegionChanged (this); });
 
