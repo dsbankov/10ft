@@ -8,7 +8,7 @@
   ==============================================================================
 */
 
-#include "NOTUSED_AudioWaveformChannelOpenGLComponent.h"
+#include "AudioWaveformChannelOpenGLComponent.h"
 
 
 AudioWaveformChannelOpenGLComponent::AudioWaveformChannelOpenGLComponent ()
