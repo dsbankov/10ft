@@ -111,6 +111,7 @@ void AudioWaveformOpenGLComponent::render (OpenGLContext& openGLContext)
 
     shaderProgram->use ();
 
+    int numChannels = audioBuffer.getNumChannels ();
     float scale = openGLContext.getRenderingScale ();
     Component* parentComponent = getParentComponent ();
     Rectangle<int> parentBounds = parentComponent->getBounds (),
@@ -134,7 +135,8 @@ void AudioWaveformOpenGLComponent::render (OpenGLContext& openGLContext)
         }
 
         int64 numVertices = numSamples / skipSamples;
-        vertexBuffer->bind (verticesPerChannel[channel], numVertices);
+
+        vertexBuffer->bind (vertices[channel], numVertices);
 
         openGLContext.extensions.glVertexAttribPointer (position->attributeID, 2,
             GL_FLOAT, GL_FALSE, 2 * sizeof (GLfloat), 0);
@@ -163,18 +165,16 @@ void AudioWaveformOpenGLComponent::load (AudioFormatReader* audioReader)
     audioBuffer.setSize(audioReader->numChannels, audioReader->lengthInSamples);
     audioReader->read (&audioBuffer, 0, audioBuffer.getNumSamples(), 0, true, true);
 
-    sampleRate = audioReader->sampleRate;
-    numChannels = audioBuffer.getNumChannels ();
-    lengthInSamples = audioBuffer.getNumSamples ();
-    samplesPerChannel = audioBuffer.getArrayOfReadPointers ();
+    int numChannels = audioBuffer.getNumChannels (),
+        lengthInSamples = audioBuffer.getNumSamples ();
 
     startSample = 0;
     numSamples = lengthInSamples;
 
-    verticesPerChannel = new Vertex*[numChannels];
+    vertices = new Vertex*[numChannels];
     for (unsigned int channel = 0; channel < numChannels; channel++)
     {
-        verticesPerChannel[channel] = new Vertex[lengthInSamples];
+        vertices[channel] = new Vertex[lengthInSamples];
     }
 }
 
@@ -195,15 +195,15 @@ void AudioWaveformOpenGLComponent::calculateVertices (unsigned int channel)
     // More accurate because we depend on the count of the samples 
     // of the current file. The larger the file the less samples 
     // we use when zoomed out
-    skipSamples = numSamples / (lengthInSamples * 0.04);
+    skipSamples = numSamples / (audioBuffer.getNumSamples () * 0.04);
     skipSamples = (skipSamples > 0) ? skipSamples : 1;
-
     // Alternative approach:
     // skipSamples = numSamples / (sampleRate * 12);
     // More of a constant UI speed but not very accurate
 
     int64 endSample = startSample + numSamples,
         numVertices = numSamples / skipSamples;
+    const float* samples = audioBuffer.getReadPointer (channel);
 
     for (int64 sample = startSample, i = 0;
         sample < endSample;
@@ -217,7 +217,7 @@ void AudioWaveformOpenGLComponent::calculateVertices (unsigned int channel)
             skippedSample < skippedEndSample && skippedSample < endSample;
             skippedSample++)
         {
-            skippedSamplesSum += samplesPerChannel[channel][skippedSample];
+            skippedSamplesSum += samples[skippedSample];
             skippedSamplesCount++;
         }
 
@@ -231,7 +231,7 @@ void AudioWaveformOpenGLComponent::calculateVertices (unsigned int channel)
         // samples
         vertex.y = skippedSamplesSum / skippedSamplesCount;
 
-        verticesPerChannel[channel][i] = vertex;
+        vertices[channel][i] = vertex;
     }
 
     auto end = std::chrono::system_clock::now ();
@@ -246,26 +246,26 @@ void AudioWaveformOpenGLComponent::calculateVertices (unsigned int channel)
 
 void AudioWaveformOpenGLComponent::clearVertices ()
 {
-    if (verticesPerChannel != nullptr)
+    if (vertices != nullptr)
     {
-        for (unsigned int channel = 0; channel < numChannels; channel++)
+        for (unsigned int channel = 0; channel < audioBuffer.getNumChannels (); channel++)
         {
-            delete[] verticesPerChannel[channel];
+            delete[] vertices[channel];
         }
-        delete[] verticesPerChannel;
-        verticesPerChannel = nullptr;
+        delete[] vertices;
+        vertices = nullptr;
     }
 }
 
 bool AudioWaveformOpenGLComponent::areVerticesCleared ()
 {
-    if (verticesPerChannel == nullptr)
+    if (vertices == nullptr)
     {
         return true;
     }
-    for (unsigned int channel = 0; channel < numChannels; channel++)
+    for (unsigned int channel = 0; channel < audioBuffer.getNumChannels (); channel++)
     {
-        if (verticesPerChannel[channel] != nullptr)
+        if (vertices[channel] != nullptr)
         {
             return false;
         }
