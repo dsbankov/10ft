@@ -73,17 +73,11 @@ private:
     std::unique_ptr<VertexBuffer> vertexBuffer;
 
     AudioBuffer<float> audioBuffer;
-    const float** samplesPerChannel;
-    unsigned int numChannels;
-    int64 lengthInSamples;
-    double sampleRate;
-
-    Vertex** verticesPerChannel = nullptr;
-
     int64 startSample;
     int64 numSamples;
     unsigned int skipSamples = 8;
 
+    Vertex** vertices = nullptr;
     bool calculateVerticesTrigger = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioWaveformOpenGLComponent)
