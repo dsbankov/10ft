@@ -18,10 +18,10 @@
             file="Source/AudioScrollerComponent.cpp"/>
       <FILE id="clblof" name="AudioScrollerComponent.h" compile="0" resource="0"
             file="Source/AudioScrollerComponent.h"/>
-      <FILE id="paLHjV" name="NOTUSED_AudioWaveformChannelOpenGLComponent.cpp"
-            compile="1" resource="0" file="Source/NOTUSED_AudioWaveformChannelOpenGLComponent.cpp"/>
-      <FILE id="TOTVrZ" name="NOTUSED_AudioWaveformChannelOpenGLComponent.h"
-            compile="0" resource="0" file="Source/NOTUSED_AudioWaveformChannelOpenGLComponent.h"/>
+      <FILE id="paLHjV" name="AudioWaveformChannelOpenGLComponent.cpp" compile="1"
+            resource="0" file="Source/AudioWaveformChannelOpenGLComponent.cpp"/>
+      <FILE id="TOTVrZ" name="AudioWaveformChannelOpenGLComponent.h" compile="0"
+            resource="0" file="Source/AudioWaveformChannelOpenGLComponent.h"/>
       <FILE id="xqRhXb" name="AudioWaveformComponent.cpp" compile="1" resource="0"
             file="Source/AudioWaveformComponent.cpp"/>
       <FILE id="MsnmlH" name="AudioWaveformComponent.h" compile="0" resource="0"
