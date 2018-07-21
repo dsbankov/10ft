@@ -42,6 +42,10 @@ public:
 private:
     void calculateVertices (unsigned int channel);
 
+    GLfloat getAverageSampleValue (const float * samples, int64 startSample, int64 numSamples);
+
+    GLfloat getPeakSampleValue (const float * samples, int64 startSample, int64 numSamples);
+
     void clearVertices ();
 
     bool areVerticesCleared ();

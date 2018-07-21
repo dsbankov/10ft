@@ -209,27 +209,15 @@ void AudioWaveformOpenGLComponent::calculateVertices (unsigned int channel)
         sample < endSample;
         sample += skipSamples, i++)
     {
-        GLfloat skippedSamplesSum = 0;
-        unsigned int skippedSamplesCount = 0;
-        int64 skippedEndSample = sample + skipSamples;
-
-        for (int64 skippedSample = sample;
-            skippedSample < skippedEndSample && skippedSample < endSample;
-            skippedSample++)
-        {
-            skippedSamplesSum += samples[skippedSample];
-            skippedSamplesCount++;
-        }
+        //GLfloat sampleValue = getAverageSampleValue (samples, sample,
+        //    jmin ((int64) skipSamples, endSample - sample));
+        GLfloat sampleValue = getPeakSampleValue (samples, sample,
+            jmin ((int64) skipSamples, endSample - sample));
 
         Vertex vertex;
         // should be in the [-1,+1] range
         vertex.x = (((GLfloat) i / (GLfloat) numVertices) * 2) - 1;
-        // We take the average value out of the samples we skipped.
-        // This way, when zoomed out, we will see more of an RMS
-        // display of the waveform.
-        // Alternative approach: get the max value out of the skipped
-        // samples
-        vertex.y = skippedSamplesSum / skippedSamplesCount;
+        vertex.y = sampleValue;
 
         vertices[channel][i] = vertex;
     }
@@ -242,6 +230,43 @@ void AudioWaveformOpenGLComponent::calculateVertices (unsigned int channel)
         String(numVertices) + " vertices / " +
         String(skipSamples) + " skipping @ " +
         String(diff.count()) + " s");
+}
+
+GLfloat AudioWaveformOpenGLComponent::getAverageSampleValue (
+    const float* samples,
+    int64 startSample,
+    int64 numSamples)
+{
+    GLfloat samplesSum = 0;
+    unsigned int samplesCount = 0;
+    int64 endSample = startSample + numSamples;
+
+    for (int64 sample = startSample; sample < endSample; sample++)
+    {
+        samplesSum += samples[sample];
+        samplesCount++;
+    }
+
+    return samplesSum / samplesCount;
+}
+
+GLfloat AudioWaveformOpenGLComponent::getPeakSampleValue (
+    const float* samples,
+    int64 startSample,
+    int64 numSamples)
+{
+    GLfloat peakValue = 0.0f;
+    int64 endSample = startSample + numSamples;
+
+    for (int64 sample = startSample; sample < endSample; sample++)
+    {
+        if (std::abs (peakValue) < std::abs (samples[sample]))
+        {
+            peakValue = samples[sample];
+        }
+    }
+
+    return peakValue;
 }
 
 void AudioWaveformOpenGLComponent::clearVertices ()
