@@ -91,7 +91,7 @@ void TenFtAudioTransportSource::pauseAudio ()
 
 void TenFtAudioTransportSource::setupLooping (double startTime, double endTime)
 {
-    audioReaderSource.get ()->setLooping (true);
+    audioReaderSource->setLooping (true);
     shouldLoop = true;
     selectedRegionStartTime = startTime;
     selectedRegionEndTime = endTime;
@@ -99,7 +99,7 @@ void TenFtAudioTransportSource::setupLooping (double startTime, double endTime)
 
 void TenFtAudioTransportSource::disableLooping ()
 {
-    audioReaderSource.get ()->setLooping (false);
+    audioReaderSource->setLooping (false);
     shouldLoop = false;
 }
 
