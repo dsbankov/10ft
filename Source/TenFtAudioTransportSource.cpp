@@ -14,8 +14,6 @@
 
 TenFtAudioTransportSource::TenFtAudioTransportSource ()
 {
-    selectedRegionStartTime = 0.0f;
-    selectedRegionEndTime = getLengthInSeconds ();
     addChangeListener (this);
     startTimer (100);
 }
@@ -26,26 +24,12 @@ TenFtAudioTransportSource::~TenFtAudioTransportSource ()
     setSource (nullptr);
 }
 
-bool TenFtAudioTransportSource::load (AudioFormatReader* reader)
+bool TenFtAudioTransportSource::loadAudio (AudioFormatReader* newReader)
 {
-    if (reader != nullptr)
+    if (newReader != nullptr)
     {
-        std::unique_ptr<AudioFormatReaderSource> tempReaderSource (
-            new AudioFormatReaderSource (reader, false)
-        );
-
-        setSource (
-            tempReaderSource.get (),
-            0,
-            nullptr,
-            reader->sampleRate
-        );
-
-        audioReaderSource.swap (tempReaderSource);
-
-        changeState (Stopped);
-        setPosition (0.0);
-
+        reader = newReader;
+        loadAudioSubsection (0.0, reader->lengthInSamples / reader->sampleRate, false);
         return true;
     }
     else
@@ -74,7 +58,22 @@ void TenFtAudioTransportSource::playAudio ()
 
 void TenFtAudioTransportSource::stopAudio ()
 {
-    if (state == Paused || state == NoFileLoaded)
+    if (hasSubsection && state == Paused)
+    {
+        if (getCurrentPosition () == 0.0)
+        {
+            loadAudioSubsection (0.0,
+                reader->lengthInSamples / reader->sampleRate, // TODO move in function
+                readerSource->isLooping ());
+            changeState (Stopped);
+            stop ();
+        }
+        else
+        {
+            setPosition (0.0);
+        }
+    }
+    else if (state == Paused || state == NoFileLoaded)
     {
         changeState (Stopped);
     }
@@ -89,18 +88,75 @@ void TenFtAudioTransportSource::pauseAudio ()
     changeState (Pausing);
 }
 
-void TenFtAudioTransportSource::setupLooping (double startTime, double endTime)
+void TenFtAudioTransportSource::loadAudioSubsection (
+    double startTime,
+    double endTime,
+    bool shouldLoop
+)
 {
-    audioReaderSource->setLooping (true);
-    shouldLoop = true;
-    selectedRegionStartTime = startTime;
-    selectedRegionEndTime = endTime;
+    int64 startSample = (int64) (startTime * reader->sampleRate),
+        numSamples = (int64) ((endTime - startTime) * reader->sampleRate);
+    AudioFormatReader* subsectionReader =
+        new AudioSubsectionReader (reader, startSample, numSamples, false);
+
+    //Logger::outputDebugString ("loadAudioSubsection(" +
+    //    String (startTime) + ", " + String (endTime) + ", " + String ((int)shouldLoop) +
+    //    ")");
+    
+    swapReader (subsectionReader, true, shouldLoop);
 }
 
-void TenFtAudioTransportSource::disableLooping ()
+double TenFtAudioTransportSource::getCurrentPositionGlobal () const
 {
-    audioReaderSource->setLooping (false);
-    shouldLoop = false;
+    double currentPosition = getCurrentPosition ();
+    if (hasSubsection)
+    {
+        currentPosition += subsectionStartTime;
+    }
+    return currentPosition;
+}
+
+void TenFtAudioTransportSource::setLooping (bool shouldLoop)
+{
+    readerSource->setLooping (shouldLoop);
+}
+
+void TenFtAudioTransportSource::selectedRegionCreated (
+    AudioWaveformComponent* waveform
+)
+{
+    hasSubsection = true;
+    subsectionStartTime = waveform->getSelectedRegionStartTime ();
+    subsectionEndTime = waveform->getSelectedRegionEndTime ();
+    loadAudioSubsection (subsectionStartTime,
+        subsectionEndTime, readerSource->isLooping ());
+
+    Logger::outputDebugString ("selectedRegionCreated - setPosition (0.0)");
+    setPosition (0.0);
+
+    if (state == Playing)
+    {
+        start ();
+    }
+    else
+    {
+        playAudio ();
+    }
+}
+
+void TenFtAudioTransportSource::selectedRegionCleared (AudioWaveformComponent* waveform)
+{
+    if (hasSubsection && !waveform->getHasSelectedRegion ())
+    {
+        Logger::outputDebugString ("selectedRegionCleared");
+        hasSubsection = false;
+        subsectionStartTime = 0.0;
+        subsectionEndTime = reader->lengthInSamples / reader->sampleRate;
+        loadAudioSubsection (subsectionStartTime,
+            subsectionEndTime, // TODO move in function
+            readerSource->isLooping ());
+        start ();
+    }
 }
 
 void TenFtAudioTransportSource::addListener (Listener * newListener)
@@ -114,6 +170,35 @@ void TenFtAudioTransportSource::removeListener (Listener * listener)
 }
 
 // ==============================================================================
+
+void TenFtAudioTransportSource::changeListenerCallback (
+    ChangeBroadcaster*
+)
+{
+    if (isPlaying ())
+    {
+        changeState (Playing);
+    }
+    else if (state == Pausing)
+    {
+        changeState (Paused);
+    }
+    else if (hasSubsection)
+    {
+        Logger::outputDebugString ("changeListenerCallback - setPosition (0.0)");
+        setPosition (0.0);
+        changeState (Paused);
+    }
+    else
+    {
+        changeState (Stopped);
+    }
+}
+
+void TenFtAudioTransportSource::timerCallback ()
+{
+    listeners.call ([this](Listener& l) { l.currentPositionChanged (this); });
+}
 
 void TenFtAudioTransportSource::unloadAudio ()
 {
@@ -163,46 +248,22 @@ void TenFtAudioTransportSource::changeState (
     }
 }
 
-void TenFtAudioTransportSource::changeListenerCallback (
-    ChangeBroadcaster* broadcaster
-)
+void TenFtAudioTransportSource::swapReader (AudioFormatReader* newReader,
+    bool deleteReaderWhenThisIsDeleted,
+    bool shouldLoop)
 {
-    if (broadcaster == this)
-    {
-        if (isPlaying ())
-        {
-            changeState (Playing);
-        }
-        else if (state == Pausing)
-        {
-            changeState (Paused);
-        }
-        else
-        {
-            changeState (Stopped);
-        }
-    }
-}
+    std::unique_ptr<AudioFormatReaderSource> tempReaderSource (
+        new AudioFormatReaderSource (newReader, deleteReaderWhenThisIsDeleted)
+    );
 
-void TenFtAudioTransportSource::timerCallback ()
-{
-    if (hasSelectedRegion && getCurrentPosition () >= selectedRegionEndTime)
-    {
-        setPosition (selectedRegionStartTime);
-        if (!shouldLoop)
-        {
-            pauseAudio ();
-        }
-    }
+    tempReaderSource->setLooping (shouldLoop);
 
-    listeners.call ([this] (Listener& l) { l.currentPositionChanged (this); });
-}
+    setSource (
+        tempReaderSource.get (),
+        0,
+        nullptr,
+        newReader->sampleRate
+    );
 
-void TenFtAudioTransportSource::selectedRegionChanged (
-    AudioWaveformComponent* waveform
-)
-{
-    hasSelectedRegion = waveform->getHasSelectedRegion ();
-    selectedRegionStartTime = waveform->getSelectedRegionStartTime ();
-    selectedRegionEndTime = waveform->getSelectedRegionEndTime ();
+    readerSource.swap (tempReaderSource);
 }

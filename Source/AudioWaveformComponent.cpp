@@ -115,7 +115,7 @@ void AudioWaveformComponent::mouseDoubleClick (const MouseEvent& event)
     onPositionChange (newPosition);
 }
 
-void AudioWaveformComponent::mouseDrag (const MouseEvent &event)
+void AudioWaveformComponent::mouseDrag (const MouseEvent& event)
 {
     if (getTotalLength () <= 0)
     {
@@ -170,7 +170,7 @@ void AudioWaveformComponent::mouseDrag (const MouseEvent &event)
     repaint ();
 }
 
-void AudioWaveformComponent::mouseDown (const MouseEvent &event)
+void AudioWaveformComponent::mouseDown (const MouseEvent& event)
 {
     if (getTotalLength () <= 0)
     {
@@ -206,6 +206,15 @@ void AudioWaveformComponent::mouseDown (const MouseEvent &event)
     }
 }
 
+void AudioWaveformComponent::mouseUp (const MouseEvent& event)
+{
+    if (hasSelectedRegion)
+    {
+        // TODO remove if it is a double click (use MouseEvent::getDoubleClickTimeout())
+        listeners.call ([this](Listener& l) { l.selectedRegionCreated (this); });
+    }
+}
+
 void AudioWaveformComponent::sliderValueChanged (Slider* slider)
 {
     double minValue = slider->getMinValue (),
@@ -232,7 +241,7 @@ void AudioWaveformComponent::removeListener (Listener * listener)
     listeners.remove (listener);
 }
 
-bool AudioWaveformComponent::load (AudioFormatReader* reader)
+bool AudioWaveformComponent::loadWaveform (AudioFormatReader* reader)
 {
     audioReader = reader;
     if (audioReader != nullptr)
@@ -246,12 +255,12 @@ bool AudioWaveformComponent::load (AudioFormatReader* reader)
     }
     else
     {
-        clear ();
+        clearWaveform ();
         return false;
     }
 }
 
-void AudioWaveformComponent::clear ()
+void AudioWaveformComponent::clearWaveform ()
 {
     audioReader = nullptr;
     clearSelectedRegion ();
@@ -314,7 +323,10 @@ void AudioWaveformComponent::updateSelectedRegion (
 void AudioWaveformComponent::clearSelectedRegion ()
 {
     hasSelectedRegion = false;
+    selectedRegionStartTime = 0.0;
+    selectedRegionEndTime = getTotalLength();
 
+    listeners.call ([this] (Listener& l) { l.selectedRegionCleared (this); });
     listeners.call ([this] (Listener& l) { l.selectedRegionChanged (this); });
 }
 

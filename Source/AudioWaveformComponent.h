@@ -31,6 +31,10 @@ public:
 
         virtual void selectedRegionChanged (AudioWaveformComponent*) {}
 
+        virtual void selectedRegionCreated (AudioWaveformComponent*) {}
+
+        virtual void selectedRegionCleared (AudioWaveformComponent*) {}
+
         virtual void visibleRegionChanged (AudioWaveformComponent*) {}
 
         virtual void thumbnailCleared (AudioWaveformComponent*) {}
@@ -64,15 +68,17 @@ public:
 
     void mouseDown (const MouseEvent& event) override;
 
+    void mouseUp (const MouseEvent& event) override;
+
     void sliderValueChanged (Slider* slider) override;
 
     void addListener (Listener* newListener);
 
     void removeListener (Listener* listener);
 
-    bool load (AudioFormatReader* reader);
+    bool loadWaveform (AudioFormatReader* reader);
 
-    void clear ();
+    void clearWaveform ();
 
     double getTotalLength ();
 

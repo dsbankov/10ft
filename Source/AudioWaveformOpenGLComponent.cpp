@@ -225,11 +225,11 @@ void AudioWaveformOpenGLComponent::calculateVertices (unsigned int channel)
     auto end = std::chrono::system_clock::now ();
     std::chrono::duration<double> diff = end - start;
 
-    Logger::outputDebugString (
-        String(numSamples) + " samples / " +
-        String(numVertices) + " vertices / " +
-        String(skipSamples) + " skipping @ " +
-        String(diff.count()) + " s");
+    //Logger::outputDebugString (
+    //    String(numSamples) + " samples / " +
+    //    String(numVertices) + " vertices / " +
+    //    String(skipSamples) + " skipping @ " +
+    //    String(diff.count()) + " s");
 }
 
 GLfloat AudioWaveformOpenGLComponent::getAverageSampleValue (

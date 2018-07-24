@@ -57,7 +57,7 @@ public:
 
     ~TenFtAudioTransportSource ();
 
-    bool load (AudioFormatReader* reader);
+    bool loadAudio (AudioFormatReader* newReader);
 
     bool isAudioLoaded ();
 
@@ -67,36 +67,45 @@ public:
 
     void pauseAudio ();
 
-    void setupLooping (double startTime, double endTime);
+    void loadAudioSubsection (double startTime, double endTime, bool shouldLoop);
 
-    void disableLooping ();
+    double getCurrentPositionGlobal () const;
+
+    void setLooping (bool shouldLoop) override;
+
+    void selectedRegionCreated (AudioWaveformComponent* waveform) override;
+
+    void selectedRegionCleared (AudioWaveformComponent* waveform) override;
 
     void addListener (Listener* newListener);
 
     void removeListener (Listener* listener);
 
-    void selectedRegionChanged (AudioWaveformComponent* waveform) override;
-
 private:
-    void unloadAudio ();
-
-    void changeState (
-        TenFtAudioTransportSource::State newState
-    );
-
     void changeListenerCallback (
         ChangeBroadcaster* broadcaster
     ) override;
 
     void timerCallback () override;
 
+    void unloadAudio ();
+
+    void changeState (
+        TenFtAudioTransportSource::State newState
+    );
+
+    void swapReader (AudioFormatReader* newReader,
+        bool deleteReaderWhenThisIsDeleted,
+        bool shouldLoop
+    );
+
 private:
-    std::unique_ptr<AudioFormatReaderSource> audioReaderSource;
+    AudioFormatReader* reader;
+    std::unique_ptr<AudioFormatReaderSource> readerSource;
     State state = NoFileLoaded;
-    bool shouldLoop = false;
-    bool hasSelectedRegion = false;
-    double selectedRegionStartTime;
-    double selectedRegionEndTime;
+    bool hasSubsection = false;
+    double subsectionStartTime;
+    double subsectionEndTime;
     ListenerList<Listener> listeners;
 
 };

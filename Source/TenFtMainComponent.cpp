@@ -68,6 +68,7 @@ TenFtMainComponent::TenFtMainComponent ()
     waveform.addListener (&selectedRegion);
     waveform.addListener (&playbackPosition);
     waveform.onPositionChange = [this] (double newPosition) {
+        Logger::outputDebugString ("onPositionChange " + String(newPosition));
         audioSource.setPosition (newPosition);
     };
 
@@ -181,9 +182,9 @@ void TenFtMainComponent::openButtonClicked ()
 
         std::unique_ptr<AudioFormatReader> newAudioReader(formatManager.createReaderFor (file));
 
-        if (audioSource.load (newAudioReader.get ()))
+        if (audioSource.loadAudio (newAudioReader.get ()))
         {
-            waveform.load (newAudioReader.get ());
+            waveform.loadWaveform (newAudioReader.get ());
             setupButton (playButton, "Play", true);
             setupButton (stopButton, "Stop", false);
             loopButton.setEnabled (true);
@@ -191,7 +192,7 @@ void TenFtMainComponent::openButtonClicked ()
         }
         else
         {
-            waveform.clear ();
+            waveform.clearWaveform ();
             scroller.disable ();
             setupButton (playButton, "Play", false);
             setupButton (stopButton, "Stop", false);
@@ -206,20 +207,7 @@ void TenFtMainComponent::openButtonClicked ()
 
 void TenFtMainComponent::loopButtonClicked ()
 {
-    const bool shouldLoop = loopButton.getToggleState ();
-
-    if (shouldLoop)
-    {
-        double startTime = waveform.getHasSelectedRegion () ?
-            waveform.getSelectedRegionStartTime () : 0.0;
-        double endTime = waveform.getHasSelectedRegion () ?
-            waveform.getSelectedRegionEndTime () : waveform.getTotalLength ();
-        audioSource.setupLooping (startTime, endTime);
-    }
-    else
-    {
-        audioSource.disableLooping ();
-    }
+    audioSource.setLooping (loopButton.getToggleState ());
 }
 
 void TenFtMainComponent::onAudioSourceStateChange (
