@@ -163,8 +163,6 @@ void AudioWaveformComponent::mouseDrag (const MouseEvent& event)
         }
 
         updateSelectedRegion (newStartTime, newEndTime);
-
-        onPositionChange (newStartTime);
     }
 
     repaint ();

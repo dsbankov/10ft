@@ -132,15 +132,10 @@ void TenFtAudioTransportSource::selectedRegionCreated (
         subsectionEndTime, readerSource->isLooping ());
 
     Logger::outputDebugString ("selectedRegionCreated - setPosition (0.0)");
-    setPosition (0.0);
 
     if (state == Playing)
     {
         start ();
-    }
-    else
-    {
-        playAudio ();
     }
 }
 
