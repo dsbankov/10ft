@@ -48,9 +48,7 @@ public:
         virtual void stateChanged (TenFtAudioTransportSource*) {}
     };
 
-    std::function<void (
-        TenFtAudioTransportSource::State
-    )> onStateChange;
+    std::function<void (State)> onStateChange;
 
 public:
     TenFtAudioTransportSource ();
@@ -67,9 +65,9 @@ public:
 
     void pauseAudio ();
 
-    void loadAudioSubsection (double startTime, double endTime, bool shouldLoop);
-
     double getCurrentPositionGlobal () const;
+
+    double getLengthInSecondsGlobal () const;
 
     void setLooping (bool shouldLoop) override;
 
@@ -82,16 +80,17 @@ public:
     void removeListener (Listener* listener);
 
 private:
-    void changeListenerCallback (
-        ChangeBroadcaster* broadcaster
-    ) override;
+    void changeListenerCallback (ChangeBroadcaster* broadcaster) override;
 
     void timerCallback () override;
 
     void unloadAudio ();
 
-    void changeState (
-        TenFtAudioTransportSource::State newState
+    void changeState (State newState);
+
+    void loadAudioSubsection (double startTime,
+        double endTime,
+        bool shouldLoop
     );
 
     void swapReader (AudioFormatReader* newReader,

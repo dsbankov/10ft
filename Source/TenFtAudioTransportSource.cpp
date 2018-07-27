@@ -29,7 +29,7 @@ bool TenFtAudioTransportSource::loadAudio (AudioFormatReader* newReader)
     if (newReader != nullptr)
     {
         reader = newReader;
-        loadAudioSubsection (0.0, reader->lengthInSamples / reader->sampleRate, false);
+        loadAudioSubsection (0.0, getLengthInSecondsGlobal (), false);
         return true;
     }
     else
@@ -63,7 +63,7 @@ void TenFtAudioTransportSource::stopAudio ()
         if (getCurrentPosition () == 0.0)
         {
             loadAudioSubsection (0.0,
-                reader->lengthInSamples / reader->sampleRate, // TODO move in function
+                getLengthInSecondsGlobal(),
                 readerSource->isLooping ());
             changeState (Stopped);
             stop ();
@@ -88,24 +88,6 @@ void TenFtAudioTransportSource::pauseAudio ()
     changeState (Pausing);
 }
 
-void TenFtAudioTransportSource::loadAudioSubsection (
-    double startTime,
-    double endTime,
-    bool shouldLoop
-)
-{
-    int64 startSample = (int64) (startTime * reader->sampleRate),
-        numSamples = (int64) ((endTime - startTime) * reader->sampleRate);
-    AudioFormatReader* subsectionReader =
-        new AudioSubsectionReader (reader, startSample, numSamples, false);
-
-    //Logger::outputDebugString ("loadAudioSubsection(" +
-    //    String (startTime) + ", " + String (endTime) + ", " + String ((int)shouldLoop) +
-    //    ")");
-    
-    swapReader (subsectionReader, true, shouldLoop);
-}
-
 double TenFtAudioTransportSource::getCurrentPositionGlobal () const
 {
     double currentPosition = getCurrentPosition ();
@@ -114,6 +96,11 @@ double TenFtAudioTransportSource::getCurrentPositionGlobal () const
         currentPosition += subsectionStartTime;
     }
     return currentPosition;
+}
+
+double TenFtAudioTransportSource::getLengthInSecondsGlobal () const
+{
+    return reader->lengthInSamples / reader->sampleRate;
 }
 
 void TenFtAudioTransportSource::setLooping (bool shouldLoop)
@@ -146,9 +133,9 @@ void TenFtAudioTransportSource::selectedRegionCleared (AudioWaveformComponent* w
         Logger::outputDebugString ("selectedRegionCleared");
         hasSubsection = false;
         subsectionStartTime = 0.0;
-        subsectionEndTime = reader->lengthInSamples / reader->sampleRate;
+        subsectionEndTime = getLengthInSecondsGlobal ();
         loadAudioSubsection (subsectionStartTime,
-            subsectionEndTime, // TODO move in function
+            subsectionEndTime,
             readerSource->isLooping ());
         start ();
     }
@@ -241,6 +228,24 @@ void TenFtAudioTransportSource::changeState (
 
         listeners.call ([this] (Listener& l) { l.stateChanged (this); });
     }
+}
+
+void TenFtAudioTransportSource::loadAudioSubsection (
+    double startTime,
+    double endTime,
+    bool shouldLoop
+)
+{
+    int64 startSample = (int64)(startTime * reader->sampleRate),
+        numSamples = (int64)((endTime - startTime) * reader->sampleRate);
+    AudioFormatReader* subsectionReader =
+        new AudioSubsectionReader (reader, startSample, numSamples, false);
+
+    //Logger::outputDebugString ("loadAudioSubsection(" +
+    //    String (startTime) + ", " + String (endTime) + ", " + String ((int)shouldLoop) +
+    //    ")");
+
+    swapReader (subsectionReader, true, shouldLoop);
 }
 
 void TenFtAudioTransportSource::swapReader (AudioFormatReader* newReader,
