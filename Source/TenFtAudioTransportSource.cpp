@@ -100,7 +100,14 @@ double TenFtAudioTransportSource::getCurrentPositionGlobal () const
 
 double TenFtAudioTransportSource::getLengthInSecondsGlobal () const
 {
-    return reader->lengthInSamples / reader->sampleRate;
+    if (reader != nullptr)
+    {
+        return reader->lengthInSamples / reader->sampleRate;
+    }
+    else
+    {
+        return 0.0;
+    }
 }
 
 void TenFtAudioTransportSource::setLooping (bool shouldLoop)

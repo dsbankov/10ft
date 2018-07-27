@@ -37,8 +37,8 @@ void AudioClockComponent::currentPositionChanged (
 {
     std::string currentPositionFormatted =
         getCurrentPositionFormatted (
-            audioSource->getLengthInSeconds(),
-            audioSource->getCurrentPosition()
+            audioSource->getLengthInSecondsGlobal (),
+            audioSource->getCurrentPositionGlobal ()
         );
     timeLabel.setText (
         currentPositionFormatted,
