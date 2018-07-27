@@ -206,9 +206,8 @@ void AudioWaveformComponent::mouseDown (const MouseEvent& event)
 
 void AudioWaveformComponent::mouseUp (const MouseEvent& event)
 {
-    if (hasSelectedRegion)
+    if (hasSelectedRegion && event.getNumberOfClicks() == 1)
     {
-        // TODO remove if it is a double click (use MouseEvent::getDoubleClickTimeout())
         listeners.call ([this](Listener& l) { l.selectedRegionCreated (this); });
     }
 }
@@ -297,8 +296,8 @@ void AudioWaveformComponent::updateVisibleRegion (
     // *******************************************************************
     // TODO: use listener instead - move Listener out of this class'
     // definition so it can be included in AudioWaveformOpenGLComponent
-    int64 startSample = visibleRegionStartTime * audioReader->sampleRate,
-        endSample = visibleRegionEndTime * audioReader->sampleRate,
+    int64 startSample = (int64) (visibleRegionStartTime * audioReader->sampleRate),
+        endSample = (int64) (visibleRegionEndTime * audioReader->sampleRate),
         numSamples = endSample - startSample;
     waveform.display (startSample, numSamples);
     // *******************************************************************

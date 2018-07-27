@@ -68,7 +68,6 @@ TenFtMainComponent::TenFtMainComponent ()
     waveform.addListener (&selectedRegion);
     waveform.addListener (&playbackPosition);
     waveform.onPositionChange = [this] (double newPosition) {
-        Logger::outputDebugString ("onPositionChange " + String(newPosition));
         audioSource.setPosition (newPosition);
     };
 

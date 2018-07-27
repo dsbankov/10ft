@@ -118,8 +118,6 @@ void TenFtAudioTransportSource::selectedRegionCreated (
     loadAudioSubsection (subsectionStartTime,
         subsectionEndTime, readerSource->isLooping ());
 
-    Logger::outputDebugString ("selectedRegionCreated - setPosition (0.0)");
-
     if (state == Playing)
     {
         start ();
@@ -130,7 +128,6 @@ void TenFtAudioTransportSource::selectedRegionCleared (AudioWaveformComponent* w
 {
     if (hasSubsection && !waveform->getHasSelectedRegion ())
     {
-        Logger::outputDebugString ("selectedRegionCleared");
         hasSubsection = false;
         subsectionStartTime = 0.0;
         subsectionEndTime = getLengthInSecondsGlobal ();
@@ -167,7 +164,6 @@ void TenFtAudioTransportSource::changeListenerCallback (
     }
     else if (hasSubsection)
     {
-        Logger::outputDebugString ("changeListenerCallback - setPosition (0.0)");
         setPosition (0.0);
         changeState (Paused);
     }
@@ -240,10 +236,6 @@ void TenFtAudioTransportSource::loadAudioSubsection (
         numSamples = (int64)((endTime - startTime) * reader->sampleRate);
     AudioFormatReader* subsectionReader =
         new AudioSubsectionReader (reader, startSample, numSamples, false);
-
-    //Logger::outputDebugString ("loadAudioSubsection(" +
-    //    String (startTime) + ", " + String (endTime) + ", " + String ((int)shouldLoop) +
-    //    ")");
 
     swapReader (subsectionReader, true, shouldLoop);
 }
