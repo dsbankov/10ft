@@ -72,9 +72,12 @@ void AudioWaveformComponent::mouseWheelMove (
         (float) (event.getMouseDownX () - bounds.getX ())
         / bounds.getWidth (),
         rightRelativeAmmount = 1.0f - leftRelativeAmmount;
-    double visibleRegionLengthInSeconds = getVisibleRegionLengthInSeconds ();
+    double visibleRegionLength = getVisibleRegionLengthInSeconds (),
+        entireRegionLenght = getTotalLength (),
+        visibleRegionToEntireRegionRatio = visibleRegionLength / entireRegionLenght;
 
-    const double scrollAmmount = 0.1f * visibleRegionLengthInSeconds,
+    const double scrollAmmount =
+            visibleRegionToEntireRegionRatio * 0.3f * entireRegionLenght,
         scrollAmmountLeft = scrollAmmount * leftRelativeAmmount,
         scrollAmmountRight = scrollAmmount * rightRelativeAmmount;
 
