@@ -114,6 +114,8 @@ private:
         double visibleRegionEndTime
     );
 
+    unsigned int getSamplesDiff (double startTime, double endTime);
+
 private:
     OpenGLContext openGLContext;
     AudioFormatReader* audioReader = nullptr;

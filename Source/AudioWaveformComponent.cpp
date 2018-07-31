@@ -288,7 +288,7 @@ void AudioWaveformComponent::updateVisibleRegion (
 
     jassert (isVisibleRegionCorrect (startTimeFlattened, endTimeFlattened));
 
-    if (endTimeFlattened - startTimeFlattened < 0.05f)
+    if (getSamplesDiff(startTimeFlattened, endTimeFlattened) < 20)
     {
         return;
     }
@@ -420,4 +420,11 @@ bool AudioWaveformComponent::isVisibleRegionCorrect (
             startTime < endTime &&
             startTime >= 0 &&
             endTime <= getTotalLength ());
+}
+
+unsigned int AudioWaveformComponent::getSamplesDiff (double startTime, double endTime)
+{
+    int64 startSample = (int64) (startTime * audioReader->sampleRate),
+        endSample = (int64) (endTime * audioReader->sampleRate);
+    return (unsigned int) (endSample - startSample);
 }
