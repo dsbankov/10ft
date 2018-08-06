@@ -76,7 +76,10 @@ public:
 
     void removeListener (Listener* listener);
 
-    bool loadWaveform (AudioFormatReader* reader);
+    void loadWaveform (
+        AudioSampleBuffer* newAudioBuffer,
+        double newSampleRate
+    );
 
     void clearWaveform ();
 
@@ -98,6 +101,8 @@ public:
 
     void clearSelectedRegion ();
 
+    void refresh ();
+
 private:
     void paintIfNoFileLoaded (Graphics& g);
 
@@ -118,13 +123,14 @@ private:
 
 private:
     OpenGLContext openGLContext;
-    AudioFormatReader* audioReader = nullptr;
+    AudioSampleBuffer* audioBuffer = nullptr;
+    double sampleRate = 0.0;
     AudioWaveformOpenGLComponent waveform;
-    double visibleRegionStartTime;
-    double visibleRegionEndTime;
+    double visibleRegionStartTime = 0.0;
+    double visibleRegionEndTime = 0.0;
     bool hasSelectedRegion = false;
-    double selectedRegionStartTime;
-    double selectedRegionEndTime;
+    double selectedRegionStartTime = 0.0;
+    double selectedRegionEndTime = 0.0;
     ListenerList<Listener> listeners;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioWaveformComponent)

@@ -6,6 +6,10 @@
   <MAINGROUP id="YFGFpb" name="10ft">
     <GROUP id="{9E117A82-4BFD-3F75-60D8-A4662BCEA3A5}" name="Source">
       <FILE id="xQAgO0" name="Application.cpp" compile="1" resource="0" file="Source/Application.cpp"/>
+      <FILE id="TbIscL" name="AudioBufferSource.cpp" compile="1" resource="0"
+            file="Source/AudioBufferSource.cpp"/>
+      <FILE id="uk40Qb" name="AudioBufferSource.h" compile="0" resource="0"
+            file="Source/AudioBufferSource.h"/>
       <FILE id="Olz56J" name="AudioClockComponent.cpp" compile="1" resource="0"
             file="Source/AudioClockComponent.cpp"/>
       <FILE id="HNVPxA" name="AudioClockComponent.h" compile="0" resource="0"

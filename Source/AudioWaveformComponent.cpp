@@ -241,28 +241,23 @@ void AudioWaveformComponent::removeListener (Listener * listener)
     listeners.remove (listener);
 }
 
-bool AudioWaveformComponent::loadWaveform (AudioFormatReader* reader)
+void AudioWaveformComponent::loadWaveform (
+    AudioSampleBuffer* newAudioBuffer,
+    double newSampleRate
+)
 {
-    audioReader = reader;
-    if (audioReader != nullptr)
-    {
-        openGLContext.detach ();
-        waveform.load (audioReader);
-        openGLContext.attachTo (*this);
+    audioBuffer = newAudioBuffer;
+    sampleRate = newSampleRate;
 
-        updateVisibleRegion (0.0f, getTotalLength());
-        return true;
-    }
-    else
-    {
-        clearWaveform ();
-        return false;
-    }
+    openGLContext.detach ();
+    waveform.load (audioBuffer);
+    openGLContext.attachTo (*this);
+
+    updateVisibleRegion (0.0f, getTotalLength());
 }
 
 void AudioWaveformComponent::clearWaveform ()
 {
-    audioReader = nullptr;
     clearSelectedRegion ();
     updateVisibleRegion (0.0f, 0.0f);
     listeners.call ([this] (Listener& l) { l.thumbnailCleared (this); });
@@ -270,7 +265,7 @@ void AudioWaveformComponent::clearWaveform ()
 
 double AudioWaveformComponent::getTotalLength ()
 {
-    return audioReader != nullptr ? audioReader->lengthInSamples / audioReader->sampleRate : 0.0;
+    return audioBuffer != nullptr ? audioBuffer->getNumSamples() / sampleRate : 0.0;
 }
 
 void AudioWaveformComponent::updateVisibleRegion (
@@ -299,8 +294,8 @@ void AudioWaveformComponent::updateVisibleRegion (
     // *******************************************************************
     // TODO: use listener instead - move Listener out of this class'
     // definition so it can be included in AudioWaveformOpenGLComponent
-    int64 startSample = (int64) (visibleRegionStartTime * audioReader->sampleRate),
-        endSample = (int64) (visibleRegionEndTime * audioReader->sampleRate),
+    int64 startSample = (int64) (visibleRegionStartTime * sampleRate),
+        endSample = (int64) (visibleRegionEndTime * sampleRate),
         numSamples = endSample - startSample;
     waveform.display (startSample, numSamples);
     // *******************************************************************
@@ -328,6 +323,11 @@ void AudioWaveformComponent::clearSelectedRegion ()
 
     listeners.call ([this] (Listener& l) { l.selectedRegionCleared (this); });
     listeners.call ([this] (Listener& l) { l.selectedRegionChanged (this); });
+}
+
+void AudioWaveformComponent::refresh ()
+{
+    waveform.refresh ();
 }
 
 double AudioWaveformComponent::getVisibleRegionStartTime ()
@@ -424,7 +424,7 @@ bool AudioWaveformComponent::isVisibleRegionCorrect (
 
 unsigned int AudioWaveformComponent::getSamplesDiff (double startTime, double endTime)
 {
-    int64 startSample = (int64) (startTime * audioReader->sampleRate),
-        endSample = (int64) (endTime * audioReader->sampleRate);
+    int64 startSample = (int64) (startTime * sampleRate),
+        endSample = (int64) (endTime * sampleRate);
     return (unsigned int) (endSample - startSample);
 }

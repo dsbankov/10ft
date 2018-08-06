@@ -35,9 +35,11 @@ public:
 
     void render (OpenGLContext& openGLContext) override;
 
-    void load (AudioFormatReader* reader);
+    void load (AudioSampleBuffer* audioBuffer);
 
     void display (int64 displayStartSample, int64 displayNumSamples);
+
+    void refresh ();
 
 private:
     void calculateVertices (unsigned int channel);
@@ -76,7 +78,7 @@ private:
     std::unique_ptr<OpenGLShaderProgram::Uniform> uniform;
     std::unique_ptr<VertexBuffer> vertexBuffer;
 
-    AudioBuffer<float> audioBuffer;
+    AudioSampleBuffer* audioBuffer;
     int64 startSample;
     int64 numSamples;
     unsigned int skipSamples = 8;

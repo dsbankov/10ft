@@ -47,6 +47,13 @@ TenFtMainComponent::TenFtMainComponent ()
     };
     loopButton.setEnabled (false);
 
+    addAndMakeVisible (&muteButton);
+    muteButton.setButtonText ("Mute");
+    muteButton.onClick = [this] {
+        audioSource.muteAudio ();
+        waveform.refresh ();
+    };
+
     formatManager.registerBasicFormats ();
 
     audioSource.addListener (&clock);
@@ -118,15 +125,16 @@ void TenFtMainComponent::releaseResources ()
 
 void TenFtMainComponent::resized ()
 {
-    juce::Rectangle<float> bounds = 
+    juce::Rectangle<float> bounds =
         getLocalBounds ().toFloat ().reduced (10.0f);
     float width = bounds.getWidth (),
         height = bounds.getHeight (),
         delta = 5.0f;
     juce::Rectangle<float> row1 = bounds.removeFromTop (0.05f * height),
         row2 = bounds.removeFromTop (0.05f * height),
-        row4 = bounds.removeFromBottom (0.05f * height),
-        row3 = bounds;
+        row3 = bounds.removeFromTop (0.05f * height),
+        row5 = bounds.removeFromBottom (0.05f * height),
+        row4 = bounds;
 
     openButton.setBounds (
         row1.reduced (delta).toNearestInt ()
@@ -143,8 +151,11 @@ void TenFtMainComponent::resized ()
     clock.setBounds (
         row2.reduced (delta).toNearestInt ()
     );
-    waveform.setBounds (
+    muteButton.setBounds (
         row3.reduced (delta).toNearestInt ()
+    );
+    waveform.setBounds (
+        row4.reduced (delta).toNearestInt ()
     );
     selectedRegion.setBounds (
         waveform.getBounds ()
@@ -153,7 +164,7 @@ void TenFtMainComponent::resized ()
         waveform.getBounds ()
     );
     scroller.setBounds (
-        row4.reduced (delta).toNearestInt ()
+        row5.reduced (delta).toNearestInt ()
     );
 }
 
@@ -179,15 +190,19 @@ void TenFtMainComponent::openButtonClicked ()
     {
         File file = chooser.getResult ();
 
-        std::unique_ptr<AudioFormatReader> newAudioReader(formatManager.createReaderFor (file));
+        std::unique_ptr<AudioFormatReader> audioReader(formatManager.createReaderFor (file));
 
-        if (audioSource.loadAudio (newAudioReader.get ()))
+        if (audioReader != nullptr)
         {
-            waveform.loadWaveform (newAudioReader.get ());
+            audioBuffer.reset (new AudioSampleBuffer(audioReader->numChannels, audioReader->lengthInSamples));
+            audioReader->read (audioBuffer.get (), 0, audioReader->lengthInSamples, 0, true, true);
+
+            audioSource.loadAudio (audioBuffer.get (), audioReader->sampleRate);
+            waveform.loadWaveform (audioBuffer.get (), audioReader->sampleRate);
+
             setupButton (playButton, "Play", true);
             setupButton (stopButton, "Stop", false);
             loopButton.setEnabled (true);
-            audioReader.swap (newAudioReader);
         }
         else
         {

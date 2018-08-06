@@ -18,6 +18,7 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
+#include "AudioBufferSource.h"
 #include "AudioWaveformComponent.h"
 
 
@@ -55,7 +56,10 @@ public:
 
     ~TenFtAudioTransportSource ();
 
-    bool loadAudio (AudioFormatReader* newReader);
+    void loadAudio (
+        AudioSampleBuffer* newAudioSampleBuffer,
+        double newSampleRate
+    );
 
     bool isAudioLoaded ();
 
@@ -64,6 +68,8 @@ public:
     void stopAudio ();
 
     void pauseAudio ();
+
+    void muteAudio ();
 
     double getCurrentPositionGlobal () const;
 
@@ -88,23 +94,26 @@ private:
 
     void changeState (State newState);
 
-    void loadAudioSubsection (double startTime,
+    void loadAudioSubsection (
+        double startTime,
         double endTime,
-        bool shouldLoop
-    );
-
-    void swapReader (AudioFormatReader* newReader,
-        bool deleteReaderWhenThisIsDeleted,
+        bool subsectionSelected,
         bool shouldLoop
     );
 
 private:
-    AudioFormatReader* reader = nullptr;
-    std::unique_ptr<AudioFormatReaderSource> readerSource;
     State state = NoFileLoaded;
+
+    double sampleRate = 0.0;
+
+    AudioSampleBuffer* audioBuffer = nullptr;
+    std::unique_ptr<AudioSampleBuffer> subsectionAudioBuffer;
+    std::unique_ptr<AudioBufferSource> audioSource;
+
     bool hasSubsection = false;
     double subsectionStartTime;
     double subsectionEndTime;
+
     ListenerList<Listener> listeners;
 
 };

@@ -13,6 +13,7 @@ Author:  DBANKOV
 
 
 #include "TenFtAudioTransportSource.h"
+#include "AudioBufferSource.h"
 #include "AudioWaveformComponent.h"
 #include "AudioWaveformSelectedRegionComponent.h"
 #include "AudioPlaybackPositionComponent.h"
@@ -63,10 +64,10 @@ private:
     TextButton playButton;
     TextButton stopButton;
     ToggleButton loopButton;
+    TextButton muteButton;
 
     AudioFormatManager formatManager;
-    std::unique_ptr<AudioFormatReader> audioReader;
-
+    std::unique_ptr<AudioSampleBuffer> audioBuffer;
     TenFtAudioTransportSource audioSource;
 
     AudioWaveformComponent waveform;

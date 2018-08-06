@@ -111,7 +111,7 @@ void AudioWaveformOpenGLComponent::render (OpenGLContext& openGLContext)
 
     shaderProgram->use ();
 
-    int numChannels = audioBuffer.getNumChannels ();
+    int numChannels = audioBuffer->getNumChannels ();
     float scale = openGLContext.getRenderingScale ();
     Component* parentComponent = getParentComponent ();
     Rectangle<int> parentBounds = parentComponent->getBounds (),
@@ -158,15 +158,14 @@ void AudioWaveformOpenGLComponent::render (OpenGLContext& openGLContext)
     glDisable (GL_BLEND);
 }
 
-void AudioWaveformOpenGLComponent::load (AudioFormatReader* audioReader)
+void AudioWaveformOpenGLComponent::load (AudioSampleBuffer* newAudioBuffer)
 {
     clearVertices ();
 
-    audioBuffer.setSize(audioReader->numChannels, audioReader->lengthInSamples);
-    audioReader->read (&audioBuffer, 0, audioBuffer.getNumSamples(), 0, true, true);
+    audioBuffer = newAudioBuffer;
 
-    int numChannels = audioBuffer.getNumChannels (),
-        lengthInSamples = audioBuffer.getNumSamples ();
+    int numChannels = audioBuffer->getNumChannels (),
+        lengthInSamples = audioBuffer->getNumSamples ();
 
     startSample = 0;
     numSamples = lengthInSamples;
@@ -186,6 +185,11 @@ void AudioWaveformOpenGLComponent::display (
     calculateVerticesTrigger = true;
 }
 
+void AudioWaveformOpenGLComponent::refresh ()
+{
+    calculateVerticesTrigger = true;
+}
+
 // ==============================================================================
 
 void AudioWaveformOpenGLComponent::calculateVertices (unsigned int channel)
@@ -195,7 +199,7 @@ void AudioWaveformOpenGLComponent::calculateVertices (unsigned int channel)
     // More accurate because we depend on the count of the samples 
     // of the current file. The larger the file the less samples 
     // we use when zoomed out
-    skipSamples = numSamples / (audioBuffer.getNumSamples () * 0.04);
+    skipSamples = numSamples / (audioBuffer->getNumSamples () * 0.04);
     skipSamples = (skipSamples > 0) ? skipSamples : 1;
     // Alternative approach:
     // skipSamples = numSamples / (sampleRate * 12);
@@ -203,7 +207,7 @@ void AudioWaveformOpenGLComponent::calculateVertices (unsigned int channel)
 
     int64 endSample = startSample + numSamples,
         numVertices = numSamples / skipSamples;
-    const float* samples = audioBuffer.getReadPointer (channel);
+    const float* samples = audioBuffer->getReadPointer (channel);
 
     for (int64 sample = startSample, i = 0;
         sample < endSample;
@@ -273,7 +277,7 @@ void AudioWaveformOpenGLComponent::clearVertices ()
 {
     if (vertices != nullptr)
     {
-        for (unsigned int channel = 0; channel < audioBuffer.getNumChannels (); channel++)
+        for (unsigned int channel = 0; channel < audioBuffer->getNumChannels (); channel++)
         {
             delete[] vertices[channel];
         }
@@ -288,7 +292,7 @@ bool AudioWaveformOpenGLComponent::areVerticesCleared ()
     {
         return true;
     }
-    for (unsigned int channel = 0; channel < audioBuffer.getNumChannels (); channel++)
+    for (unsigned int channel = 0; channel < audioBuffer->getNumChannels (); channel++)
     {
         if (vertices[channel] != nullptr)
         {
