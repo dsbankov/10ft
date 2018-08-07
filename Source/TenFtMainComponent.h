@@ -65,6 +65,8 @@ private:
     TextButton stopButton;
     ToggleButton loopButton;
     TextButton muteButton;
+    TextButton fadeInButton;
+    TextButton fadeOutButton;
 
     AudioFormatManager formatManager;
     std::unique_ptr<AudioSampleBuffer> audioBuffer;

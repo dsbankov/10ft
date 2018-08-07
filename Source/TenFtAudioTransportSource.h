@@ -71,6 +71,10 @@ public:
 
     void muteAudio ();
 
+    void fadeInAudio ();
+
+    void fadeOutAudio ();
+
     double getCurrentPositionGlobal () const;
 
     double getLengthInSecondsGlobal () const;

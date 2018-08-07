@@ -96,14 +96,27 @@ void TenFtAudioTransportSource::muteAudio ()
     int64 startSample = subsectionStartTime * sampleRate,
         numSamples = (subsectionEndTime - subsectionStartTime) * sampleRate;
 
-    for (int channel = 0; channel < audioBuffer->getNumChannels (); channel++)
-    {
-        float* samples = audioBuffer->getWritePointer (channel, startSample);
-        for (int sample = 0; sample < numSamples; sample++)
-        {
-            samples[sample] = 0.0f;
-        }
-    }
+    audioBuffer->clear (startSample, numSamples);
+}
+
+void TenFtAudioTransportSource::fadeInAudio ()
+{
+    int64 startSample = subsectionStartTime * sampleRate,
+        numSamples = (subsectionEndTime - subsectionStartTime) * sampleRate;
+    float magnitude = audioBuffer->getMagnitude (startSample, numSamples),
+        gain = Decibels::decibelsToGain (magnitude);
+
+    audioBuffer->applyGainRamp (startSample, numSamples, 0.0f, gain);
+}
+
+void TenFtAudioTransportSource::fadeOutAudio ()
+{
+    int64 startSample = subsectionStartTime * sampleRate,
+        numSamples = (subsectionEndTime - subsectionStartTime) * sampleRate;
+    float magnitude = audioBuffer->getMagnitude (startSample, numSamples),
+        gain = Decibels::decibelsToGain (magnitude);
+
+    audioBuffer->applyGainRamp (startSample, numSamples, gain, 0.0f);
 }
 
 double TenFtAudioTransportSource::getCurrentPositionGlobal () const

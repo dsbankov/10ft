@@ -54,6 +54,20 @@ TenFtMainComponent::TenFtMainComponent ()
         waveform.refresh ();
     };
 
+    addAndMakeVisible (&fadeInButton);
+    fadeInButton.setButtonText ("Fade In");
+    fadeInButton.onClick = [this] {
+        audioSource.fadeInAudio ();
+        waveform.refresh ();
+    };
+
+    addAndMakeVisible (&fadeOutButton);
+    fadeOutButton.setButtonText ("Fade Out");
+    fadeOutButton.onClick = [this] {
+        audioSource.fadeOutAudio ();
+        waveform.refresh ();
+    };
+
     formatManager.registerBasicFormats ();
 
     audioSource.addListener (&clock);
@@ -152,7 +166,13 @@ void TenFtMainComponent::resized ()
         row2.reduced (delta).toNearestInt ()
     );
     muteButton.setBounds (
-        row3.reduced (delta).toNearestInt ()
+        row3.removeFromLeft(width / 3.0f).reduced (delta).toNearestInt ()
+    );
+    fadeInButton.setBounds (
+        row3.removeFromLeft (width / 3.0f).reduced (delta).toNearestInt ()
+    );
+    fadeOutButton.setBounds (
+        row3.removeFromLeft (width / 3.0f).reduced (delta).toNearestInt ()
     );
     waveform.setBounds (
         row4.reduced (delta).toNearestInt ()
