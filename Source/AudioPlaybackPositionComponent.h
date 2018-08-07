@@ -14,12 +14,12 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-#include "TenFtAudioTransportSource.h"
+#include "TenFtAudioSource.h"
 #include "AudioWaveformComponent.h"
 
 
 class AudioPlaybackPositionComponent :    public Component,
-                                          public TenFtAudioTransportSource::Listener,
+                                          public TenFtAudioSource::Listener,
                                           public AudioWaveformComponent::Listener
 {
 public:
@@ -38,7 +38,7 @@ public:
     void resized () override;
 
 private:
-    void currentPositionChanged (TenFtAudioTransportSource* audioSource) override;
+    void currentPositionChanged (TenFtAudioSource* audioSource) override;
 
     void visibleRegionChanged (AudioWaveformComponent* waveform) override;
     

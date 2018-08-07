@@ -56,10 +56,10 @@ void AudioPlaybackPositionComponent::resized ()
 // ==============================================================================
 
 void AudioPlaybackPositionComponent::currentPositionChanged (
-    TenFtAudioTransportSource* audioSource
+    TenFtAudioSource* audioSource
 )
 {
-    currentPosition = audioSource->getCurrentPositionGlobal ();
+    currentPosition = audioSource->getCurrentPosition ();
     repaint ();
 }
 

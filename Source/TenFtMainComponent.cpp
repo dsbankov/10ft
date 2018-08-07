@@ -84,7 +84,7 @@ TenFtMainComponent::TenFtMainComponent ()
     audioSource.addListener (&clock);
     audioSource.addListener (&playbackPosition);
     audioSource.onStateChange = [this] (
-        TenFtAudioTransportSource::State state
+        TenFtAudioSource::State state
     ) {
         onAudioSourceStateChange (state);
     };
@@ -276,21 +276,21 @@ void TenFtMainComponent::loopButtonClicked ()
 }
 
 void TenFtMainComponent::onAudioSourceStateChange (
-    TenFtAudioTransportSource::State state
+    TenFtAudioSource::State state
 )
 {
-    if (state == TenFtAudioTransportSource::Stopped)
+    if (state == TenFtAudioSource::Stopped)
     {
         setupButton (playButton, "Play", true);
         setupButton (stopButton, "Stop", false);
         waveform.clearSelectedRegion ();
     }
-    else if (state == TenFtAudioTransportSource::Playing)
+    else if (state == TenFtAudioSource::Playing)
     {
         setupButton (playButton, "Pause", true);
         setupButton (stopButton, "Stop", true);
     }
-    else if (state == TenFtAudioTransportSource::Paused)
+    else if (state == TenFtAudioSource::Paused)
     {
         setupButton (playButton, "Play", true);
         setupButton (stopButton, "Return To Zero", true);

@@ -12,7 +12,7 @@ Author:  DBANKOV
 #pragma once
 
 
-#include "TenFtAudioTransportSource.h"
+#include "TenFtAudioSource.h"
 #include "AudioBufferSource.h"
 #include "AudioWaveformComponent.h"
 #include "AudioWaveformSelectedRegionComponent.h"
@@ -50,7 +50,7 @@ private:
     void loopButtonClicked ();
 
     void onAudioSourceStateChange (
-        TenFtAudioTransportSource::State state
+        TenFtAudioSource::State state
     );
 
     void setupButton (
@@ -71,7 +71,7 @@ private:
 
     AudioFormatManager formatManager;
     std::unique_ptr<AudioSampleBuffer> audioBuffer;
-    TenFtAudioTransportSource audioSource;
+    TenFtAudioSource audioSource;
 
     AudioWaveformComponent waveform;
     AudioWaveformSelectedRegionComponent selectedRegion;

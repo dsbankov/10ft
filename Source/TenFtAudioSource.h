@@ -22,10 +22,10 @@
 #include "AudioWaveformComponent.h"
 
 
-class TenFtAudioTransportSource :    public AudioTransportSource,
-                                     public AudioWaveformComponent::Listener,
-                                     private ChangeListener,
-                                     private Timer
+class TenFtAudioSource :    public AudioSource,
+                            public AudioWaveformComponent::Listener,
+                            private ChangeListener,
+                            private Timer
 {
 public:
     enum State
@@ -44,17 +44,28 @@ public:
     public:
         virtual ~Listener () {}
 
-        virtual void currentPositionChanged (TenFtAudioTransportSource*) {}
+        virtual void currentPositionChanged (TenFtAudioSource*) {}
 
-        virtual void stateChanged (TenFtAudioTransportSource*) {}
+        virtual void stateChanged (TenFtAudioSource*) {}
     };
 
     std::function<void (State)> onStateChange;
 
 public:
-    TenFtAudioTransportSource ();
+    TenFtAudioSource ();
 
-    ~TenFtAudioTransportSource ();
+    ~TenFtAudioSource ();
+
+    void prepareToPlay (
+        int samplesPerBlockExpected,
+        double sampleRate
+    ) override;
+    
+    void releaseResources () override;
+
+    void getNextAudioBlock (
+        const AudioSourceChannelInfo& bufferToFill
+    ) override;
 
     void loadAudio (
         AudioSampleBuffer* newAudioSampleBuffer,
@@ -63,7 +74,7 @@ public:
 
     void unloadAudio ();
 
-    bool isAudioLoaded ();
+    bool isAudioLoaded () const;
 
     void playAudio ();
 
@@ -79,15 +90,13 @@ public:
 
     void normalizeAudio ();
 
-    double getCurrentPositionGlobal () const;
+    void setPosition (double newPosition);
 
-    double getLengthInSecondsGlobal () const;
+    double getCurrentPosition () const;
 
-    void setLooping (bool shouldLoop) override;
+    double getLengthInSeconds () const;
 
-    void selectedRegionCreated (AudioWaveformComponent* waveform) override;
-
-    void selectedRegionCleared (AudioWaveformComponent* waveform) override;
+    void setLooping (bool shouldLoop);
 
     void addListener (Listener* newListener);
 
@@ -98,27 +107,33 @@ private:
 
     void timerCallback () override;
 
+    void selectedRegionCreated (AudioWaveformComponent* waveform) override;
+
+    void selectedRegionCleared (AudioWaveformComponent* waveform) override;
+
     void changeState (State newState);
 
-    void loadAudioSubsection (
+    void loadAudioSubregion (
         double startTime,
         double endTime,
-        bool subsectionSelected,
+        bool subregionSelected,
         bool shouldLoop
     );
 
 private:
-    State state = NoFileLoaded;
+    AudioTransportSource masterSource;
+    std::unique_ptr<AudioBufferSource> bufferSource;
+
+    AudioSampleBuffer* buffer = nullptr;
+    std::unique_ptr<AudioSampleBuffer> subregionBuffer;
 
     double sampleRate = 0.0;
 
-    AudioSampleBuffer* audioBuffer = nullptr;
-    std::unique_ptr<AudioSampleBuffer> subsectionAudioBuffer;
-    std::unique_ptr<AudioBufferSource> audioSource;
+    bool hasSubregion = false;
+    double subregionStartTime = 0.0;
+    double subregionEndTime = 0.0;
 
-    bool hasSubsection = false;
-    double subsectionStartTime;
-    double subsectionEndTime;
+    State state = NoFileLoaded;
 
     ListenerList<Listener> listeners;
 

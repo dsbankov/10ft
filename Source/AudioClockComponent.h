@@ -19,11 +19,11 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-#include "TenFtAudioTransportSource.h"
+#include "TenFtAudioSource.h"
 
 
 class AudioClockComponent :    public Component,
-                               public TenFtAudioTransportSource::Listener
+                               public TenFtAudioSource::Listener
 {
 public:
     AudioClockComponent ();
@@ -32,7 +32,7 @@ public:
 
     void resized () override;
 
-    void currentPositionChanged (TenFtAudioTransportSource* audioSource) override;
+    void currentPositionChanged (TenFtAudioSource* audioSource) override;
 
 private:
     std::string getCurrentPositionFormatted (double lengthInSeconds, double currentPosition);

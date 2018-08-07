@@ -32,13 +32,13 @@ void AudioClockComponent::resized ()
 // ==============================================================================
 
 void AudioClockComponent::currentPositionChanged (
-    TenFtAudioTransportSource* audioSource
+    TenFtAudioSource* audioSource
 )
 {
     std::string currentPositionFormatted =
         getCurrentPositionFormatted (
-            audioSource->getLengthInSecondsGlobal (),
-            audioSource->getCurrentPositionGlobal ()
+            audioSource->getLengthInSeconds (),
+            audioSource->getCurrentPosition ()
         );
     timeLabel.setText (
         currentPositionFormatted,
