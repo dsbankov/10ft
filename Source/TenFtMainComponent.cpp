@@ -53,6 +53,7 @@ TenFtMainComponent::TenFtMainComponent ()
         audioSource.muteAudio ();
         waveform.refresh ();
     };
+    muteButton.setEnabled (false);
 
     addAndMakeVisible (&fadeInButton);
     fadeInButton.setButtonText ("Fade In");
@@ -60,6 +61,7 @@ TenFtMainComponent::TenFtMainComponent ()
         audioSource.fadeInAudio ();
         waveform.refresh ();
     };
+    fadeInButton.setEnabled (false);
 
     addAndMakeVisible (&fadeOutButton);
     fadeOutButton.setButtonText ("Fade Out");
@@ -67,6 +69,7 @@ TenFtMainComponent::TenFtMainComponent ()
         audioSource.fadeOutAudio ();
         waveform.refresh ();
     };
+    fadeOutButton.setEnabled (false);
 
     addAndMakeVisible (&normalizeButton);
     normalizeButton.setButtonText ("Normalize");
@@ -74,6 +77,7 @@ TenFtMainComponent::TenFtMainComponent ()
         audioSource.normalizeAudio ();
         waveform.refresh ();
     };
+    normalizeButton.setEnabled (false);
 
     formatManager.registerBasicFormats ();
 
@@ -224,19 +228,32 @@ void TenFtMainComponent::openButtonClicked ()
 
         if (audioReader != nullptr)
         {
-            audioBuffer.reset (new AudioSampleBuffer(audioReader->numChannels, audioReader->lengthInSamples));
-            audioReader->read (audioBuffer.get (), 0, audioReader->lengthInSamples, 0, true, true);
+            std::unique_ptr<AudioSampleBuffer> tempAudioBuffer (
+                new AudioSampleBuffer (
+                    audioReader->numChannels,
+                    audioReader->lengthInSamples
+                )
+            );
+            audioReader->read (tempAudioBuffer.get (), 0, audioReader->lengthInSamples, 0, true, true);
 
-            audioSource.loadAudio (audioBuffer.get (), audioReader->sampleRate);
-            waveform.loadWaveform (audioBuffer.get (), audioReader->sampleRate);
+            audioSource.loadAudio (tempAudioBuffer.get (), audioReader->sampleRate);
+            waveform.loadWaveform (tempAudioBuffer.get (), audioReader->sampleRate);
+
+            audioBuffer.swap (tempAudioBuffer);
 
             setupButton (playButton, "Play", true);
             setupButton (stopButton, "Stop", false);
             loopButton.setEnabled (true);
+            muteButton.setEnabled (true);
+            fadeInButton.setEnabled (true);
+            fadeOutButton.setEnabled (true);
+            normalizeButton.setEnabled (true);
         }
         else
         {
             waveform.clearWaveform ();
+            audioSource.unloadAudio ();
+
             scroller.disable ();
             setupButton (playButton, "Play", false);
             setupButton (stopButton, "Stop", false);
@@ -245,6 +262,10 @@ void TenFtMainComponent::openButtonClicked ()
                 false,
                 NotificationType::dontSendNotification
             );
+            muteButton.setEnabled (false);
+            fadeInButton.setEnabled (false);
+            fadeOutButton.setEnabled (false);
+            normalizeButton.setEnabled (false);
         }
     }
 }

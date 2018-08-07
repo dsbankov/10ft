@@ -21,6 +21,7 @@ AudioWaveformOpenGLComponent::AudioWaveformOpenGLComponent ()
 AudioWaveformOpenGLComponent::~AudioWaveformOpenGLComponent ()
 {
     clearVertices ();
+    audioBuffer = nullptr;
 }
 
 void AudioWaveformOpenGLComponent::initialise (

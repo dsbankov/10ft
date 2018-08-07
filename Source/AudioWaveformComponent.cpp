@@ -27,6 +27,7 @@ AudioWaveformComponent::AudioWaveformComponent ()
 AudioWaveformComponent::~AudioWaveformComponent ()
 {
     openGLContext.detach ();
+    audioBuffer = nullptr;
 }
 
 void AudioWaveformComponent::newOpenGLContextCreated ()
@@ -258,6 +259,8 @@ void AudioWaveformComponent::loadWaveform (
 
 void AudioWaveformComponent::clearWaveform ()
 {
+    audioBuffer = nullptr;
+    sampleRate = 0.0;
     clearSelectedRegion ();
     updateVisibleRegion (0.0f, 0.0f);
     listeners.call ([this] (Listener& l) { l.thumbnailCleared (this); });

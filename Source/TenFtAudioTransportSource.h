@@ -61,6 +61,8 @@ public:
         double newSampleRate
     );
 
+    void unloadAudio ();
+
     bool isAudioLoaded ();
 
     void playAudio ();
@@ -95,8 +97,6 @@ private:
     void changeListenerCallback (ChangeBroadcaster* broadcaster) override;
 
     void timerCallback () override;
-
-    void unloadAudio ();
 
     void changeState (State newState);
 

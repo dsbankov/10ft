@@ -22,6 +22,7 @@ TenFtAudioTransportSource::~TenFtAudioTransportSource ()
 {
     stopTimer ();
     setSource (nullptr);
+    audioBuffer = nullptr;
 }
 
 void TenFtAudioTransportSource::loadAudio (
@@ -262,6 +263,8 @@ void TenFtAudioTransportSource::changeState (
 
         case NoFileLoaded:
             setSource (nullptr);
+            audioBuffer = nullptr;
+            sampleRate = 0.0;
             break;
         }
 
