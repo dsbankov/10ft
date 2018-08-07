@@ -119,6 +119,16 @@ void TenFtAudioTransportSource::fadeOutAudio ()
     audioBuffer->applyGainRamp (startSample, numSamples, gain, 0.0f);
 }
 
+void TenFtAudioTransportSource::normalizeAudio ()
+{
+    int64 startSample = subsectionStartTime * sampleRate,
+        numSamples = (subsectionEndTime - subsectionStartTime) * sampleRate;
+    float magnitude = audioBuffer->getMagnitude (startSample, numSamples),
+        gain = Decibels::decibelsToGain (magnitude);
+
+    audioBuffer->applyGain (startSample, numSamples, gain);
+}
+
 double TenFtAudioTransportSource::getCurrentPositionGlobal () const
 {
     double currentPosition = getCurrentPosition ();

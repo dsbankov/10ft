@@ -67,6 +67,7 @@ private:
     TextButton muteButton;
     TextButton fadeInButton;
     TextButton fadeOutButton;
+    TextButton normalizeButton;
 
     AudioFormatManager formatManager;
     std::unique_ptr<AudioSampleBuffer> audioBuffer;

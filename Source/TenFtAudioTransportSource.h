@@ -75,6 +75,8 @@ public:
 
     void fadeOutAudio ();
 
+    void normalizeAudio ();
+
     double getCurrentPositionGlobal () const;
 
     double getLengthInSecondsGlobal () const;
