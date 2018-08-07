@@ -15,7 +15,6 @@ AudioBufferSource::AudioBufferSource (
     bool shouldLoop
 ) :
     position (0),
-    start (0),
     looping (shouldLoop),
     buffer (audioBuffer)
 {
@@ -27,70 +26,76 @@ AudioBufferSource::~AudioBufferSource ()
 }
 
 void AudioBufferSource::getNextAudioBlock (
-    const AudioSourceChannelInfo& bufferToFill
+    const AudioSourceChannelInfo& info
 )
 {
-    int bufferSamples = buffer->getNumSamples (),
-        bufferChannels = buffer->getNumChannels ();
+    if (info.numSamples > 0)
+    {
+        const int64 start = position;
 
-    if (bufferToFill.numSamples > 0) {
+        if (looping)
+        {
+            const int64 newStart = start % buffer->getNumSamples(),
+                newEnd = (start + info.numSamples) % buffer->getNumSamples ();
 
-        int startSample = position,
-            numSamplesToCopy = 0;
-
-        if (startSample + bufferToFill.numSamples <= bufferSamples)
-        {
-            numSamplesToCopy = bufferToFill.numSamples;
-        }
-        else if (startSample > bufferSamples)
-        {
-            numSamplesToCopy = 0;
-        }
-        else if (bufferSamples - startSample > 0)
-        {
-            numSamplesToCopy = bufferSamples - startSample;
-        }
-        else
-        {
-            numSamplesToCopy = 0;
-        }
-
-        if (numSamplesToCopy > 0)
-        {
-            for (int channel = 0; channel < bufferChannels; channel++)
+            if (newEnd > newStart)
             {
-                bufferToFill.buffer->copyFrom (
-                    channel,
-                    bufferToFill.startSample,
-                    *buffer,
-                    channel,
-                    startSample,
-                    numSamplesToCopy
+                copy (
+                    info.buffer,
+                    info.startSample,
+                    buffer,
+                    newStart,
+                    (int) (newEnd - newStart)
+                );
+            }
+            else
+            {
+                const int endSamps = (int) (
+                    buffer->getNumSamples () - newStart
+                );
+
+                copy (
+                    info.buffer,
+                    info.startSample,
+                    buffer,
+                    newStart,
+                    endSamps
+                );
+
+                copy (
+                    info.buffer,
+                    info.startSample + endSamps,
+                    buffer,
+                    0,
+                    (int) newEnd
                 );
             }
 
-            position += numSamplesToCopy;
+            position = newEnd;
         }
-
-        if (looping && position == bufferSamples)
+        else if (start < buffer->getNumSamples ())
         {
-            position = 0;
-        }
+            copy (
+                info.buffer,
+                info.startSample,
+                buffer,
+                start,
+                jmin (info.numSamples, (int) (buffer->getNumSamples () - start))
+            );
 
+            position += info.numSamples;
+        }
     }
 }
 
 void AudioBufferSource::setNextReadPosition (int64 newPosition)
 {
-    if (newPosition >= 0 && newPosition < buffer->getNumSamples ())
-    {
-        position = newPosition;
-    }
+    position = newPosition;
 }
 
 int64 AudioBufferSource::getNextReadPosition () const
 {
-    return position;
+    return looping ? position % buffer->getNumSamples () : position;
 }
 
 int64 AudioBufferSource::getTotalLength () const
@@ -112,4 +117,25 @@ void AudioBufferSource::setBuffer (AudioSampleBuffer* audioBuffer)
 {
     buffer = audioBuffer;
     setNextReadPosition (0);
+}
+
+void AudioBufferSource::copy (
+    AudioSampleBuffer* dest,
+    int destStartSample,
+    AudioSampleBuffer* source,
+    int sourceStartSample,
+    int numSamples
+)
+{
+    for (int channel = 0; channel < source->getNumChannels (); channel++)
+    {
+        dest->copyFrom (
+            channel,
+            destStartSample,
+            *source,
+            channel,
+            sourceStartSample,
+            numSamples
+        );
+    }
 }

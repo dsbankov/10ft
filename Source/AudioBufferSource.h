@@ -41,10 +41,18 @@ public:
     void setLooping (bool shouldLoop) override;
 
     void setBuffer (AudioSampleBuffer* audioBuffer);
+    
+private:
+    void copy (
+        AudioSampleBuffer* dest,
+        int destStartSample,
+        AudioSampleBuffer* source,
+        int sourceStartSample,
+        int numSamples
+    );
 
 private:
-    int position;
-    int start;
+    int64 position;
     bool looping;
     AudioSampleBuffer* buffer;
 
