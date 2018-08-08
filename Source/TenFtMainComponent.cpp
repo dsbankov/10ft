@@ -231,10 +231,10 @@ void TenFtMainComponent::openButtonClicked ()
             std::unique_ptr<AudioSampleBuffer> tempAudioBuffer (
                 new AudioSampleBuffer (
                     audioReader->numChannels,
-                    audioReader->lengthInSamples
+                    (int) audioReader->lengthInSamples
                 )
             );
-            audioReader->read (tempAudioBuffer.get (), 0, audioReader->lengthInSamples, 0, true, true);
+            audioReader->read (tempAudioBuffer.get (), 0, (int) audioReader->lengthInSamples, 0, true, true);
 
             audioSource.loadAudio (tempAudioBuffer.get (), audioReader->sampleRate);
             waveform.loadWaveform (tempAudioBuffer.get (), audioReader->sampleRate);

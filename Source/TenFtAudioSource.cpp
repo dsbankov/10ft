@@ -27,10 +27,11 @@ TenFtAudioSource::~TenFtAudioSource ()
 
 void TenFtAudioSource::prepareToPlay (
     int samplesPerBlockExpected,
-    double sampleRate
+    double masterSourceSampleRate
 )
 {
-    masterSource.prepareToPlay (samplesPerBlockExpected, sampleRate);
+    masterSource.prepareToPlay (
+        samplesPerBlockExpected, masterSourceSampleRate);
 }
 
 void TenFtAudioSource::releaseResources ()
@@ -114,16 +115,16 @@ void TenFtAudioSource::pauseAudio ()
 
 void TenFtAudioSource::muteAudio ()
 {
-    int64 startSample = subregionStartTime * sampleRate,
-        numSamples = (subregionEndTime - subregionStartTime) * sampleRate;
+    int startSample = (int)(subregionStartTime * sampleRate),
+        numSamples = (int)((subregionEndTime - subregionStartTime) * sampleRate);
 
     buffer->clear (startSample, numSamples);
 }
 
 void TenFtAudioSource::fadeInAudio ()
 {
-    int64 startSample = subregionStartTime * sampleRate,
-        numSamples = (subregionEndTime - subregionStartTime) * sampleRate;
+    int startSample = (int)(subregionStartTime * sampleRate),
+        numSamples = (int)((subregionEndTime - subregionStartTime) * sampleRate);
     float magnitude = buffer->getMagnitude (startSample, numSamples),
         gain = Decibels::decibelsToGain (magnitude);
 
@@ -132,8 +133,8 @@ void TenFtAudioSource::fadeInAudio ()
 
 void TenFtAudioSource::fadeOutAudio ()
 {
-    int64 startSample = subregionStartTime * sampleRate,
-        numSamples = (subregionEndTime - subregionStartTime) * sampleRate;
+    int startSample = (int)(subregionStartTime * sampleRate),
+        numSamples = (int)((subregionEndTime - subregionStartTime) * sampleRate);
     float magnitude = buffer->getMagnitude (startSample, numSamples),
         gain = Decibels::decibelsToGain (magnitude);
 
@@ -142,8 +143,8 @@ void TenFtAudioSource::fadeOutAudio ()
 
 void TenFtAudioSource::normalizeAudio ()
 {
-    int64 startSample = subregionStartTime * sampleRate,
-        numSamples = (subregionEndTime - subregionStartTime) * sampleRate;
+    int startSample = (int)(subregionStartTime * sampleRate),
+        numSamples = (int)((subregionEndTime - subregionStartTime) * sampleRate);
     float magnitude = buffer->getMagnitude (startSample, numSamples),
         gain = Decibels::decibelsToGain (magnitude);
 

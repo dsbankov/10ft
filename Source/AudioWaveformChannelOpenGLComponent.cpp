@@ -81,7 +81,7 @@ void AudioWaveformChannelOpenGLComponent::initialise (
     }
 }
 
-void AudioWaveformChannelOpenGLComponent::shutdown (OpenGLContext& openGLContext)
+void AudioWaveformChannelOpenGLComponent::shutdown (OpenGLContext&)
 {
     uniform.reset ();
     position.reset ();
@@ -93,13 +93,16 @@ void AudioWaveformChannelOpenGLComponent::render (OpenGLContext& openGLContext)
 {
     jassert (OpenGLHelpers::isContextActive ());
 
-    float scale = openGLContext.getRenderingScale ();
+    double scale = openGLContext.getRenderingScale ();
     Component* parent = getParentComponent ();
-    Rectangle<int> parentBounds = parent->getBounds ();
-    Rectangle<int> globalBounds = parent->getLocalArea (this, getLocalBounds ());
-    glViewport (scale * globalBounds.getX (),
-        scale * (parentBounds.getHeight () - globalBounds.getBottom ()),
-        scale * globalBounds.getWidth (), scale * globalBounds.getHeight ());
+    Rectangle<int> parentBounds = parent->getBounds (),
+        globalBounds = parent->getLocalArea (this, getLocalBounds ());
+    glViewport (
+        (GLint) (scale * globalBounds.getX ()),
+        (GLint) (scale * (parentBounds.getHeight () - globalBounds.getBottom ())),
+        (GLsizei) (scale * globalBounds.getWidth ()),
+        (GLsizei) (scale * globalBounds.getHeight ())
+    );
 
     OpenGLHelpers::clear (
         getLookAndFeel ().findColour (ColourIds::waveformBackgroundColour)

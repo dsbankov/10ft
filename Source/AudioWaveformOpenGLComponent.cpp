@@ -85,7 +85,7 @@ void AudioWaveformOpenGLComponent::initialise (
     }
 }
 
-void AudioWaveformOpenGLComponent::shutdown (OpenGLContext& openGLContext)
+void AudioWaveformOpenGLComponent::shutdown (OpenGLContext&)
 {
     uniform.reset ();
     position.reset ();
@@ -113,20 +113,20 @@ void AudioWaveformOpenGLComponent::render (OpenGLContext& openGLContext)
     shaderProgram->use ();
 
     int numChannels = audioBuffer->getNumChannels ();
-    float scale = openGLContext.getRenderingScale ();
-    Component* parentComponent = getParentComponent ();
-    Rectangle<int> parentBounds = parentComponent->getBounds (),
-        globalBounds = parentComponent->getLocalArea (this, getLocalBounds ());
-    GLint x = scale * globalBounds.getX ();
-    GLsizei width = scale * globalBounds.getWidth ();
-    GLsizei height = scale * (globalBounds.getHeight () / numChannels);
+    double scale = openGLContext.getRenderingScale ();
+    Component* parent = getParentComponent ();
+    Rectangle<int> parentBounds = parent->getBounds (),
+        globalBounds = parent->getLocalArea (this, getLocalBounds ());
+    GLint x = (GLint) (scale * globalBounds.getX ());
+    GLsizei width = (GLsizei) (scale * globalBounds.getWidth ());
+    GLsizei height = (GLsizei) (scale * (globalBounds.getHeight () / numChannels));
 
-    for (unsigned int channel = 0; channel < numChannels; channel++)
+    for (int channel = 0; channel < numChannels; channel++)
     {
-        GLint y = scale * (
+        GLint y = (GLint) (scale * (
             parentBounds.getHeight () - globalBounds.getBottom () +
             channel * (globalBounds.getHeight () / numChannels)
-        );
+        ));
 
         glViewport (x, y, width, height);
 
@@ -143,7 +143,7 @@ void AudioWaveformOpenGLComponent::render (OpenGLContext& openGLContext)
             GL_FLOAT, GL_FALSE, 2 * sizeof (GLfloat), 0);
         openGLContext.extensions.glEnableVertexAttribArray (position->attributeID);
 
-        glDrawArrays (GL_LINE_STRIP, 0, numVertices);
+        glDrawArrays (GL_LINE_STRIP, 0, (GLsizei) numVertices);
 
         openGLContext.extensions.glDisableVertexAttribArray (position->attributeID);
 
@@ -172,7 +172,7 @@ void AudioWaveformOpenGLComponent::load (AudioSampleBuffer* newAudioBuffer)
     numSamples = lengthInSamples;
 
     vertices = new Vertex*[numChannels];
-    for (unsigned int channel = 0; channel < numChannels; channel++)
+    for (int channel = 0; channel < numChannels; channel++)
     {
         vertices[channel] = new Vertex[lengthInSamples];
     }
@@ -200,7 +200,7 @@ void AudioWaveformOpenGLComponent::calculateVertices (unsigned int channel)
     // More accurate because we depend on the count of the samples 
     // of the current file. The larger the file the less samples 
     // we use when zoomed out
-    skipSamples = numSamples / (audioBuffer->getNumSamples () * 0.04);
+    skipSamples = (unsigned int) (numSamples / (audioBuffer->getNumSamples () * 0.04));
     skipSamples = (skipSamples > 0) ? skipSamples : 1;
     // Alternative approach:
     // skipSamples = numSamples / (sampleRate * 12);
@@ -239,14 +239,14 @@ void AudioWaveformOpenGLComponent::calculateVertices (unsigned int channel)
 
 GLfloat AudioWaveformOpenGLComponent::getAverageSampleValue (
     const float* samples,
-    int64 startSample,
-    int64 numSamples)
+    int64 currentStartSample,
+    int64 currentNumSamples)
 {
     GLfloat samplesSum = 0;
     unsigned int samplesCount = 0;
-    int64 endSample = startSample + numSamples;
+    int64 endSample = currentStartSample + currentNumSamples;
 
-    for (int64 sample = startSample; sample < endSample; sample++)
+    for (int64 sample = currentStartSample; sample < endSample; sample++)
     {
         samplesSum += samples[sample];
         samplesCount++;
@@ -257,13 +257,13 @@ GLfloat AudioWaveformOpenGLComponent::getAverageSampleValue (
 
 GLfloat AudioWaveformOpenGLComponent::getPeakSampleValue (
     const float* samples,
-    int64 startSample,
-    int64 numSamples)
+    int64 currentStartSample,
+    int64 currentNumSamples)
 {
     GLfloat peakValue = 0.0f;
-    int64 endSample = startSample + numSamples;
+    int64 endSample = currentStartSample + currentNumSamples;
 
-    for (int64 sample = startSample; sample < endSample; sample++)
+    for (int64 sample = currentStartSample; sample < endSample; sample++)
     {
         if (std::abs (peakValue) < std::abs (samples[sample]))
         {
@@ -278,7 +278,7 @@ void AudioWaveformOpenGLComponent::clearVertices ()
 {
     if (vertices != nullptr)
     {
-        for (unsigned int channel = 0; channel < audioBuffer->getNumChannels (); channel++)
+        for (int channel = 0; channel < audioBuffer->getNumChannels (); channel++)
         {
             delete[] vertices[channel];
         }
@@ -293,7 +293,7 @@ bool AudioWaveformOpenGLComponent::areVerticesCleared ()
     {
         return true;
     }
-    for (unsigned int channel = 0; channel < audioBuffer->getNumChannels (); channel++)
+    for (int channel = 0; channel < audioBuffer->getNumChannels (); channel++)
     {
         if (vertices[channel] != nullptr)
         {

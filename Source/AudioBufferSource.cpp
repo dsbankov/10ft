@@ -35,7 +35,7 @@ void AudioBufferSource::getNextAudioBlock (
 
         if (looping)
         {
-            const int64 newStart = start % buffer->getNumSamples(),
+            const int newStart = start % buffer->getNumSamples(),
                 newEnd = (start + info.numSamples) % buffer->getNumSamples ();
 
             if (newEnd > newStart)
@@ -79,7 +79,7 @@ void AudioBufferSource::getNextAudioBlock (
                 info.buffer,
                 info.startSample,
                 buffer,
-                start,
+                (int) start,
                 jmin (info.numSamples, (int) (buffer->getNumSamples () - start))
             );
 
