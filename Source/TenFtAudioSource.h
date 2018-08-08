@@ -90,11 +90,11 @@ public:
 
     void normalizeAudio ();
 
-    void setPosition (double newPosition);
-
     double getCurrentPosition () const;
 
     double getLengthInSeconds () const;
+
+    void setPosition (double newPosition);
 
     void setLooping (bool shouldLoop);
 

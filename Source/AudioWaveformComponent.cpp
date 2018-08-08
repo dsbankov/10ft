@@ -312,8 +312,10 @@ void AudioWaveformComponent::updateSelectedRegion (
     double newStartTime, double newEndTime
 )
 {
-    selectedRegionStartTime = newStartTime;
-    selectedRegionEndTime = newEndTime;
+    double totalLength = getTotalLength ();
+
+    selectedRegionStartTime = util::flattenSeconds(newStartTime, totalLength);
+    selectedRegionEndTime = util::flattenSeconds (newEndTime, totalLength);
 
     listeners.call ([this] (Listener& l) { l.selectedRegionChanged (this); });
 }

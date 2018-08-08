@@ -150,11 +150,6 @@ void TenFtAudioSource::normalizeAudio ()
     buffer->applyGain (startSample, numSamples, gain);
 }
 
-void TenFtAudioSource::setPosition (double newPosition)
-{
-    masterSource.setPosition (newPosition);
-}
-
 double TenFtAudioSource::getCurrentPosition () const
 {
     double currentPosition = masterSource.getCurrentPosition ();
@@ -175,6 +170,11 @@ double TenFtAudioSource::getLengthInSeconds () const
     {
         return 0.0;
     }
+}
+
+void TenFtAudioSource::setPosition (double newPosition)
+{
+    masterSource.setPosition (newPosition);
 }
 
 void TenFtAudioSource::setLooping (bool shouldLoop)
