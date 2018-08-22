@@ -58,12 +58,36 @@ void TenFtAudioSource::loadAudio (
 
 void TenFtAudioSource::unloadAudio ()
 {
-    changeState (NoFileLoaded);
+    changeState (NoAudioLoaded);
 }
 
-bool TenFtAudioSource::isAudioLoaded () const
+void TenFtAudioSource::startRecording (
+    AudioSampleBuffer* newAudioSampleBuffer,
+    double newSampleRate
+)
 {
-    return state != NoFileLoaded;
+    buffer = newAudioSampleBuffer;
+    sampleRate = newSampleRate;
+
+    std::unique_ptr<AudioBufferSource> tempBufferSource (
+        new AudioBufferSource (buffer, false)
+    );
+
+    masterSource.setSource (
+        tempBufferSource.get (),
+        0,
+        nullptr,
+        sampleRate
+    );
+
+    bufferSource.swap (tempBufferSource);
+
+    changeState (StartRecording);
+}
+
+void TenFtAudioSource::stopRecording ()
+{
+    changeState (Stopping);
 }
 
 void TenFtAudioSource::playAudio ()
@@ -98,7 +122,7 @@ void TenFtAudioSource::stopAudio ()
             setPosition (0.0);
         }
     }
-    else if (state == Paused || state == NoFileLoaded)
+    else if (state == Paused || state == NoAudioLoaded)
     {
         changeState (Stopped);
     }
@@ -151,6 +175,11 @@ void TenFtAudioSource::normalizeAudio ()
     buffer->applyGain (startSample, numSamples, gain);
 }
 
+TenFtAudioSource::State TenFtAudioSource::getState () const
+{
+    return state;
+}
+
 double TenFtAudioSource::getCurrentPosition () const
 {
     double currentPosition = masterSource.getCurrentPosition ();
@@ -199,7 +228,11 @@ void TenFtAudioSource::changeListenerCallback (
     ChangeBroadcaster*
 )
 {
-    if (masterSource.isPlaying ())
+    if (masterSource.isPlaying () && state == StartRecording)
+    {
+        changeState (Recording);
+    }
+    else if (masterSource.isPlaying () && state != StartRecording)
     {
         changeState (Playing);
     }
@@ -228,7 +261,7 @@ void TenFtAudioSource::selectedRegionCreated (
 )
 {
     loadAudioSubregion (
-        waveform->getSelectedRegionStartTime (), // TODO fix negative number here?
+        waveform->getSelectedRegionStartTime (),
         waveform->getSelectedRegionEndTime (),
         true,
         bufferSource->isLooping ()
@@ -265,6 +298,13 @@ void TenFtAudioSource::changeState (
 
         switch (state)
         {
+        case StartRecording:
+            masterSource.start ();
+            break;
+
+        case Recording:
+            break;
+
         case Starting:
             masterSource.start ();
             break;
@@ -287,7 +327,7 @@ void TenFtAudioSource::changeState (
         case Paused:
             break;
 
-        case NoFileLoaded:
+        case NoAudioLoaded:
             masterSource.setSource (nullptr);
             buffer = nullptr;
             sampleRate = 0.0;

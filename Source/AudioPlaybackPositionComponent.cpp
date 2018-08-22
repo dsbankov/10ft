@@ -22,7 +22,7 @@ AudioPlaybackPositionComponent::~AudioPlaybackPositionComponent ()
 
 void AudioPlaybackPositionComponent::paint (Graphics& g)
 {
-    if (isAudioLoaded)
+    if (isAudioLoaded && !isRecording)
     {
         if (currentPosition < visibleRegionStartTime ||
             currentPosition > visibleRegionEndTime)
@@ -59,6 +59,7 @@ void AudioPlaybackPositionComponent::currentPositionChanged (
     TenFtAudioSource* audioSource
 )
 {
+    isRecording = (audioSource->getState () == TenFtAudioSource::State::Recording);
     currentPosition = audioSource->getCurrentPosition ();
     repaint ();
 }

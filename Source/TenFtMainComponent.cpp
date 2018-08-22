@@ -22,6 +22,16 @@ TenFtMainComponent::TenFtMainComponent ()
         openButtonClicked ();
     };
 
+    addAndMakeVisible (&recordButton);
+    recordButton.setButtonText ("Record");
+    recordButton.setClickingTogglesState (false);
+    recordButton.setToggleState (false,
+        NotificationType::dontSendNotification
+    );
+    recordButton.onClick = [this] {
+        recordButtonClicked ();
+    };
+
     addAndMakeVisible (&playButton);
     playButton.setButtonText ("Play");
     playButton.onClick = [this] {
@@ -112,7 +122,7 @@ TenFtMainComponent::TenFtMainComponent ()
     };
 
     setSize (1000, 800);
-    setAudioChannels (0, 2);
+    setAudioChannels (MAX_INPUT_CHANNELS_ALLOWED, 2);
 }
 
 TenFtMainComponent::~TenFtMainComponent ()
@@ -126,6 +136,7 @@ void TenFtMainComponent::prepareToPlay (
     double sampleRate
 )
 {
+    inputSampleRate = sampleRate;
     audioSource.prepareToPlay (samplesPerBlockExpected, sampleRate);
 }
 
@@ -133,10 +144,57 @@ void TenFtMainComponent::getNextAudioBlock (
     const AudioSourceChannelInfo& bufferToFill
 )
 {
-    if (!audioSource.isAudioLoaded ())
+    if (recordButton.getToggleState ())
+    {
+        AudioIODevice* device = deviceManager.getCurrentAudioDevice ();
+        BigInteger activeInputChannels = device->getActiveInputChannels (),
+            activeOutputChannels = device->getActiveOutputChannels ();
+        int maxInputChannels = activeInputChannels.getHighestBit () + 1,
+            maxOutputChannels = activeOutputChannels.getHighestBit () + 1,
+            destChannel = 0,
+            audioBufferOldNumSamples = audioBuffer->getNumSamples ();
+
+        audioBuffer->setSize (
+            maxInputChannels,
+            audioBufferOldNumSamples + bufferToFill.buffer->getNumSamples (),
+            true
+        );
+
+        for (int channel = 0; channel < maxOutputChannels; ++channel)
+        {
+            if ((!activeOutputChannels[channel]) || maxInputChannels == 0)
+            {
+                bufferToFill.buffer->clear (
+                    channel, bufferToFill.startSample, bufferToFill.numSamples
+                );
+            }
+            else
+            {
+                int actualInputChannel = channel % maxInputChannels;
+
+                if (!activeInputChannels[channel])
+                {
+                    bufferToFill.buffer->clear (
+                        channel, bufferToFill.startSample, bufferToFill.numSamples
+                    );
+                }
+                else
+                {
+                    audioBuffer->copyFrom (
+                        destChannel++,
+                        audioBufferOldNumSamples,
+                        *bufferToFill.buffer,
+                        actualInputChannel,
+                        bufferToFill.startSample,
+                        bufferToFill.numSamples
+                    );
+                }
+            }
+        }
+    }
+    else if (audioSource.getState () == TenFtAudioSource::State::NoAudioLoaded)
     {
         bufferToFill.clearActiveBufferRegion ();
-
         return;
     }
 
@@ -162,7 +220,10 @@ void TenFtMainComponent::resized ()
         row4 = bounds;
 
     openButton.setBounds (
-        row1.reduced (delta).toNearestInt ()
+        row1.removeFromLeft (width * 0.5f).reduced (delta).toNearestInt ()
+    );
+    recordButton.setBounds (
+        row1.removeFromLeft (width * 0.5f).reduced (delta).toNearestInt ()
     );
     playButton.setBounds (
         row2.removeFromLeft (width * 0.42f).reduced (delta).toNearestInt ()
@@ -224,50 +285,97 @@ void TenFtMainComponent::openButtonClicked ()
     {
         File file = chooser.getResult ();
 
-        std::unique_ptr<AudioFormatReader> audioReader(formatManager.createReaderFor (file));
+        std::unique_ptr<AudioFormatReader> audioReader(
+            formatManager.createReaderFor (file)
+        );
 
         if (audioReader != nullptr)
         {
-            std::unique_ptr<AudioSampleBuffer> tempAudioBuffer (
-                new AudioSampleBuffer (
-                    audioReader->numChannels,
-                    (int) audioReader->lengthInSamples
-                )
-            );
-            audioReader->read (tempAudioBuffer.get (), 0, (int) audioReader->lengthInSamples, 0, true, true);
-
-            audioSource.loadAudio (tempAudioBuffer.get (), audioReader->sampleRate);
-            waveform.loadWaveform (tempAudioBuffer.get (), audioReader->sampleRate);
-
-            audioBuffer.swap (tempAudioBuffer);
-
-            setupButton (playButton, "Play", true);
-            setupButton (stopButton, "Stop", false);
-            loopButton.setEnabled (true);
-            muteButton.setEnabled (true);
-            fadeInButton.setEnabled (true);
-            fadeOutButton.setEnabled (true);
-            normalizeButton.setEnabled (true);
+            loadFile (audioReader.get ());
         }
         else
         {
-            waveform.clearWaveform ();
-            audioSource.unloadAudio ();
-
-            scroller.disable ();
-            setupButton (playButton, "Play", false);
-            setupButton (stopButton, "Stop", false);
-            loopButton.setEnabled (false);
-            loopButton.setToggleState (
-                false,
-                NotificationType::dontSendNotification
-            );
-            muteButton.setEnabled (false);
-            fadeInButton.setEnabled (false);
-            fadeOutButton.setEnabled (false);
-            normalizeButton.setEnabled (false);
+            unloadFile ();
         }
     }
+}
+
+void TenFtMainComponent::loadFile (AudioFormatReader* audioReader)
+{
+    std::unique_ptr<AudioSampleBuffer> tempAudioBuffer (
+        new AudioSampleBuffer (
+            audioReader->numChannels,
+            (int)audioReader->lengthInSamples
+        )
+    );
+
+    audioReader->read (
+        tempAudioBuffer.get (),
+        0,
+        (int)audioReader->lengthInSamples,
+        0,
+        true,
+        true
+    );
+
+    audioSource.loadAudio (tempAudioBuffer.get (), audioReader->sampleRate);
+    waveform.loadWaveform (tempAudioBuffer.get (), audioReader->sampleRate);
+
+    audioBuffer.swap (tempAudioBuffer);
+
+    setupButton (playButton, "Play", true);
+    setupButton (stopButton, "Stop", false);
+    loopButton.setEnabled (true);
+    muteButton.setEnabled (true);
+    fadeInButton.setEnabled (true);
+    fadeOutButton.setEnabled (true);
+    normalizeButton.setEnabled (true);
+}
+
+void TenFtMainComponent::unloadFile ()
+{
+    waveform.clearWaveform ();
+    audioSource.unloadAudio ();
+
+    scroller.disable ();
+    setupButton (playButton, "Play", false);
+    setupButton (stopButton, "Stop", false);
+    loopButton.setEnabled (false);
+    loopButton.setToggleState (
+        false,
+        NotificationType::dontSendNotification
+    );
+    muteButton.setEnabled (false);
+    fadeInButton.setEnabled (false);
+    fadeOutButton.setEnabled (false);
+    normalizeButton.setEnabled (false);
+}
+
+void TenFtMainComponent::recordButtonClicked ()
+{
+    !recordButton.getToggleState () ? enableRecording () : disableRecording ();
+}
+
+void TenFtMainComponent::enableRecording ()
+{
+    std::unique_ptr<AudioSampleBuffer> tempAudioBuffer (
+        new AudioSampleBuffer (MAX_INPUT_CHANNELS_ALLOWED, 0)
+    );
+    audioSource.startRecording (tempAudioBuffer.get (), inputSampleRate);
+    waveform.loadWaveform (tempAudioBuffer.get (), inputSampleRate);
+    audioBuffer.swap (tempAudioBuffer);
+
+    startTimer (INTERVAL_RECORD_REPAINT_MILLIS);
+
+    recordButton.setToggleState (true, NotificationType::dontSendNotification);
+}
+
+void TenFtMainComponent::disableRecording ()
+{
+    stopTimer ();
+
+    audioSource.stopRecording ();
+    recordButton.setToggleState (false, NotificationType::dontSendNotification);
 }
 
 void TenFtMainComponent::loopButtonClicked ()
@@ -303,4 +411,10 @@ void TenFtMainComponent::setupButton (
 {
     button.setButtonText (buttonText);
     button.setEnabled (enabled);
+}
+
+void TenFtMainComponent::timerCallback ()
+{
+    double newEndTime = (double)audioBuffer->getNumSamples () / inputSampleRate;
+    waveform.updateVisibleRegion (0.0, newEndTime);
 }

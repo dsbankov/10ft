@@ -35,22 +35,24 @@ public:
 
     void render (OpenGLContext& openGLContext) override;
 
-    void load (AudioSampleBuffer* audioBuffer);
+    void load (AudioSampleBuffer* newBuffer);
 
-    void display (int64 displayStartSample, int64 displayNumSamples);
+    void display (int64 startSample, int64 numSamples);
 
     void refresh ();
 
 private:
     void calculateVertices (unsigned int channel);
 
-    GLfloat getAverageSampleValue (const float * samples, int64 startSample, int64 numSamples);
-
-    GLfloat getPeakSampleValue (const float * samples, int64 startSample, int64 numSamples);
+    void allocateVertices (int numChannels, int64 numSamples);
 
     void clearVertices ();
 
     bool areVerticesCleared ();
+
+    GLfloat getAverageSampleValue (const float* samples, int64 startSample, int64 numSamples);
+
+    GLfloat getPeakSampleValue (int channel, int64 startSample, int64 numSamples);
 
 private:
     struct Vertex { GLfloat x, y; };
@@ -69,7 +71,6 @@ private:
     private:
         OpenGLContext & openGLContext;
         GLuint id;
-
     };
 
 private:
@@ -78,9 +79,10 @@ private:
     std::unique_ptr<OpenGLShaderProgram::Uniform> uniform;
     std::unique_ptr<VertexBuffer> vertexBuffer;
 
-    AudioSampleBuffer* audioBuffer;
-    int64 startSample;
-    int64 numSamples;
+    AudioSampleBuffer* buffer = nullptr;
+    int64 bufferNumSamples = 0;
+    int64 visibleRegionStartSample = 0;
+    int64 visibleRegionNumSamples = 0;
     unsigned int skipSamples = 8;
 
     Vertex** vertices = nullptr;

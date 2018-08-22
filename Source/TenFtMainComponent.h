@@ -11,7 +11,6 @@ Author:  DBANKOV
 
 #pragma once
 
-
 #include "TenFtAudioSource.h"
 #include "AudioBufferSource.h"
 #include "AudioWaveformComponent.h"
@@ -22,7 +21,8 @@ Author:  DBANKOV
 #include "TenFtLookAndFeel.h"
 
 
-class TenFtMainComponent :    public AudioAppComponent
+class TenFtMainComponent :    public AudioAppComponent,
+                              private Timer
 {
 public:
     TenFtMainComponent ();
@@ -47,6 +47,16 @@ public:
 private:
     void openButtonClicked ();
 
+    void loadFile (AudioFormatReader* audioReader);
+
+    void unloadFile ();
+
+    void recordButtonClicked ();
+
+    void enableRecording ();
+
+    void disableRecording ();
+
     void loopButtonClicked ();
 
     void onAudioSourceStateChange (
@@ -59,8 +69,11 @@ private:
         bool enabled
     );
 
+    void timerCallback () override;
+
 private:
     TextButton openButton;
+    TextButton recordButton;
     TextButton playButton;
     TextButton stopButton;
     ToggleButton loopButton;
@@ -73,6 +86,8 @@ private:
     std::unique_ptr<AudioSampleBuffer> audioBuffer;
     TenFtAudioSource audioSource;
 
+    double inputSampleRate = 0.0;
+
     AudioWaveformComponent waveform;
     AudioWaveformSelectedRegionComponent selectedRegion;
     AudioPlaybackPositionComponent playbackPosition;
@@ -80,6 +95,9 @@ private:
     AudioScrollerComponent scroller;
 
     TenFtLookAndFeel tenFtLookAndFeel;
+
+    static const int MAX_INPUT_CHANNELS_ALLOWED = 1;
+    static const int INTERVAL_RECORD_REPAINT_MILLIS = 100;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TenFtMainComponent)
 };

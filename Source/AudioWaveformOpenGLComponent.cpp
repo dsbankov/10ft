@@ -8,7 +8,7 @@
   ==============================================================================
 */
 
-#include <chrono>
+//#include <chrono>
 
 #include "AudioWaveformOpenGLComponent.h"
 
@@ -21,7 +21,7 @@ AudioWaveformOpenGLComponent::AudioWaveformOpenGLComponent ()
 AudioWaveformOpenGLComponent::~AudioWaveformOpenGLComponent ()
 {
     clearVertices ();
-    audioBuffer = nullptr;
+    buffer = nullptr;
 }
 
 void AudioWaveformOpenGLComponent::initialise (
@@ -112,7 +112,7 @@ void AudioWaveformOpenGLComponent::render (OpenGLContext& openGLContext)
 
     shaderProgram->use ();
 
-    int numChannels = audioBuffer->getNumChannels ();
+    int numChannels = buffer->getNumChannels ();
     double scale = openGLContext.getRenderingScale ();
     Component* parent = getParentComponent ();
     Rectangle<int> parentBounds = parent->getBounds (),
@@ -135,7 +135,7 @@ void AudioWaveformOpenGLComponent::render (OpenGLContext& openGLContext)
             calculateVertices (channel);
         }
 
-        int64 numVertices = numSamples / skipSamples;
+        int64 numVertices = visibleRegionNumSamples / skipSamples;
 
         vertexBuffer->bind (vertices[channel], numVertices);
 
@@ -159,30 +159,27 @@ void AudioWaveformOpenGLComponent::render (OpenGLContext& openGLContext)
     glDisable (GL_BLEND);
 }
 
-void AudioWaveformOpenGLComponent::load (AudioSampleBuffer* newAudioBuffer)
+void AudioWaveformOpenGLComponent::load (AudioSampleBuffer* newBuffer)
 {
     clearVertices ();
 
-    audioBuffer = newAudioBuffer;
+    buffer = newBuffer;
 
-    int numChannels = audioBuffer->getNumChannels (),
-        lengthInSamples = audioBuffer->getNumSamples ();
+    int numChannels = buffer->getNumChannels (),
+        numSamples = buffer->getNumSamples ();
 
-    startSample = 0;
-    numSamples = lengthInSamples;
+    bufferNumSamples = numSamples;
+    visibleRegionStartSample = 0;
+    visibleRegionNumSamples = numSamples;
 
-    vertices = new Vertex*[numChannels];
-    for (int channel = 0; channel < numChannels; channel++)
-    {
-        vertices[channel] = new Vertex[lengthInSamples];
-    }
+    allocateVertices (numChannels, numSamples);
 }
 
 void AudioWaveformOpenGLComponent::display (
-    int64 displayStartSample, int64 displayNumSamples)
+    int64 startSample, int64 numSamples)
 {
-    startSample = displayStartSample;
-    numSamples = displayNumSamples;
+    visibleRegionStartSample = startSample;
+    visibleRegionNumSamples = numSamples;
     calculateVerticesTrigger = true;
 }
 
@@ -195,28 +192,37 @@ void AudioWaveformOpenGLComponent::refresh ()
 
 void AudioWaveformOpenGLComponent::calculateVertices (unsigned int channel)
 {
-    auto start = std::chrono::system_clock::now ();
+    //auto start = std::chrono::system_clock::now ();
+
+    if (bufferNumSamples < buffer->getNumSamples())
+    {
+        bufferNumSamples = buffer->getNumSamples ();
+        clearVertices ();
+        allocateVertices (buffer->getNumChannels (), bufferNumSamples);
+    }
 
     // More accurate because we depend on the count of the samples 
     // of the current file. The larger the file the less samples 
     // we use when zoomed out
-    skipSamples = (unsigned int) (numSamples / (audioBuffer->getNumSamples () * 0.04));
+    skipSamples = (unsigned int) (
+        visibleRegionNumSamples / (buffer->getNumSamples () * 0.04)
+    );
     skipSamples = (skipSamples > 0) ? skipSamples : 1;
     // Alternative approach:
     // skipSamples = numSamples / (sampleRate * 12);
     // More of a constant UI speed but not very accurate
 
-    int64 endSample = startSample + numSamples,
-        numVertices = numSamples / skipSamples;
-    const float* samples = audioBuffer->getReadPointer (channel);
+    int64 endSample = visibleRegionStartSample + visibleRegionNumSamples,
+        numVertices = visibleRegionNumSamples / skipSamples;
+    //const float* samples = buffer->getReadPointer (channel);
 
-    for (int64 sample = startSample, i = 0;
+    for (int64 sample = visibleRegionStartSample, i = 0;
         sample < endSample;
         sample += skipSamples, i++)
     {
         //GLfloat sampleValue = getAverageSampleValue (samples, sample,
         //    jmin ((int64) skipSamples, endSample - sample));
-        GLfloat sampleValue = getPeakSampleValue (samples, sample,
+        GLfloat sampleValue = getPeakSampleValue (channel, sample,
             jmin ((int64) skipSamples, endSample - sample));
 
         Vertex vertex;
@@ -227,14 +233,52 @@ void AudioWaveformOpenGLComponent::calculateVertices (unsigned int channel)
         vertices[channel][i] = vertex;
     }
 
-    auto end = std::chrono::system_clock::now ();
-    std::chrono::duration<double> diff = end - start;
+    //auto end = std::chrono::system_clock::now ();
+    //std::chrono::duration<double> diff = end - start;
 
     //Logger::outputDebugString (
     //    String(numSamples) + " samples / " +
     //    String(numVertices) + " vertices / " +
     //    String(skipSamples) + " skipping @ " +
     //    String(diff.count()) + " s");
+}
+
+void AudioWaveformOpenGLComponent::allocateVertices (int numChannels, int64 numSamples)
+{
+    vertices = new Vertex*[numChannels];
+    for (int channel = 0; channel < numChannels; channel++)
+    {
+        vertices[channel] = new Vertex[numSamples];
+    }
+}
+
+void AudioWaveformOpenGLComponent::clearVertices ()
+{
+    if (vertices != nullptr)
+    {
+        for (int channel = 0; channel < buffer->getNumChannels (); channel++)
+        {
+            delete[] vertices[channel];
+        }
+        delete[] vertices;
+        vertices = nullptr;
+    }
+}
+
+bool AudioWaveformOpenGLComponent::areVerticesCleared ()
+{
+    if (vertices == nullptr)
+    {
+        return true;
+    }
+    for (int channel = 0; channel < buffer->getNumChannels (); channel++)
+    {
+        if (vertices[channel] != nullptr)
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 GLfloat AudioWaveformOpenGLComponent::getAverageSampleValue (
@@ -256,7 +300,7 @@ GLfloat AudioWaveformOpenGLComponent::getAverageSampleValue (
 }
 
 GLfloat AudioWaveformOpenGLComponent::getPeakSampleValue (
-    const float* samples,
+    int channel,
     int64 currentStartSample,
     int64 currentNumSamples)
 {
@@ -265,42 +309,14 @@ GLfloat AudioWaveformOpenGLComponent::getPeakSampleValue (
 
     for (int64 sample = currentStartSample; sample < endSample; sample++)
     {
-        if (std::abs (peakValue) < std::abs (samples[sample]))
+        float sampleValue = buffer->getSample (channel, sample);
+        if (std::abs (peakValue) < std::abs (sampleValue))
         {
-            peakValue = samples[sample];
+            peakValue = sampleValue;
         }
     }
 
     return peakValue;
-}
-
-void AudioWaveformOpenGLComponent::clearVertices ()
-{
-    if (vertices != nullptr)
-    {
-        for (int channel = 0; channel < audioBuffer->getNumChannels (); channel++)
-        {
-            delete[] vertices[channel];
-        }
-        delete[] vertices;
-        vertices = nullptr;
-    }
-}
-
-bool AudioWaveformOpenGLComponent::areVerticesCleared ()
-{
-    if (vertices == nullptr)
-    {
-        return true;
-    }
-    for (int channel = 0; channel < audioBuffer->getNumChannels (); channel++)
-    {
-        if (vertices[channel] != nullptr)
-        {
-            return false;
-        }
-    }
-    return true;
 }
 
 // ==============================================================================

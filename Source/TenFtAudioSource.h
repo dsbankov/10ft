@@ -30,7 +30,9 @@ class TenFtAudioSource :    public AudioSource,
 public:
     enum State
     {
-        NoFileLoaded,
+        NoAudioLoaded,
+        StartRecording,
+        Recording,
         Starting,
         Playing,
         Stopping,
@@ -74,7 +76,12 @@ public:
 
     void unloadAudio ();
 
-    bool isAudioLoaded () const;
+    void startRecording (
+        AudioSampleBuffer* newAudioSampleBuffer,
+        double newSampleRate
+    );
+
+    void stopRecording ();
 
     void playAudio ();
 
@@ -89,6 +96,8 @@ public:
     void fadeOutAudio ();
 
     void normalizeAudio ();
+
+    State getState () const;
 
     double getCurrentPosition () const;
 
@@ -133,7 +142,7 @@ private:
     double subregionStartTime = 0.0;
     double subregionEndTime = 0.0;
 
-    State state = NoFileLoaded;
+    State state = NoAudioLoaded;
 
     ListenerList<Listener> listeners;
 

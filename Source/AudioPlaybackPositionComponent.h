@@ -46,6 +46,7 @@ private:
 
 private:
     bool isAudioLoaded = false;
+    bool isRecording = false;
     double visibleRegionStartTime;
     double visibleRegionEndTime;
     double currentPosition;
