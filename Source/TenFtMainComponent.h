@@ -19,6 +19,7 @@ Author:  DBANKOV
 #include "AudioClockComponent.h"
 #include "AudioScrollerComponent.h"
 #include "TenFtLookAndFeel.h"
+#include "AudioRecorder.h"
 
 
 class TenFtMainComponent :    public AudioAppComponent,
@@ -85,8 +86,8 @@ private:
     AudioFormatManager formatManager;
     std::unique_ptr<AudioSampleBuffer> audioBuffer;
     TenFtAudioSource audioSource;
-
     double inputSampleRate = 0.0;
+    AudioRecorder audioRecorder;
 
     AudioWaveformComponent waveform;
     AudioWaveformSelectedRegionComponent selectedRegion;

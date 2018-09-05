@@ -61,7 +61,7 @@ void TenFtAudioSource::unloadAudio ()
     changeState (NoAudioLoaded);
 }
 
-void TenFtAudioSource::startRecording (
+void TenFtAudioSource::loadRecordingBuffer (
     AudioSampleBuffer* newAudioSampleBuffer,
     double newSampleRate
 )

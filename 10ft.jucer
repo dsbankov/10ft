@@ -18,6 +18,9 @@
             resource="0" file="Source/AudioPlaybackPositionComponent.cpp"/>
       <FILE id="k93JZi" name="AudioPlaybackPositionComponent.h" compile="0"
             resource="0" file="Source/AudioPlaybackPositionComponent.h"/>
+      <FILE id="J5PHMc" name="AudioRecorder.cpp" compile="1" resource="0"
+            file="Source/AudioRecorder.cpp"/>
+      <FILE id="QHzF4V" name="AudioRecorder.h" compile="0" resource="0" file="Source/AudioRecorder.h"/>
       <FILE id="G8Mi6a" name="AudioScrollerComponent.cpp" compile="1" resource="0"
             file="Source/AudioScrollerComponent.cpp"/>
       <FILE id="clblof" name="AudioScrollerComponent.h" compile="0" resource="0"

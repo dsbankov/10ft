@@ -76,7 +76,7 @@ public:
 
     void unloadAudio ();
 
-    void startRecording (
+    void loadRecordingBuffer (
         AudioSampleBuffer* newAudioSampleBuffer,
         double newSampleRate
     );

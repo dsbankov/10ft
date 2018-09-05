@@ -144,55 +144,7 @@ void TenFtMainComponent::getNextAudioBlock (
     const AudioSourceChannelInfo& bufferToFill
 )
 {
-    if (recordButton.getToggleState ())
-    {
-        AudioIODevice* device = deviceManager.getCurrentAudioDevice ();
-        BigInteger activeInputChannels = device->getActiveInputChannels (),
-            activeOutputChannels = device->getActiveOutputChannels ();
-        int maxInputChannels = activeInputChannels.getHighestBit () + 1,
-            maxOutputChannels = activeOutputChannels.getHighestBit () + 1,
-            destChannel = 0,
-            audioBufferOldNumSamples = audioBuffer->getNumSamples ();
-
-        audioBuffer->setSize (
-            maxInputChannels,
-            audioBufferOldNumSamples + bufferToFill.buffer->getNumSamples (),
-            true
-        );
-
-        for (int channel = 0; channel < maxOutputChannels; ++channel)
-        {
-            if ((!activeOutputChannels[channel]) || maxInputChannels == 0)
-            {
-                bufferToFill.buffer->clear (
-                    channel, bufferToFill.startSample, bufferToFill.numSamples
-                );
-            }
-            else
-            {
-                int actualInputChannel = channel % maxInputChannels;
-
-                if (!activeInputChannels[channel])
-                {
-                    bufferToFill.buffer->clear (
-                        channel, bufferToFill.startSample, bufferToFill.numSamples
-                    );
-                }
-                else
-                {
-                    audioBuffer->copyFrom (
-                        destChannel++,
-                        audioBufferOldNumSamples,
-                        *bufferToFill.buffer,
-                        actualInputChannel,
-                        bufferToFill.startSample,
-                        bufferToFill.numSamples
-                    );
-                }
-            }
-        }
-    }
-    else if (audioSource.getState () == TenFtAudioSource::State::NoAudioLoaded)
+    if (audioSource.getState () == TenFtAudioSource::State::NoAudioLoaded)
     {
         bufferToFill.clearActiveBufferRegion ();
         return;
@@ -361,10 +313,14 @@ void TenFtMainComponent::enableRecording ()
     std::unique_ptr<AudioSampleBuffer> tempAudioBuffer (
         new AudioSampleBuffer (MAX_INPUT_CHANNELS_ALLOWED, 0)
     );
-    audioSource.startRecording (tempAudioBuffer.get (), inputSampleRate);
+
+    audioRecorder.loadRecordingBuffer (tempAudioBuffer.get ());
+    audioSource.loadRecordingBuffer (tempAudioBuffer.get (), inputSampleRate);
     waveform.loadWaveform (tempAudioBuffer.get (), inputSampleRate);
+
     audioBuffer.swap (tempAudioBuffer);
 
+    deviceManager.addAudioCallback (&audioRecorder);
     startTimer (INTERVAL_RECORD_REPAINT_MILLIS);
 
     recordButton.setToggleState (true, NotificationType::dontSendNotification);
@@ -373,7 +329,7 @@ void TenFtMainComponent::enableRecording ()
 void TenFtMainComponent::disableRecording ()
 {
     stopTimer ();
-
+    deviceManager.removeAudioCallback (&audioRecorder);
     audioSource.stopRecording ();
     recordButton.setToggleState (false, NotificationType::dontSendNotification);
 }
