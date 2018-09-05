@@ -136,7 +136,7 @@ void TenFtMainComponent::prepareToPlay (
     double sampleRate
 )
 {
-    inputSampleRate = sampleRate;
+    this->sampleRate = sampleRate;
     audioSource.prepareToPlay (samplesPerBlockExpected, sampleRate);
 }
 
@@ -315,12 +315,13 @@ void TenFtMainComponent::enableRecording ()
     );
 
     audioRecorder.loadRecordingBuffer (tempAudioBuffer.get ());
-    audioSource.loadRecordingBuffer (tempAudioBuffer.get (), inputSampleRate);
-    waveform.loadWaveform (tempAudioBuffer.get (), inputSampleRate);
+    audioSource.loadRecordingBuffer (tempAudioBuffer.get (), sampleRate);
+    waveform.loadWaveform (tempAudioBuffer.get (), sampleRate);
 
     audioBuffer.swap (tempAudioBuffer);
 
     deviceManager.addAudioCallback (&audioRecorder);
+
     startTimer (INTERVAL_RECORD_REPAINT_MILLIS);
 
     recordButton.setToggleState (true, NotificationType::dontSendNotification);
@@ -371,6 +372,6 @@ void TenFtMainComponent::setupButton (
 
 void TenFtMainComponent::timerCallback ()
 {
-    double newEndTime = (double)audioBuffer->getNumSamples () / inputSampleRate;
+    double newEndTime = (double)audioBuffer->getNumSamples () / sampleRate;
     waveform.updateVisibleRegion (0.0, newEndTime);
 }

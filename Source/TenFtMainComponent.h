@@ -86,7 +86,7 @@ private:
     AudioFormatManager formatManager;
     std::unique_ptr<AudioSampleBuffer> audioBuffer;
     TenFtAudioSource audioSource;
-    double inputSampleRate = 0.0;
+    double sampleRate = 0.0;
     AudioRecorder audioRecorder;
 
     AudioWaveformComponent waveform;

@@ -12,6 +12,8 @@
 
 void AudioRecorder::audioDeviceAboutToStart (AudioIODevice* device)
 {
+    // TODO determine number of channels?
+    preallocatedBuffer.setSize (1, device->getCurrentBufferSizeSamples ());
     bufferWriterThread->startThread ();
 }
 
@@ -26,10 +28,26 @@ void AudioRecorder::audioDeviceIOCallback (
     int numSamples
 )
 {
-    const ScopedLock sl (writerLock);
+    // TODO use the same strategy for the main buffer?
+    AudioSampleBuffer* tmpBuffer = new AudioSampleBuffer(
+        preallocatedBuffer.getArrayOfWritePointers (),
+        preallocatedBuffer.getNumChannels(),
+        numSamples
+    );
+
+    for (int inputChannel = 0, bufferChannel = 0;
+        inputChannel < numInputChannels;
+        inputChannel++)
+    {
+        if (inputChannelData[inputChannel] != nullptr)
+        {
+            tmpBuffer->copyFrom (bufferChannel++, 0,
+                inputChannelData[inputChannel], numSamples);
+        }
+    }
 
     bufferWriterThread->addBufferToAppend (
-        createBuffer(inputChannelData, numInputChannels, numSamples)
+        tmpBuffer
     );
 
     for (int i = 0; i < numOutputChannels; ++i)
@@ -39,34 +57,13 @@ void AudioRecorder::audioDeviceIOCallback (
 
 void AudioRecorder::loadRecordingBuffer (AudioSampleBuffer* recordingBuffer)
 {
-    buffer = recordingBuffer;
-    bufferWriterThread.reset (new BufferWriterThread (buffer));
-}
-
-// ==============================================================================
-
-AudioSampleBuffer* AudioRecorder::createBuffer (
-    const float** inputChannelData, int numInputChannels, int numSamples
-)
-{
-    AudioSampleBuffer* bufferToAppend =
-        new AudioSampleBuffer (buffer->getNumChannels (), numSamples);
-    for (int inputChannel = 0, bufferChannel = 0;
-        inputChannel < numInputChannels; ++inputChannel)
-    {
-        if (inputChannelData[inputChannel] != nullptr)
-        {
-            bufferToAppend->copyFrom (bufferChannel++, 0,
-                inputChannelData[inputChannel], numSamples);
-        }
-    }
-    return bufferToAppend;
+    bufferWriterThread.reset (new BufferWriterThread (recordingBuffer));
 }
 
 // ==============================================================================
 
 AudioRecorder::BufferWriterThread::BufferWriterThread (AudioSampleBuffer* buffer)
-    : Thread ("BufferWriterThread"), buffer (buffer)
+    : Thread ("BufferWriterThread"), buffer (buffer), samplesRead(0)
 {
 }
 
@@ -95,13 +92,19 @@ void AudioRecorder::BufferWriterThread::appendToBuffer (
     AudioSampleBuffer* bufferToAppend
 )
 {
-    int destStartSample = buffer->getNumSamples ();
-    buffer->setSize (buffer->getNumChannels (),
-        buffer->getNumSamples () + bufferToAppend->getNumSamples (), true);
+
+    int allNumSamples = samplesRead + bufferToAppend->getNumSamples ();
+    if (buffer->getNumSamples () < allNumSamples)
+    {
+        buffer->setSize (buffer->getNumChannels (),
+            allNumSamples * 2, true);
+    }
 
     for (int channel = 0; channel < bufferToAppend->getNumChannels (); ++channel)
     {
-        buffer->copyFrom (channel, destStartSample,
+        buffer->copyFrom (channel, samplesRead,
             *bufferToAppend, channel, 0, bufferToAppend->getNumSamples ());
     }
+
+    samplesRead += bufferToAppend->getNumSamples ();
 }

@@ -32,17 +32,11 @@ public:
     void loadRecordingBuffer (AudioSampleBuffer* recordingBuffer);
 
 private:
-    AudioSampleBuffer* createBuffer (
-        const float** inputChannelData, int numInputChannels, int numSamples
-    );
-
-private:
     class BufferWriterThread;
 
 private:
-    AudioSampleBuffer* buffer = nullptr;
+    AudioSampleBuffer preallocatedBuffer;
     std::unique_ptr<BufferWriterThread> bufferWriterThread;
-    CriticalSection writerLock;
 
 private:
     class BufferWriterThread : public Thread
@@ -59,8 +53,7 @@ private:
 
     private:
         AudioSampleBuffer* buffer;
+        int samplesRead;
         OwnedArray<AudioSampleBuffer, CriticalSection> buffersToAppend;
-
     };
-
 };
