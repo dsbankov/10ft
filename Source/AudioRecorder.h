@@ -19,19 +19,48 @@ public:
 
     ~AudioRecorder () { }
 
-    void audioDeviceAboutToStart (AudioIODevice* device) override { }
+    void audioDeviceAboutToStart (AudioIODevice* device) override;
 
-    void audioDeviceStopped () override { }
+    void audioDeviceStopped () override;
 
     void audioDeviceIOCallback (
         const float** inputChannelData, int numInputChannels,
         float** outputChannelData, int numOutputChannels,
-        int numSamples) override;
+        int numSamples
+    ) override;
 
-    void loadRecordingBuffer (AudioSampleBuffer* buffer);
+    void loadRecordingBuffer (AudioSampleBuffer* recordingBuffer);
+
+private:
+    AudioSampleBuffer* createBuffer (
+        const float** inputChannelData, int numInputChannels, int numSamples
+    );
+
+private:
+    class BufferWriterThread;
 
 private:
     AudioSampleBuffer* buffer = nullptr;
+    std::unique_ptr<BufferWriterThread> bufferWriterThread;
     CriticalSection writerLock;
+
+private:
+    class BufferWriterThread : public Thread
+    {
+    public:
+        BufferWriterThread (AudioSampleBuffer* buffer);
+
+        void run () override;
+
+        void addBufferToAppend (AudioSampleBuffer* bufferToAppend);
+
+    private:
+        void appendToBuffer (AudioSampleBuffer* bufferToAppend);
+
+    private:
+        AudioSampleBuffer* buffer;
+        OwnedArray<AudioSampleBuffer, CriticalSection> buffersToAppend;
+
+    };
 
 };
