@@ -20,7 +20,6 @@ AudioWaveformOpenGLComponent::AudioWaveformOpenGLComponent ()
 
 AudioWaveformOpenGLComponent::~AudioWaveformOpenGLComponent ()
 {
-    clearVertices ();
     buffer = nullptr;
 }
 
@@ -97,7 +96,7 @@ void AudioWaveformOpenGLComponent::render (OpenGLContext& openGLContext)
 {
     jassert (OpenGLHelpers::isContextActive ());
 
-    if (areVerticesCleared())
+    if (vertices.isEmpty())
     {
         return;
     }
@@ -112,20 +111,19 @@ void AudioWaveformOpenGLComponent::render (OpenGLContext& openGLContext)
 
     shaderProgram->use ();
 
-    int numChannels = buffer->getNumChannels ();
     double scale = openGLContext.getRenderingScale ();
     Component* parent = getParentComponent ();
     Rectangle<int> parentBounds = parent->getBounds (),
         globalBounds = parent->getLocalArea (this, getLocalBounds ());
     GLint x = (GLint) (scale * globalBounds.getX ());
     GLsizei width = (GLsizei) (scale * globalBounds.getWidth ());
-    GLsizei height = (GLsizei) (scale * (globalBounds.getHeight () / numChannels));
+    GLsizei height = (GLsizei) (scale * (globalBounds.getHeight () / bufferNumChannels));
 
-    for (int channel = 0; channel < numChannels; channel++)
+    for (int channel = 0; channel < bufferNumChannels; channel++)
     {
         GLint y = (GLint) (scale * (
             parentBounds.getHeight () - globalBounds.getBottom () +
-            channel * (globalBounds.getHeight () / numChannels)
+            channel * (globalBounds.getHeight () / bufferNumChannels)
         ));
 
         glViewport (x, y, width, height);
@@ -137,7 +135,7 @@ void AudioWaveformOpenGLComponent::render (OpenGLContext& openGLContext)
 
         int64 numVertices = visibleRegionNumSamples / skipSamples;
 
-        vertexBuffer->bind (vertices[channel], numVertices);
+        vertexBuffer->bind (vertices.getUnchecked(channel).getRawDataPointer(), numVertices);
 
         openGLContext.extensions.glVertexAttribPointer (position->attributeID, 2,
             GL_FLOAT, GL_FALSE, 2 * sizeof (GLfloat), 0);
@@ -161,18 +159,16 @@ void AudioWaveformOpenGLComponent::render (OpenGLContext& openGLContext)
 
 void AudioWaveformOpenGLComponent::load (AudioSampleBuffer* newBuffer)
 {
-    clearVertices ();
+    vertices.clear ();
 
     buffer = newBuffer;
 
-    int numChannels = buffer->getNumChannels (),
-        numSamples = buffer->getNumSamples ();
-
-    bufferNumSamples = numSamples;
+    bufferNumChannels = buffer->getNumChannels ();
+    bufferNumSamples = buffer->getNumSamples ();
     visibleRegionStartSample = 0;
-    visibleRegionNumSamples = numSamples;
+    visibleRegionNumSamples = bufferNumSamples;
 
-    allocateVertices (numChannels, numSamples);
+    vertices.insertMultiple (0, Array<Vertex>(), bufferNumChannels);
 }
 
 void AudioWaveformOpenGLComponent::display (
@@ -194,12 +190,7 @@ void AudioWaveformOpenGLComponent::calculateVertices (unsigned int channel)
 {
     //auto start = std::chrono::system_clock::now ();
 
-    if (bufferNumSamples < buffer->getNumSamples())
-    {
-        bufferNumSamples = buffer->getNumSamples ();
-        clearVertices ();
-        allocateVertices (buffer->getNumChannels (), bufferNumSamples);
-    }
+    vertices.getReference (channel).clear ();
 
     // More accurate because we depend on the count of the samples 
     // of the current file. The larger the file the less samples 
@@ -230,7 +221,7 @@ void AudioWaveformOpenGLComponent::calculateVertices (unsigned int channel)
         vertex.x = (((GLfloat) i / (GLfloat) numVertices) * 2) - 1;
         vertex.y = sampleValue;
 
-        vertices[channel][i] = vertex;
+        vertices.getReference (channel).add (vertex);
     }
 
     //auto end = std::chrono::system_clock::now ();
@@ -241,44 +232,6 @@ void AudioWaveformOpenGLComponent::calculateVertices (unsigned int channel)
     //    String(numVertices) + " vertices / " +
     //    String(skipSamples) + " skipping @ " +
     //    String(diff.count()) + " s");
-}
-
-void AudioWaveformOpenGLComponent::allocateVertices (int numChannels, int64 numSamples)
-{
-    vertices = new Vertex*[numChannels];
-    for (int channel = 0; channel < numChannels; channel++)
-    {
-        vertices[channel] = new Vertex[numSamples];
-    }
-}
-
-void AudioWaveformOpenGLComponent::clearVertices ()
-{
-    if (vertices != nullptr)
-    {
-        for (int channel = 0; channel < buffer->getNumChannels (); channel++)
-        {
-            delete[] vertices[channel];
-        }
-        delete[] vertices;
-        vertices = nullptr;
-    }
-}
-
-bool AudioWaveformOpenGLComponent::areVerticesCleared ()
-{
-    if (vertices == nullptr)
-    {
-        return true;
-    }
-    for (int channel = 0; channel < buffer->getNumChannels (); channel++)
-    {
-        if (vertices[channel] != nullptr)
-        {
-            return false;
-        }
-    }
-    return true;
 }
 
 GLfloat AudioWaveformOpenGLComponent::getAverageSampleValue (

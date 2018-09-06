@@ -44,12 +44,6 @@ public:
 private:
     void calculateVertices (unsigned int channel);
 
-    void allocateVertices (int numChannels, int64 numSamples);
-
-    void clearVertices ();
-
-    bool areVerticesCleared ();
-
     GLfloat getAverageSampleValue (const float* samples, int64 startSample, int64 numSamples);
 
     GLfloat getPeakSampleValue (const float* samples, int64 startSample, int64 numSamples);
@@ -80,12 +74,13 @@ private:
     std::unique_ptr<VertexBuffer> vertexBuffer;
 
     AudioSampleBuffer* buffer = nullptr;
+    int bufferNumChannels = 0;
     int64 bufferNumSamples = 0;
     int64 visibleRegionStartSample = 0;
     int64 visibleRegionNumSamples = 0;
     unsigned int skipSamples = 8;
 
-    Vertex** vertices = nullptr;
+    Array<Array<Vertex>> vertices;
     bool calculateVerticesTrigger = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioWaveformOpenGLComponent)
