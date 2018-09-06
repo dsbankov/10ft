@@ -133,108 +133,22 @@ TenFtMainComponent::~TenFtMainComponent ()
 
 void TenFtMainComponent::prepareToPlay (
     int samplesPerBlockExpected,
-    double sampleRate
+    double currentSampleRate
 )
 {
-    this->sampleRate = sampleRate;
-
-    preallocatedBuffer.setSize (1, (int)(5 * sampleRate));
-
-    bufferPreallocationThread.reset (
-        new BufferPreallocationThread (
-            preallocatedBuffer,
-            numSamplesUsed,
-            (int)(3 * sampleRate),
-            (int)(5 * sampleRate)
-        )
-    );
-    bufferPreallocationThread->startThread ();
-
-    audioSource.prepareToPlay (samplesPerBlockExpected, sampleRate);
+    this->sampleRate = currentSampleRate;
+    audioSource.prepareToPlay (samplesPerBlockExpected, currentSampleRate);
 }
 
 void TenFtMainComponent::getNextAudioBlock (
     const AudioSourceChannelInfo& bufferToFill
 )
 {
-    if (recordButton.getToggleState ())
-    {
-        AudioIODevice* device = deviceManager.getCurrentAudioDevice ();
-        BigInteger activeInputChannels = device->getActiveInputChannels (),
-            activeOutputChannels = device->getActiveOutputChannels ();
-        int maxInputChannels = activeInputChannels.getHighestBit () + 1,
-            maxOutputChannels = activeOutputChannels.getHighestBit () + 1,
-            destChannel = 0;
-        //    audioBufferOldNumSamples = audioBuffer->getNumSamples ();
-
-        //audioBuffer->setSize (
-        //    maxInputChannels,
-        //    audioBufferOldNumSamples + bufferToFill.buffer->getNumSamples (),
-        //    true
-        //);
-
-        for (int channel = 0; channel < maxOutputChannels; ++channel)
-        {
-            if ((!activeOutputChannels[channel]) || maxInputChannels == 0)
-            {
-                bufferToFill.buffer->clear (
-                    channel, bufferToFill.startSample, bufferToFill.numSamples
-                );
-            }
-            else
-            {
-                int actualInputChannel = channel % maxInputChannels;
-
-                if (!activeInputChannels[channel])
-                {
-                    bufferToFill.buffer->clear (
-                        channel, bufferToFill.startSample, bufferToFill.numSamples
-                    );
-                }
-                else
-                {
-
-                    preallocatedBuffer.copyFrom (
-                        destChannel++,
-                        numSamplesUsed,
-                        *bufferToFill.buffer,
-                        actualInputChannel,
-                        bufferToFill.startSample,
-                        bufferToFill.numSamples
-                    );
-
-                    numSamplesUsed += bufferToFill.numSamples;
-
-                    audioBuffer->setDataToReferTo (
-                        preallocatedBuffer.getArrayOfWritePointers (),
-                        preallocatedBuffer.getNumChannels (),
-                        numSamplesUsed
-                    );
-
-                    //audioBuffer->copyFrom (
-                    //    destChannel++,
-                    //    audioBufferOldNumSamples,
-                    //    *bufferToFill.buffer,
-                    //    actualInputChannel,
-                    //    bufferToFill.startSample,
-                    //    bufferToFill.numSamples
-                    //);
-                }
-            }
-        }
-    }
-    else if (audioSource.getState () == TenFtAudioSource::State::NoAudioLoaded)
-    {
-        bufferToFill.clearActiveBufferRegion ();
-        return;
-    }
-
-    audioSource.getNextAudioBlock (bufferToFill);
+    audioSource.getNextAudioBlock (bufferToFill, deviceManager);
 }
 
 void TenFtMainComponent::releaseResources ()
 {
-    bufferPreallocationThread->stopThread (1000);
     audioSource.releaseResources ();
 }
 
@@ -393,24 +307,16 @@ void TenFtMainComponent::enableRecording ()
     std::unique_ptr<AudioSampleBuffer> tempAudioBuffer (
         new AudioSampleBuffer (MAX_INPUT_CHANNELS_ALLOWED, 0)
     );
-
-    //audioRecorder.loadRecordingBuffer (tempAudioBuffer.get ());
     audioSource.loadRecordingBuffer (tempAudioBuffer.get (), sampleRate);
     waveform.loadWaveform (tempAudioBuffer.get (), sampleRate);
-
     audioBuffer.swap (tempAudioBuffer);
-
-    //deviceManager.addAudioCallback (&audioRecorder);
-
     startTimer (INTERVAL_RECORD_REPAINT_MILLIS);
-
     recordButton.setToggleState (true, NotificationType::dontSendNotification);
 }
 
 void TenFtMainComponent::disableRecording ()
 {
     stopTimer ();
-    //deviceManager.removeAudioCallback (&audioRecorder);
     audioSource.stopRecording ();
     recordButton.setToggleState (false, NotificationType::dontSendNotification);
 }
@@ -454,36 +360,4 @@ void TenFtMainComponent::timerCallback ()
 {
     double newEndTime = (double)audioBuffer->getNumSamples () / sampleRate;
     waveform.updateVisibleRegion (0.0, newEndTime);
-}
-
-// ==============================================================================
-
-TenFtMainComponent::BufferPreallocationThread::BufferPreallocationThread (
-    AudioSampleBuffer& preallocatedBuffer,
-    int& numSamplesUsed,
-    int numSamplesUnusedLimit,
-    int numSamplesAllocation
-) :
-    Thread ("BufferWriterThread"),
-    preallocatedBuffer (preallocatedBuffer),
-    numSamplesUsed (numSamplesUsed),
-    numSamplesUnusedLimit (numSamplesUnusedLimit),
-    numSamplesAllocation (numSamplesAllocation)
-{
-}
-
-void TenFtMainComponent::BufferPreallocationThread::run ()
-{
-    while (!threadShouldExit ())
-    {
-        int preallocatedSamples = preallocatedBuffer.getNumSamples ();
-        if (preallocatedSamples - numSamplesUsed < numSamplesUnusedLimit)
-        {
-            int newNumSamples =
-                preallocatedBuffer.getNumSamples () + numSamplesAllocation;
-            preallocatedBuffer.setSize (preallocatedBuffer.getNumChannels (),
-                newNumSamples, true);
-            Logger::outputDebugString ("Preallocated " + String(numSamplesAllocation) + " samples -> " + String(newNumSamples));
-        }
-    }
 }

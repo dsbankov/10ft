@@ -19,7 +19,6 @@ Author:  DBANKOV
 #include "AudioClockComponent.h"
 #include "AudioScrollerComponent.h"
 #include "TenFtLookAndFeel.h"
-//#include "AudioRecorder.h"
 
 
 class TenFtMainComponent :    public AudioAppComponent,
@@ -32,7 +31,7 @@ public:
 
     void prepareToPlay (
         int samplesPerBlockExpected,
-        double sampleRate
+        double currentSampleRate
     ) override;
 
     void getNextAudioBlock (
@@ -88,13 +87,8 @@ private:
     AudioFormatManager formatManager;
     std::unique_ptr<AudioSampleBuffer> audioBuffer;
 
-    AudioSampleBuffer preallocatedBuffer;
-    std::unique_ptr<BufferPreallocationThread> bufferPreallocationThread;
-    int numSamplesUsed = 0;
-
     TenFtAudioSource audioSource;
     double sampleRate = 0.0;
-    //AudioRecorder audioRecorder;
 
     AudioWaveformComponent waveform;
     AudioWaveformSelectedRegionComponent selectedRegion;
@@ -106,25 +100,6 @@ private:
 
     static const int MAX_INPUT_CHANNELS_ALLOWED = 1;
     static const int INTERVAL_RECORD_REPAINT_MILLIS = 100;
-
-    class BufferPreallocationThread : public Thread
-    {
-    public:
-        BufferPreallocationThread (
-            AudioSampleBuffer& preallocatedBuffer,
-            int& numSamplesUsed,
-            int numSamplesUnusedLimit,
-            int numSamplesAllocation
-        );
-
-        void run () override;
-
-    private:
-        AudioSampleBuffer& preallocatedBuffer;
-        int& numSamplesUsed;
-        int numSamplesUnusedLimit;
-        int numSamplesAllocation;
-    };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TenFtMainComponent)
 };

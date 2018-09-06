@@ -69,6 +69,11 @@ public:
         const AudioSourceChannelInfo& bufferToFill
     ) override;
 
+    void getNextAudioBlock (
+        const AudioSourceChannelInfo& bufferToFill,
+        AudioDeviceManager& deviceManager
+    );
+
     void loadAudio (
         AudioSampleBuffer* newAudioSampleBuffer,
         double newSampleRate
@@ -112,13 +117,13 @@ public:
     void removeListener (Listener* listener);
 
 private:
-    void changeListenerCallback (ChangeBroadcaster* broadcaster) override;
-
-    void timerCallback () override;
-
     void selectedRegionCreated (AudioWaveformComponent* waveform) override;
 
     void selectedRegionCleared (AudioWaveformComponent* waveform) override;
+
+    void timerCallback () override;
+
+    void changeListenerCallback (ChangeBroadcaster* broadcaster) override;
 
     void changeState (State newState);
 
@@ -130,11 +135,18 @@ private:
     );
 
 private:
+    class BufferPreallocationThread;
+
+private:
     AudioTransportSource masterSource;
     std::unique_ptr<AudioBufferSource> bufferSource;
 
     AudioSampleBuffer* buffer = nullptr;
     std::unique_ptr<AudioSampleBuffer> subregionBuffer;
+
+    AudioSampleBuffer preallocatedRecordingBuffer;
+    std::unique_ptr<BufferPreallocationThread> recordingBufferPreallocationThread;
+    int numSamplesRecorded = 0;
 
     double sampleRate = 0.0;
 
@@ -145,5 +157,25 @@ private:
     State state = NoAudioLoaded;
 
     ListenerList<Listener> listeners;
+
+private:
+    class BufferPreallocationThread : public Thread
+    {
+    public:
+        BufferPreallocationThread (
+            AudioSampleBuffer& preallocatedRecordingBuffer,
+            int& numSamplesRecorded,
+            int numSamplesBuffer,
+            int numSamplesToAllocate
+        );
+
+        void run () override;
+
+    private:
+        AudioSampleBuffer& preallocatedRecordingBuffer;
+        int& numSamplesRecorded;
+        int numSamplesBuffer;
+        int numSamplesToAllocate;
+    };
 
 };
