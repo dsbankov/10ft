@@ -32,28 +32,32 @@ public:
     void loadRecordingBuffer (AudioSampleBuffer* recordingBuffer);
 
 private:
-    class BufferWriterThread;
+    class BufferPreallocationThread;
 
 private:
+    AudioSampleBuffer* buffer = nullptr;
     AudioSampleBuffer preallocatedBuffer;
-    std::unique_ptr<BufferWriterThread> bufferWriterThread;
+    int numSamplesUsed = 0;
+    double sampleRate = 0.0;
+    std::unique_ptr<BufferPreallocationThread> bufferPreallocationThread;
 
 private:
-    class BufferWriterThread : public Thread
+    class BufferPreallocationThread : public Thread
     {
     public:
-        BufferWriterThread (AudioSampleBuffer* buffer);
+        BufferPreallocationThread (
+            AudioSampleBuffer& preallocatedBuffer,
+            int& numSamplesUsed,
+            int numSamplesUnusedLimit,
+            int numSamplesAllocation
+        );
 
         void run () override;
 
-        void addBufferToAppend (AudioSampleBuffer* bufferToAppend);
-
     private:
-        void appendToBuffer (AudioSampleBuffer* bufferToAppend);
-
-    private:
-        AudioSampleBuffer* buffer;
-        int samplesRead;
-        OwnedArray<AudioSampleBuffer, CriticalSection> buffersToAppend;
+        AudioSampleBuffer& preallocatedBuffer;
+        int& numSamplesUsed;
+        int numSamplesUnusedLimit;
+        int numSamplesAllocation;
     };
 };

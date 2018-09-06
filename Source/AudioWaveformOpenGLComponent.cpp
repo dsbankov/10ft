@@ -214,7 +214,7 @@ void AudioWaveformOpenGLComponent::calculateVertices (unsigned int channel)
 
     int64 endSample = visibleRegionStartSample + visibleRegionNumSamples,
         numVertices = visibleRegionNumSamples / skipSamples;
-    //const float* samples = buffer->getReadPointer (channel);
+    const float* samples = buffer->getReadPointer (channel);
 
     for (int64 sample = visibleRegionStartSample, i = 0;
         sample < endSample;
@@ -222,7 +222,7 @@ void AudioWaveformOpenGLComponent::calculateVertices (unsigned int channel)
     {
         //GLfloat sampleValue = getAverageSampleValue (samples, sample,
         //    jmin ((int64) skipSamples, endSample - sample));
-        GLfloat sampleValue = getPeakSampleValue (channel, sample,
+        GLfloat sampleValue = getPeakSampleValue (samples, sample,
             jmin ((int64) skipSamples, endSample - sample));
 
         Vertex vertex;
@@ -300,7 +300,7 @@ GLfloat AudioWaveformOpenGLComponent::getAverageSampleValue (
 }
 
 GLfloat AudioWaveformOpenGLComponent::getPeakSampleValue (
-    int channel,
+    const float* samples,
     int64 currentStartSample,
     int64 currentNumSamples)
 {
@@ -309,7 +309,7 @@ GLfloat AudioWaveformOpenGLComponent::getPeakSampleValue (
 
     for (int64 sample = currentStartSample; sample < endSample; sample++)
     {
-        float sampleValue = buffer->getSample (channel, sample);
+        float sampleValue = samples[sample];
         if (std::abs (peakValue) < std::abs (sampleValue))
         {
             peakValue = sampleValue;

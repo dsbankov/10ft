@@ -52,7 +52,7 @@ private:
 
     GLfloat getAverageSampleValue (const float* samples, int64 startSample, int64 numSamples);
 
-    GLfloat getPeakSampleValue (int channel, int64 startSample, int64 numSamples);
+    GLfloat getPeakSampleValue (const float* samples, int64 startSample, int64 numSamples);
 
 private:
     struct Vertex { GLfloat x, y; };
