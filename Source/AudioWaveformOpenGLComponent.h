@@ -35,14 +35,16 @@ public:
 
     void render (OpenGLContext& openGLContext) override;
 
-    void load (AudioSampleBuffer* newBuffer);
+    void load (AudioSampleBuffer* buffer, const CriticalSection& bufferUpdateLock);
 
-    void display (int64 startSample, int64 numSamples);
+    void display (AudioSampleBuffer* buffer, int64 startSample, int64 numSamples);
 
-    void refresh ();
+    void refresh (AudioSampleBuffer* buffer);
 
 private:
-    void calculateVertices (unsigned int channel);
+    void calculateVertices (AudioSampleBuffer* buffer);
+
+    void calculateVertices (AudioSampleBuffer* buffer, unsigned int channel);
 
     GLfloat getAverageSampleValue (const float* samples, int64 startSample, int64 numSamples);
 
@@ -73,15 +75,14 @@ private:
     std::unique_ptr<OpenGLShaderProgram::Uniform> uniform;
     std::unique_ptr<VertexBuffer> vertexBuffer;
 
-    AudioSampleBuffer* buffer = nullptr;
     int bufferNumChannels = 0;
-    int64 bufferNumSamples = 0;
     int64 visibleRegionStartSample = 0;
     int64 visibleRegionNumSamples = 0;
     unsigned int skipSamples = 8;
 
-    Array<Array<Vertex>> vertices;
-    bool calculateVerticesTrigger = false;
+    Array<Array<Vertex, CriticalSection>> vertices;
+
+    const CriticalSection* bufferUpdateLock;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioWaveformOpenGLComponent)
 };

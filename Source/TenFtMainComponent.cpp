@@ -136,7 +136,7 @@ void TenFtMainComponent::prepareToPlay (
     double currentSampleRate
 )
 {
-    this->sampleRate = currentSampleRate;
+    sampleRate = currentSampleRate;
     audioSource.prepareToPlay (samplesPerBlockExpected, currentSampleRate);
 }
 
@@ -265,7 +265,7 @@ void TenFtMainComponent::loadFile (AudioFormatReader* audioReader)
     );
 
     audioSource.loadAudio (tempAudioBuffer.get (), audioReader->sampleRate);
-    waveform.loadWaveform (tempAudioBuffer.get (), audioReader->sampleRate);
+    waveform.loadWaveform (tempAudioBuffer.get (), audioReader->sampleRate, audioSource.getLock());
 
     audioBuffer.swap (tempAudioBuffer);
 
@@ -307,17 +307,23 @@ void TenFtMainComponent::enableRecording ()
     std::unique_ptr<AudioSampleBuffer> tempAudioBuffer (
         new AudioSampleBuffer (MAX_INPUT_CHANNELS_ALLOWED, 0)
     );
+
     audioSource.loadRecordingBuffer (tempAudioBuffer.get (), sampleRate);
-    waveform.loadWaveform (tempAudioBuffer.get (), sampleRate);
+    waveform.loadWaveform (tempAudioBuffer.get (), sampleRate, audioSource.getLock());
+
     audioBuffer.swap (tempAudioBuffer);
+
     startTimer (INTERVAL_RECORD_REPAINT_MILLIS);
+
     recordButton.setToggleState (true, NotificationType::dontSendNotification);
 }
 
 void TenFtMainComponent::disableRecording ()
 {
     stopTimer ();
+
     audioSource.stopRecording ();
+
     recordButton.setToggleState (false, NotificationType::dontSendNotification);
 }
 

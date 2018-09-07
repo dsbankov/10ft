@@ -8,8 +8,6 @@
   ==============================================================================
 */
 
-//#include <chrono>
-
 #include "AudioWaveformOpenGLComponent.h"
 
 
@@ -20,7 +18,6 @@ AudioWaveformOpenGLComponent::AudioWaveformOpenGLComponent ()
 
 AudioWaveformOpenGLComponent::~AudioWaveformOpenGLComponent ()
 {
-    buffer = nullptr;
 }
 
 void AudioWaveformOpenGLComponent::initialise (
@@ -66,7 +63,8 @@ void AudioWaveformOpenGLComponent::initialise (
         uniform->set (waveformColour.getFloatRed (),
             waveformColour.getFloatGreen (),
             waveformColour.getFloatBlue (),
-            waveformColour.getFloatAlpha ());
+            waveformColour.getFloatAlpha ()
+        );
 
         position.reset (
             new OpenGLShaderProgram::Attribute (*shaderProgram, "position")
@@ -128,69 +126,66 @@ void AudioWaveformOpenGLComponent::render (OpenGLContext& openGLContext)
 
         glViewport (x, y, width, height);
 
-        if (calculateVerticesTrigger)
-        {
-            calculateVertices (channel);
-        }
+        Array<Vertex, CriticalSection> channelVertices = vertices.getReference (channel);
 
-        int64 numVertices = visibleRegionNumSamples / skipSamples;
-
-        vertexBuffer->bind (vertices.getUnchecked(channel).getRawDataPointer(), numVertices);
+        vertexBuffer->bind (channelVertices.getRawDataPointer (), channelVertices.size ());
 
         openGLContext.extensions.glVertexAttribPointer (position->attributeID, 2,
             GL_FLOAT, GL_FALSE, 2 * sizeof (GLfloat), 0);
         openGLContext.extensions.glEnableVertexAttribArray (position->attributeID);
 
-        glDrawArrays (GL_LINE_STRIP, 0, (GLsizei) numVertices);
+        glDrawArrays (GL_LINE_STRIP, 0, (GLsizei)channelVertices.size ());
 
         openGLContext.extensions.glDisableVertexAttribArray (position->attributeID);
 
         vertexBuffer->unbind ();
     }
 
-    if (calculateVerticesTrigger)
-    {
-        calculateVerticesTrigger = false;
-    }
-
     glDisable (GL_LINE_SMOOTH);
     glDisable (GL_BLEND);
 }
 
-void AudioWaveformOpenGLComponent::load (AudioSampleBuffer* newBuffer)
+void AudioWaveformOpenGLComponent::load (AudioSampleBuffer* buffer,
+    const CriticalSection& lock)
 {
-    vertices.clear ();
-
-    buffer = newBuffer;
-
     bufferNumChannels = buffer->getNumChannels ();
-    bufferNumSamples = buffer->getNumSamples ();
     visibleRegionStartSample = 0;
-    visibleRegionNumSamples = bufferNumSamples;
+    visibleRegionNumSamples = buffer->getNumSamples ();
+    bufferUpdateLock = &lock;
 
-    vertices.insertMultiple (0, Array<Vertex>(), bufferNumChannels);
+    vertices.clear ();
+    vertices.insertMultiple (0, Array<Vertex, CriticalSection>(), bufferNumChannels);
 }
 
 void AudioWaveformOpenGLComponent::display (
-    int64 startSample, int64 numSamples)
+    AudioSampleBuffer* buffer, int64 startSample, int64 numSamples)
 {
     visibleRegionStartSample = startSample;
     visibleRegionNumSamples = numSamples;
-    calculateVerticesTrigger = true;
+
+    calculateVertices (buffer);
 }
 
-void AudioWaveformOpenGLComponent::refresh ()
+void AudioWaveformOpenGLComponent::refresh (AudioSampleBuffer* buffer)
 {
-    calculateVerticesTrigger = true;
+    calculateVertices (buffer);
 }
 
 // ==============================================================================
 
-void AudioWaveformOpenGLComponent::calculateVertices (unsigned int channel)
+void AudioWaveformOpenGLComponent::calculateVertices (AudioSampleBuffer* buffer)
+{
+    for (int channel = 0; channel < bufferNumChannels; channel++)
+    {
+        calculateVertices (buffer, channel);
+    }
+}
+
+void AudioWaveformOpenGLComponent::calculateVertices (
+    AudioSampleBuffer* buffer, unsigned int channel
+)
 {
     //auto start = std::chrono::system_clock::now ();
-
-    vertices.getReference (channel).clear ();
 
     // More accurate because we depend on the count of the samples 
     // of the current file. The larger the file the less samples 
@@ -204,31 +199,38 @@ void AudioWaveformOpenGLComponent::calculateVertices (unsigned int channel)
     // More of a constant UI speed but not very accurate
 
     int64 endSample = visibleRegionStartSample + visibleRegionNumSamples,
-        numVertices = visibleRegionNumSamples / skipSamples;
+        numVertices = visibleRegionNumSamples % skipSamples ?
+            visibleRegionNumSamples / skipSamples + 1 :
+            visibleRegionNumSamples / skipSamples;
+
+    vertices.getReference (channel).resize (numVertices);
+
+    const ScopedLock lock (*bufferUpdateLock);
+    Logger::outputDebugString ("ENTER calculateVertices");
+
     const float* samples = buffer->getReadPointer (channel);
 
-    for (int64 sample = visibleRegionStartSample, i = 0;
+    for (int64 sample = visibleRegionStartSample, vertice = 0;
         sample < endSample;
-        sample += skipSamples, i++)
+        sample += skipSamples, vertice++)
     {
-        //GLfloat sampleValue = getAverageSampleValue (samples, sample,
-        //    jmin ((int64) skipSamples, endSample - sample));
         GLfloat sampleValue = getPeakSampleValue (samples, sample,
-            jmin ((int64) skipSamples, endSample - sample));
+            jmin ((int64)skipSamples, endSample - sample));
 
         Vertex vertex;
         // should be in the [-1,+1] range
-        vertex.x = (((GLfloat) i / (GLfloat) numVertices) * 2) - 1;
+        vertex.x = (((GLfloat)vertice / (GLfloat)numVertices) * 2) - 1;
         vertex.y = sampleValue;
 
-        vertices.getReference (channel).add (vertex);
+        vertices.getReference (channel).setUnchecked (vertice, vertex);
     }
+
+    Logger::outputDebugString ("EXIT calculateVertices");
 
     //auto end = std::chrono::system_clock::now ();
     //std::chrono::duration<double> diff = end - start;
-
     //Logger::outputDebugString (
-    //    String(numSamples) + " samples / " +
+    //    String(buffer->getNumSamples ()) + " samples / " +
     //    String(numVertices) + " vertices / " +
     //    String(skipSamples) + " skipping @ " +
     //    String(diff.count()) + " s");

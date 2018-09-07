@@ -244,14 +244,15 @@ void AudioWaveformComponent::removeListener (Listener * listener)
 
 void AudioWaveformComponent::loadWaveform (
     AudioSampleBuffer* newAudioBuffer,
-    double newSampleRate
+    double newSampleRate,
+    const CriticalSection& bufferUpdateLock
 )
 {
     audioBuffer = newAudioBuffer;
     sampleRate = newSampleRate;
 
     openGLContext.detach ();
-    waveform.load (audioBuffer);
+    waveform.load (audioBuffer, bufferUpdateLock);
     openGLContext.attachTo (*this);
 
     updateVisibleRegion (0.0f, getTotalLength());
@@ -300,7 +301,7 @@ void AudioWaveformComponent::updateVisibleRegion (
     int64 startSample = (int64) (visibleRegionStartTime * sampleRate),
         endSample = (int64) (visibleRegionEndTime * sampleRate),
         numSamples = endSample - startSample;
-    waveform.display (startSample, numSamples);
+    waveform.display (audioBuffer, startSample, numSamples);
     // *******************************************************************
 
     listeners.call ([this] (Listener& l) { l.visibleRegionChanged (this); });
@@ -332,7 +333,7 @@ void AudioWaveformComponent::clearSelectedRegion ()
 
 void AudioWaveformComponent::refresh ()
 {
-    waveform.refresh ();
+    waveform.refresh (audioBuffer);
 }
 
 double AudioWaveformComponent::getVisibleRegionStartTime ()

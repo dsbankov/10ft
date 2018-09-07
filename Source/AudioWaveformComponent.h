@@ -78,7 +78,8 @@ public:
 
     void loadWaveform (
         AudioSampleBuffer* newAudioBuffer,
-        double newSampleRate
+        double newSampleRate,
+        const CriticalSection& bufferUpdateLock
     );
 
     void clearWaveform ();

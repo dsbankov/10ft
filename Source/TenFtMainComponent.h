@@ -72,8 +72,6 @@ private:
     void timerCallback () override;
 
 private:
-    class BufferPreallocationThread;
-
     TextButton openButton;
     TextButton recordButton;
     TextButton playButton;
@@ -86,7 +84,6 @@ private:
 
     AudioFormatManager formatManager;
     std::unique_ptr<AudioSampleBuffer> audioBuffer;
-
     TenFtAudioSource audioSource;
     double sampleRate = 0.0;
 

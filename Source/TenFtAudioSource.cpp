@@ -48,7 +48,14 @@ void TenFtAudioSource::getNextAudioBlock (
     const AudioSourceChannelInfo& bufferToFill
 )
 {
-    masterSource.getNextAudioBlock (bufferToFill);
+    if (state == TenFtAudioSource::State::NoAudioLoaded)
+    {
+        bufferToFill.clearActiveBufferRegion ();
+    }
+    else
+    {
+        masterSource.getNextAudioBlock (bufferToFill);
+    }
 }
 
 void TenFtAudioSource::getNextAudioBlock (
@@ -85,7 +92,7 @@ void TenFtAudioSource::getNextAudioBlock (
                 }
                 else
                 {
-
+                    Logger::outputDebugString ("ENTER getNextAudioBlock");
                     preallocatedRecordingBuffer.copyFrom (
                         destChannel++,
                         numSamplesRecorded,
@@ -96,20 +103,16 @@ void TenFtAudioSource::getNextAudioBlock (
                     );
 
                     numSamplesRecorded += bufferToFill.numSamples;
-
+                    
                     buffer->setDataToReferTo (
                         preallocatedRecordingBuffer.getArrayOfWritePointers (),
                         preallocatedRecordingBuffer.getNumChannels (),
                         numSamplesRecorded
                     );
+                    Logger::outputDebugString ("EXIT getNextAudioBlock");
                 }
             }
         }
-    }
-    else if (state == TenFtAudioSource::State::NoAudioLoaded)
-    {
-        bufferToFill.clearActiveBufferRegion ();
-        return;
     }
 
     getNextAudioBlock (bufferToFill);
@@ -138,13 +141,15 @@ void TenFtAudioSource::loadRecordingBuffer (
     buffer = newAudioSampleBuffer;
     sampleRate = newSampleRate;
 
-    preallocatedRecordingBuffer.setSize (1, (int)(5 * sampleRate));
+    preallocatedRecordingBuffer.setSize (1, (int)(60 * sampleRate));
     recordingBufferPreallocationThread.reset (
         new BufferPreallocationThread (
             preallocatedRecordingBuffer,
             numSamplesRecorded,
-            (int)(3 * sampleRate),
-            (int)(5 * sampleRate)
+            (int)(10 * sampleRate),
+            (int)(30 * sampleRate),
+            *buffer,
+            bufferUpdateLock
         )
     );
     recordingBufferPreallocationThread->startThread ();
@@ -167,6 +172,7 @@ void TenFtAudioSource::loadRecordingBuffer (
 
 void TenFtAudioSource::stopRecording ()
 {
+    recordingBufferPreallocationThread->stopThread (1000);
     changeState (Stopping);
 }
 
@@ -300,6 +306,11 @@ void TenFtAudioSource::addListener (Listener * newListener)
 void TenFtAudioSource::removeListener (Listener * listener)
 {
     listeners.remove (listener);
+}
+
+const CriticalSection& TenFtAudioSource::getLock () const noexcept
+{
+    return bufferUpdateLock;
 }
 
 // ==============================================================================
@@ -464,13 +475,17 @@ TenFtAudioSource::BufferPreallocationThread::BufferPreallocationThread (
     AudioSampleBuffer& preallocatedRecordingBuffer,
     int& numSamplesRecorded,
     int numSamplesBuffer,
-    int numSamplesToAllocate
+    int numSamplesToAllocate,
+    AudioSampleBuffer& buffer,
+    const CriticalSection& updateBufferLock
 ) :
-    Thread ("BufferWriterThread"),
+    Thread ("BufferPreallocationThread"),
     preallocatedRecordingBuffer (preallocatedRecordingBuffer),
     numSamplesRecorded (numSamplesRecorded),
     numSamplesBuffer (numSamplesBuffer),
-    numSamplesToAllocate (numSamplesToAllocate)
+    numSamplesToAllocate (numSamplesToAllocate),
+    buffer(buffer),
+    updateBufferLock(updateBufferLock)
 {
 }
 
@@ -483,10 +498,19 @@ void TenFtAudioSource::BufferPreallocationThread::run ()
         {
             int newNumSamples =
                 preallocatedRecordingBuffer.getNumSamples () + numSamplesToAllocate;
+            const ScopedLock scopedLock (updateBufferLock);
+            Logger::outputDebugString ("ENTER BufferPreallocationThread");
             preallocatedRecordingBuffer.setSize (
                 preallocatedRecordingBuffer.getNumChannels (),
                 newNumSamples, true
             );
+            buffer.setDataToReferTo (
+                preallocatedRecordingBuffer.getArrayOfWritePointers (),
+                preallocatedRecordingBuffer.getNumChannels (),
+                numSamplesRecorded
+            );
+            Logger::outputDebugString ("EXIT BufferPreallocationThread");
         }
+        wait (1000);
     }
 }
