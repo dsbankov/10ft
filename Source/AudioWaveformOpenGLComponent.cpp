@@ -8,6 +8,8 @@
   ==============================================================================
 */
 
+#include <chrono>
+
 #include "AudioWaveformOpenGLComponent.h"
 
 
@@ -94,7 +96,7 @@ void AudioWaveformOpenGLComponent::render (OpenGLContext& openGLContext)
 {
     jassert (OpenGLHelpers::isContextActive ());
 
-    if (vertices.isEmpty())
+    if (vertices.empty())
     {
         return;
     }
@@ -126,15 +128,13 @@ void AudioWaveformOpenGLComponent::render (OpenGLContext& openGLContext)
 
         glViewport (x, y, width, height);
 
-        Array<Vertex, CriticalSection> channelVertices = vertices.getReference (channel);
-
-        vertexBuffer->bind (channelVertices.getRawDataPointer (), channelVertices.size ());
+        vertexBuffer->bind (vertices[channel].data(), vertices[channel].size ());
 
         openGLContext.extensions.glVertexAttribPointer (position->attributeID, 2,
             GL_FLOAT, GL_FALSE, 2 * sizeof (GLfloat), 0);
         openGLContext.extensions.glEnableVertexAttribArray (position->attributeID);
 
-        glDrawArrays (GL_LINE_STRIP, 0, (GLsizei)channelVertices.size ());
+        glDrawArrays (GL_LINE_STRIP, 0, (GLsizei)vertices[channel].size ());
 
         openGLContext.extensions.glDisableVertexAttribArray (position->attributeID);
 
@@ -154,7 +154,12 @@ void AudioWaveformOpenGLComponent::load (AudioSampleBuffer* buffer,
     bufferUpdateLock_ = bufferUpdateLock;
 
     vertices.clear ();
-    vertices.insertMultiple (0, Array<Vertex, CriticalSection>(), bufferNumChannels);
+    vertices.reserve (bufferNumChannels);
+    for (int i = 0; i < bufferNumChannels; i++)
+    {
+        vertices.push_back (std::vector<Vertex>());
+        vertices.back ().reserve (buffer->getNumSamples ());
+    }
 }
 
 void AudioWaveformOpenGLComponent::display (
@@ -185,7 +190,7 @@ void AudioWaveformOpenGLComponent::calculateVertices (
     AudioSampleBuffer* buffer, unsigned int channel
 )
 {
-    //auto start = std::chrono::system_clock::now ();
+    auto start = std::chrono::system_clock::now ();
 
     // More accurate because we depend on the count of the samples 
     // of the current file. The larger the file the less samples 
@@ -203,11 +208,10 @@ void AudioWaveformOpenGLComponent::calculateVertices (
             visibleRegionNumSamples / skipSamples + 1 :
             visibleRegionNumSamples / skipSamples;
 
-    vertices.getReference (channel).ensureStorageAllocated (numVertices);
-    vertices.getReference (channel).resize (numVertices);
+    vertices[channel].resize (numVertices);
 
     const ScopedNullableLock lock (bufferUpdateLock_);
-    Logger::outputDebugString ("ENTER calculateVertices");
+    //Logger::outputDebugString ("ENTER calculateVertices");
 
     const float* samples = buffer->getReadPointer (channel);
 
@@ -223,18 +227,18 @@ void AudioWaveformOpenGLComponent::calculateVertices (
         vertex.x = (((GLfloat)vertice / (GLfloat)numVertices) * 2) - 1;
         vertex.y = sampleValue;
 
-        vertices.getReference (channel).setUnchecked (vertice, vertex);
+        vertices[channel][vertice] = vertex;
     }
 
-    Logger::outputDebugString ("EXIT calculateVertices");
-
-    //auto end = std::chrono::system_clock::now ();
-    //std::chrono::duration<double> diff = end - start;
-    //Logger::outputDebugString (
-    //    String(buffer->getNumSamples ()) + " samples / " +
-    //    String(numVertices) + " vertices / " +
-    //    String(skipSamples) + " skipping @ " +
-    //    String(diff.count()) + " s");
+    //Logger::outputDebugString ("EXIT calculateVertices");
+    auto end = std::chrono::system_clock::now ();
+    std::chrono::duration<double> diff = end - start;
+    Logger::outputDebugString (
+        String (buffer->getNumSamples ()) + " samples / " +
+        String (numVertices) + " vertices / " +
+        String (skipSamples) + " skipping / " +
+        String (diff.count ()) + " s / " +
+        String (vertices[channel].capacity ()) + " capacity");
 }
 
 GLfloat AudioWaveformOpenGLComponent::getAverageSampleValue (

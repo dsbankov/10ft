@@ -73,7 +73,7 @@ private:
     int64 visibleRegionNumSamples = 0;
     unsigned int skipSamples = 8;
 
-    Array<Array<Vertex, CriticalSection>> vertices;
+    std::vector<std::vector<Vertex>> vertices;
 
     const CriticalSection* bufferUpdateLock_ = nullptr;
 
