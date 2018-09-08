@@ -317,6 +317,7 @@ void TenFtMainComponent::enableRecording ()
 
     startTimer (INTERVAL_RECORD_REPAINT_MILLIS);
 
+    recordButton.setButtonText ("Stop Recording");
     recordButton.setToggleState (true, NotificationType::dontSendNotification);
 }
 
@@ -326,6 +327,7 @@ void TenFtMainComponent::disableRecording ()
 
     audioSource.stopRecording ();
 
+    recordButton.setButtonText ("Record");
     recordButton.setToggleState (false, NotificationType::dontSendNotification);
 }
 
