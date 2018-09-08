@@ -8,8 +8,6 @@
   ==============================================================================
 */
 
-#include <chrono>
-
 #include "AudioWaveformOpenGLComponent.h"
 
 
@@ -190,7 +188,7 @@ void AudioWaveformOpenGLComponent::calculateVertices (
     AudioSampleBuffer* buffer, unsigned int channel
 )
 {
-    auto start = std::chrono::system_clock::now ();
+    //auto start = std::chrono::system_clock::now ();
 
     // More accurate because we depend on the count of the samples 
     // of the current file. The larger the file the less samples 
@@ -231,14 +229,14 @@ void AudioWaveformOpenGLComponent::calculateVertices (
     }
 
     //Logger::outputDebugString ("EXIT calculateVertices");
-    auto end = std::chrono::system_clock::now ();
-    std::chrono::duration<double> diff = end - start;
-    Logger::outputDebugString (
-        String (buffer->getNumSamples ()) + " samples / " +
-        String (numVertices) + " vertices / " +
-        String (skipSamples) + " skipping / " +
-        String (diff.count ()) + " s / " +
-        String (vertices[channel].capacity ()) + " capacity");
+    //auto end = std::chrono::system_clock::now ();
+    //std::chrono::duration<double> diff = end - start;
+    //Logger::outputDebugString (
+    //    String (buffer->getNumSamples ()) + " samples / " +
+    //    String (numVertices) + " vertices / " +
+    //    String (skipSamples) + " skipping / " +
+    //    String (diff.count ()) + " s / " +
+    //    String (vertices[channel].capacity ()) + " capacity");
 }
 
 GLfloat AudioWaveformOpenGLComponent::getAverageSampleValue (
