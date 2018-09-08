@@ -92,7 +92,6 @@ void TenFtAudioSource::getNextAudioBlock (
                 }
                 else
                 {
-                    Logger::outputDebugString ("ENTER getNextAudioBlock");
                     preallocatedRecordingBuffer.copyFrom (
                         destChannel++,
                         numSamplesRecorded,
@@ -109,7 +108,6 @@ void TenFtAudioSource::getNextAudioBlock (
                         preallocatedRecordingBuffer.getNumChannels (),
                         numSamplesRecorded
                     );
-                    Logger::outputDebugString ("EXIT getNextAudioBlock");
                 }
             }
         }
@@ -505,7 +503,6 @@ void TenFtAudioSource::BufferPreallocationThread::run ()
             int newNumSamples =
                 preallocatedRecordingBuffer.getNumSamples () + numSamplesToAllocate;
             const ScopedLock scopedLock (bufferUpdateLock);
-            Logger::outputDebugString ("ENTER BufferPreallocationThread");
             preallocatedRecordingBuffer.setSize (
                 preallocatedRecordingBuffer.getNumChannels (),
                 newNumSamples, true
@@ -515,7 +512,6 @@ void TenFtAudioSource::BufferPreallocationThread::run ()
                 preallocatedRecordingBuffer.getNumChannels (),
                 numSamplesRecorded
             );
-            Logger::outputDebugString ("EXIT BufferPreallocationThread");
         }
         wait (1000);
     }
