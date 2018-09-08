@@ -122,7 +122,7 @@ TenFtMainComponent::TenFtMainComponent ()
     };
 
     setSize (1000, 800);
-    setAudioChannels (MAX_INPUT_CHANNELS_ALLOWED, 2);
+    setAudioChannels (1, 2);
 }
 
 TenFtMainComponent::~TenFtMainComponent ()
@@ -302,8 +302,16 @@ void TenFtMainComponent::recordButtonClicked ()
 
 void TenFtMainComponent::enableRecording ()
 {
+    waveform.clearWaveform ();
+    audioSource.unloadAudio ();
+    scroller.disable ();
+
+    AudioIODevice* device = deviceManager.getCurrentAudioDevice ();
+    BigInteger activeInputChannels = device->getActiveInputChannels ();
+    int numInputChannels = activeInputChannels.countNumberOfSetBits ();
+
     std::unique_ptr<AudioSampleBuffer> tempAudioBuffer (
-        new AudioSampleBuffer (MAX_INPUT_CHANNELS_ALLOWED, 0)
+        new AudioSampleBuffer (numInputChannels, 0)
     );
 
     audioSource.loadRecordingBuffer (tempAudioBuffer.get (), sampleRate);
@@ -313,7 +321,7 @@ void TenFtMainComponent::enableRecording ()
 
     audioBuffer.swap (tempAudioBuffer);
 
-    startTimer (INTERVAL_RECORD_REPAINT_MILLIS);
+    startTimer (100);
 
     enableButtons ({
         &openButton, &playButton, &stopButton, &loopButton,

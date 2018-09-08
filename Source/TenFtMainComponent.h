@@ -97,8 +97,5 @@ private:
 
     TenFtLookAndFeel tenFtLookAndFeel;
 
-    static const int MAX_INPUT_CHANNELS_ALLOWED = 1;
-    static const int INTERVAL_RECORD_REPAINT_MILLIS = 100;
-
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TenFtMainComponent)
 };

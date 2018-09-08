@@ -140,8 +140,12 @@ void TenFtAudioSource::loadRecordingBuffer (
 {
     buffer = newAudioSampleBuffer;
     sampleRate = newSampleRate;
+    numSamplesRecorded = 0;
 
-    preallocatedRecordingBuffer.setSize (1, (int)(60 * sampleRate));
+    preallocatedRecordingBuffer.setSize (
+        buffer->getNumChannels(),
+        (int)(60 * sampleRate)
+    );
     recordingBufferPreallocationThread.reset (
         new BufferPreallocationThread (
             preallocatedRecordingBuffer,
@@ -321,9 +325,7 @@ const CriticalSection* TenFtAudioSource::getBufferUpdateLock () const noexcept
 
 // ==============================================================================
 
-void TenFtAudioSource::selectedRegionCreated (
-    AudioWaveformComponent* waveform
-)
+void TenFtAudioSource::selectedRegionCreated (AudioWaveformComponent* waveform)
 {
     loadAudioSubregion (
         waveform->getSelectedRegionStartTime (),

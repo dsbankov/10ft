@@ -203,6 +203,7 @@ void AudioWaveformOpenGLComponent::calculateVertices (
             visibleRegionNumSamples / skipSamples + 1 :
             visibleRegionNumSamples / skipSamples;
 
+    vertices.getReference (channel).ensureStorageAllocated (numVertices);
     vertices.getReference (channel).resize (numVertices);
 
     const ScopedNullableLock lock (bufferUpdateLock_);
