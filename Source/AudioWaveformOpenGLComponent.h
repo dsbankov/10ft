@@ -35,9 +35,13 @@ public:
 
     void render (OpenGLContext& openGLContext) override;
 
-    void load (AudioSampleBuffer* buffer, const CriticalSection& bufferUpdateLock);
+    void load (
+        AudioSampleBuffer* buffer, const CriticalSection* bufferUpdateLock
+    );
 
-    void display (AudioSampleBuffer* buffer, int64 startSample, int64 numSamples);
+    void display (
+        AudioSampleBuffer* buffer, int64 startSample, int64 numSamples
+    );
 
     void refresh (AudioSampleBuffer* buffer);
 
@@ -46,12 +50,38 @@ private:
 
     void calculateVertices (AudioSampleBuffer* buffer, unsigned int channel);
 
-    GLfloat getAverageSampleValue (const float* samples, int64 startSample, int64 numSamples);
+    GLfloat getAverageSampleValue (
+        const float* samples, int64 startSample, int64 numSamples
+    );
 
-    GLfloat getPeakSampleValue (const float* samples, int64 startSample, int64 numSamples);
+    GLfloat getPeakSampleValue (
+        const float* samples, int64 startSample, int64 numSamples
+    );
 
 private:
-    struct Vertex { GLfloat x, y; };
+    struct Vertex;
+    class VertexBuffer;
+
+private:
+    std::unique_ptr<OpenGLShaderProgram> shaderProgram;
+    std::unique_ptr<OpenGLShaderProgram::Attribute> position;
+    std::unique_ptr<OpenGLShaderProgram::Uniform> uniform;
+    std::unique_ptr<VertexBuffer> vertexBuffer;
+
+    int bufferNumChannels = 0;
+    int64 visibleRegionStartSample = 0;
+    int64 visibleRegionNumSamples = 0;
+    unsigned int skipSamples = 8;
+
+    Array<Array<Vertex, CriticalSection>> vertices;
+
+    const CriticalSection* bufferUpdateLock_ = nullptr;
+
+private:
+    struct Vertex
+    {
+        GLfloat x, y;
+    };
 
     class VertexBuffer
     {
@@ -69,20 +99,29 @@ private:
         GLuint id;
     };
 
-private:
-    std::unique_ptr<OpenGLShaderProgram> shaderProgram;
-    std::unique_ptr<OpenGLShaderProgram::Attribute> position;
-    std::unique_ptr<OpenGLShaderProgram::Uniform> uniform;
-    std::unique_ptr<VertexBuffer> vertexBuffer;
+    class ScopedNullableLock
+    {
+    public:
+        inline explicit ScopedNullableLock (const CriticalSection* lock) noexcept
+            : lock_(lock)
+        {
+            if (lock_ != nullptr)
+            {
+                lock_->enter ();
+            }
+        }
 
-    int bufferNumChannels = 0;
-    int64 visibleRegionStartSample = 0;
-    int64 visibleRegionNumSamples = 0;
-    unsigned int skipSamples = 8;
+        inline ~ScopedNullableLock () noexcept
+        {
+            if (lock_ != nullptr)
+            {
+                lock_->exit ();
+            }
+        }
 
-    Array<Array<Vertex, CriticalSection>> vertices;
-
-    const CriticalSection* bufferUpdateLock;
+    private:
+        const CriticalSection* lock_ = nullptr;
+    };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioWaveformOpenGLComponent)
 };

@@ -148,8 +148,7 @@ void TenFtAudioSource::loadRecordingBuffer (
             numSamplesRecorded,
             (int)(10 * sampleRate),
             (int)(30 * sampleRate),
-            *buffer,
-            bufferUpdateLock
+            *buffer
         )
     );
     recordingBufferPreallocationThread->startThread ();
@@ -308,9 +307,16 @@ void TenFtAudioSource::removeListener (Listener * listener)
     listeners.remove (listener);
 }
 
-const CriticalSection& TenFtAudioSource::getLock () const noexcept
+const CriticalSection* TenFtAudioSource::getBufferUpdateLock () const noexcept
 {
-    return bufferUpdateLock;
+    if (recordingBufferPreallocationThread)
+    {
+        return &recordingBufferPreallocationThread->getLock();
+    }
+    else
+    {
+        return nullptr;
+    }
 }
 
 // ==============================================================================
@@ -476,16 +482,14 @@ TenFtAudioSource::BufferPreallocationThread::BufferPreallocationThread (
     int& numSamplesRecorded,
     int numSamplesBuffer,
     int numSamplesToAllocate,
-    AudioSampleBuffer& buffer,
-    const CriticalSection& updateBufferLock
+    AudioSampleBuffer& buffer
 ) :
     Thread ("BufferPreallocationThread"),
     preallocatedRecordingBuffer (preallocatedRecordingBuffer),
     numSamplesRecorded (numSamplesRecorded),
     numSamplesBuffer (numSamplesBuffer),
     numSamplesToAllocate (numSamplesToAllocate),
-    buffer(buffer),
-    updateBufferLock(updateBufferLock)
+    buffer(buffer)
 {
 }
 
@@ -498,7 +502,7 @@ void TenFtAudioSource::BufferPreallocationThread::run ()
         {
             int newNumSamples =
                 preallocatedRecordingBuffer.getNumSamples () + numSamplesToAllocate;
-            const ScopedLock scopedLock (updateBufferLock);
+            const ScopedLock scopedLock (bufferUpdateLock);
             Logger::outputDebugString ("ENTER BufferPreallocationThread");
             preallocatedRecordingBuffer.setSize (
                 preallocatedRecordingBuffer.getNumChannels (),
@@ -513,4 +517,9 @@ void TenFtAudioSource::BufferPreallocationThread::run ()
         }
         wait (1000);
     }
+}
+
+const CriticalSection& TenFtAudioSource::BufferPreallocationThread::getLock () const noexcept
+{
+    return bufferUpdateLock;
 }

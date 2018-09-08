@@ -265,7 +265,7 @@ void TenFtMainComponent::loadFile (AudioFormatReader* audioReader)
     );
 
     audioSource.loadAudio (tempAudioBuffer.get (), audioReader->sampleRate);
-    waveform.loadWaveform (tempAudioBuffer.get (), audioReader->sampleRate, audioSource.getLock());
+    waveform.loadWaveform (tempAudioBuffer.get (), audioReader->sampleRate);
 
     audioBuffer.swap (tempAudioBuffer);
 
@@ -309,7 +309,9 @@ void TenFtMainComponent::enableRecording ()
     );
 
     audioSource.loadRecordingBuffer (tempAudioBuffer.get (), sampleRate);
-    waveform.loadWaveform (tempAudioBuffer.get (), sampleRate, audioSource.getLock());
+    waveform.loadWaveform (
+        tempAudioBuffer.get (), sampleRate, audioSource.getBufferUpdateLock()
+    );
 
     audioBuffer.swap (tempAudioBuffer);
 

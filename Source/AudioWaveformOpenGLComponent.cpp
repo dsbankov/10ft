@@ -146,12 +146,12 @@ void AudioWaveformOpenGLComponent::render (OpenGLContext& openGLContext)
 }
 
 void AudioWaveformOpenGLComponent::load (AudioSampleBuffer* buffer,
-    const CriticalSection& lock)
+    const CriticalSection* bufferUpdateLock)
 {
     bufferNumChannels = buffer->getNumChannels ();
     visibleRegionStartSample = 0;
     visibleRegionNumSamples = buffer->getNumSamples ();
-    bufferUpdateLock = &lock;
+    bufferUpdateLock_ = bufferUpdateLock;
 
     vertices.clear ();
     vertices.insertMultiple (0, Array<Vertex, CriticalSection>(), bufferNumChannels);
@@ -205,7 +205,7 @@ void AudioWaveformOpenGLComponent::calculateVertices (
 
     vertices.getReference (channel).resize (numVertices);
 
-    const ScopedLock lock (*bufferUpdateLock);
+    const ScopedNullableLock lock (bufferUpdateLock_);
     Logger::outputDebugString ("ENTER calculateVertices");
 
     const float* samples = buffer->getReadPointer (channel);

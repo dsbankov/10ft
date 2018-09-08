@@ -116,7 +116,7 @@ public:
 
     void removeListener (Listener* listener);
 
-    const CriticalSection& getLock () const noexcept;
+    const CriticalSection* getBufferUpdateLock () const noexcept;
 
 private:
     void selectedRegionCreated (AudioWaveformComponent* waveform) override;
@@ -149,7 +149,6 @@ private:
     AudioSampleBuffer preallocatedRecordingBuffer;
     std::unique_ptr<BufferPreallocationThread> recordingBufferPreallocationThread;
     int numSamplesRecorded = 0;
-    const CriticalSection bufferUpdateLock;
 
     double sampleRate = 0.0;
 
@@ -170,11 +169,12 @@ private:
             int& numSamplesRecorded,
             int numSamplesBuffer,
             int numSamplesToAllocate,
-            AudioSampleBuffer& buffer,
-            const CriticalSection& updateBufferLock
+            AudioSampleBuffer& buffer
         );
 
         void run () override;
+
+        const CriticalSection& getLock () const noexcept;
 
     private:
         AudioSampleBuffer& preallocatedRecordingBuffer;
@@ -182,7 +182,7 @@ private:
         int numSamplesBuffer;
         int numSamplesToAllocate;
         AudioSampleBuffer& buffer;
-        const CriticalSection& updateBufferLock;
+        const CriticalSection bufferUpdateLock;
     };
 
 };

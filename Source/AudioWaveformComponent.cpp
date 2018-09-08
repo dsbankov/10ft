@@ -245,7 +245,7 @@ void AudioWaveformComponent::removeListener (Listener * listener)
 void AudioWaveformComponent::loadWaveform (
     AudioSampleBuffer* newAudioBuffer,
     double newSampleRate,
-    const CriticalSection& bufferUpdateLock
+    const CriticalSection* bufferUpdateLock
 )
 {
     audioBuffer = newAudioBuffer;
