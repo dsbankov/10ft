@@ -271,11 +271,10 @@ void TenFtMainComponent::loadFile (AudioFormatReader* audioReader)
 
     setupButton (playButton, "Play", true);
     setupButton (stopButton, "Stop", false);
-    loopButton.setEnabled (true);
-    muteButton.setEnabled (true);
-    fadeInButton.setEnabled (true);
-    fadeOutButton.setEnabled (true);
-    normalizeButton.setEnabled (true);
+    enableButtons ({
+        &loopButton, &muteButton, &fadeInButton,
+        &fadeOutButton, &normalizeButton
+    }, true);
 }
 
 void TenFtMainComponent::unloadFile ()
@@ -286,15 +285,14 @@ void TenFtMainComponent::unloadFile ()
     scroller.disable ();
     setupButton (playButton, "Play", false);
     setupButton (stopButton, "Stop", false);
-    loopButton.setEnabled (false);
     loopButton.setToggleState (
         false,
         NotificationType::dontSendNotification
     );
-    muteButton.setEnabled (false);
-    fadeInButton.setEnabled (false);
-    fadeOutButton.setEnabled (false);
-    normalizeButton.setEnabled (false);
+    enableButtons ({
+        &loopButton, &muteButton, &fadeInButton,
+        &fadeOutButton, &normalizeButton
+    }, false);
 }
 
 void TenFtMainComponent::recordButtonClicked ()
@@ -317,6 +315,10 @@ void TenFtMainComponent::enableRecording ()
 
     startTimer (INTERVAL_RECORD_REPAINT_MILLIS);
 
+    enableButtons ({
+        &openButton, &playButton, &stopButton, &loopButton,
+        &muteButton, &fadeInButton, &fadeOutButton, &normalizeButton 
+    }, false);
     recordButton.setButtonText ("Stop Recording");
     recordButton.setToggleState (true, NotificationType::dontSendNotification);
 }
@@ -327,6 +329,10 @@ void TenFtMainComponent::disableRecording ()
 
     audioSource.stopRecording ();
 
+    enableButtons ({
+        &openButton, &playButton, &stopButton, &loopButton,
+        &muteButton, &fadeInButton, &fadeOutButton, &normalizeButton
+    }, true);
     recordButton.setButtonText ("Record");
     recordButton.setToggleState (false, NotificationType::dontSendNotification);
 }
@@ -364,6 +370,16 @@ void TenFtMainComponent::setupButton (
 {
     button.setButtonText (buttonText);
     button.setEnabled (enabled);
+}
+
+void TenFtMainComponent::enableButtons (
+    std::initializer_list<Button*> buttons, bool enable
+)
+{
+    for (Button* button : buttons)
+    {
+        button->setEnabled (enable);
+    }
 }
 
 void TenFtMainComponent::timerCallback ()

@@ -69,6 +69,8 @@ private:
         bool enabled
     );
 
+    void enableButtons (std::initializer_list<Button*> buttons, bool enable);
+
     void timerCallback () override;
 
 private:
