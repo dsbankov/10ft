@@ -126,6 +126,11 @@ void AudioWaveformOpenGLComponent::render (OpenGLContext& openGLContext)
 
         glViewport (x, y, width, height);
 
+        if (calculateVerticesTrigger)
+        {
+            calculateVertices (channel);
+        }
+
         vertexBuffer->bind (vertices[channel].data(), vertices[channel].size ());
 
         openGLContext.extensions.glVertexAttribPointer (position->attributeID, 2,
@@ -139,13 +144,19 @@ void AudioWaveformOpenGLComponent::render (OpenGLContext& openGLContext)
         vertexBuffer->unbind ();
     }
 
+    if (calculateVerticesTrigger)
+    {
+        calculateVerticesTrigger = false;
+    }
+
     glDisable (GL_LINE_SMOOTH);
     glDisable (GL_BLEND);
 }
 
-void AudioWaveformOpenGLComponent::load (AudioSampleBuffer* buffer,
+void AudioWaveformOpenGLComponent::load (AudioSampleBuffer* newBuffer,
     const CriticalSection* bufferUpdateLock)
 {
+    buffer = newBuffer;
     bufferNumChannels = buffer->getNumChannels ();
     visibleRegionStartSample = 0;
     visibleRegionNumSamples = buffer->getNumSamples ();
@@ -160,33 +171,21 @@ void AudioWaveformOpenGLComponent::load (AudioSampleBuffer* buffer,
     }
 }
 
-void AudioWaveformOpenGLComponent::display (
-    AudioSampleBuffer* buffer, int64 startSample, int64 numSamples)
+void AudioWaveformOpenGLComponent::display (int64 startSample, int64 numSamples)
 {
     visibleRegionStartSample = startSample;
     visibleRegionNumSamples = numSamples;
-
-    calculateVertices (buffer);
+    calculateVerticesTrigger = true;
 }
 
-void AudioWaveformOpenGLComponent::refresh (AudioSampleBuffer* buffer)
+void AudioWaveformOpenGLComponent::refresh ()
 {
-    calculateVertices (buffer);
+    calculateVerticesTrigger = true;
 }
 
 // ==============================================================================
 
-void AudioWaveformOpenGLComponent::calculateVertices (AudioSampleBuffer* buffer)
-{
-    for (int channel = 0; channel < bufferNumChannels; channel++)
-    {
-        calculateVertices (buffer, channel);
-    }
-}
-
-void AudioWaveformOpenGLComponent::calculateVertices (
-    AudioSampleBuffer* buffer, unsigned int channel
-)
+void AudioWaveformOpenGLComponent::calculateVertices (unsigned int channel)
 {
     //auto start = std::chrono::system_clock::now ();
 
@@ -209,7 +208,6 @@ void AudioWaveformOpenGLComponent::calculateVertices (
     vertices[channel].resize (numVertices);
 
     const ScopedNullableLock lock (bufferUpdateLock_);
-    //Logger::outputDebugString ("ENTER calculateVertices");
 
     const float* samples = buffer->getReadPointer (channel);
 
@@ -228,7 +226,6 @@ void AudioWaveformOpenGLComponent::calculateVertices (
         vertices[channel][vertice] = vertex;
     }
 
-    //Logger::outputDebugString ("EXIT calculateVertices");
     //auto end = std::chrono::system_clock::now ();
     //std::chrono::duration<double> diff = end - start;
     //Logger::outputDebugString (

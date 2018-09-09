@@ -35,20 +35,14 @@ public:
 
     void render (OpenGLContext& openGLContext) override;
 
-    void load (
-        AudioSampleBuffer* buffer, const CriticalSection* bufferUpdateLock
-    );
+    void load (AudioSampleBuffer* buffer, const CriticalSection* bufferUpdateLock);
 
-    void display (
-        AudioSampleBuffer* buffer, int64 startSample, int64 numSamples
-    );
+    void display (int64 startSample, int64 numSamples);
 
-    void refresh (AudioSampleBuffer* buffer);
+    void refresh ();
 
 private:
-    void calculateVertices (AudioSampleBuffer* buffer);
-
-    void calculateVertices (AudioSampleBuffer* buffer, unsigned int channel);
+    void calculateVertices (unsigned int channel);
 
     GLfloat getAverageSampleValue (
         const float* samples, int64 startSample, int64 numSamples
@@ -68,10 +62,13 @@ private:
     std::unique_ptr<OpenGLShaderProgram::Uniform> uniform;
     std::unique_ptr<VertexBuffer> vertexBuffer;
 
+    AudioSampleBuffer* buffer = nullptr;
     int bufferNumChannels = 0;
     int64 visibleRegionStartSample = 0;
     int64 visibleRegionNumSamples = 0;
     unsigned int skipSamples = 8;
+
+    bool calculateVerticesTrigger = false;
 
     std::vector<std::vector<Vertex>> vertices;
 

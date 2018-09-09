@@ -301,7 +301,7 @@ void AudioWaveformComponent::updateVisibleRegion (
     int64 startSample = (int64) (visibleRegionStartTime * sampleRate),
         endSample = (int64) (visibleRegionEndTime * sampleRate),
         numSamples = endSample - startSample;
-    waveform.display (audioBuffer, startSample, numSamples);
+    waveform.display (startSample, numSamples);
     // *******************************************************************
 
     listeners.call ([this] (Listener& l) { l.visibleRegionChanged (this); });
@@ -333,7 +333,7 @@ void AudioWaveformComponent::clearSelectedRegion ()
 
 void AudioWaveformComponent::refresh ()
 {
-    waveform.refresh (audioBuffer);
+    waveform.refresh ();
 }
 
 double AudioWaveformComponent::getVisibleRegionStartTime ()
