@@ -9,10 +9,10 @@ Standalone/VST audio editor.
   
 ### Build
 - Using [JUCE](https://juce.com/)
-  1. Install [JUCE](https://juce.com/)
+  1. Install JUCE
   2. Open 10ft.jucer & build
 - Using [CMake](https://cmake.org/)
-  1. Install [CMake](https://cmake.org/)
+  1. Install CMake
   2. Build using the CMake script:
         ```
         cd <10FT_HOME>
