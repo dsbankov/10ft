@@ -30,6 +30,7 @@ void TenFtAudioSource::prepareToPlay (
     double masterSourceSampleRate
 )
 {
+    inputSampleRate = masterSourceSampleRate;
     masterSource.prepareToPlay (
         samplesPerBlockExpected, masterSourceSampleRate);
 }
@@ -48,72 +49,36 @@ void TenFtAudioSource::getNextAudioBlock (
     const AudioSourceChannelInfo& bufferToFill
 )
 {
-    if (state == TenFtAudioSource::State::NoAudioLoaded)
+    if (state == NoAudioLoaded)
     {
         bufferToFill.clearActiveBufferRegion ();
+    }
+    else if (state == Recording)
+    {
+        for (int channel = 0; channel < bufferToFill.buffer->getNumChannels(); channel++)
+        {
+            preallocatedRecordingBuffer.copyFrom (
+                channel,
+                numSamplesRecorded,
+                *bufferToFill.buffer,
+                channel,
+                bufferToFill.startSample,
+                bufferToFill.numSamples
+            );
+        }
+
+        numSamplesRecorded += bufferToFill.numSamples;
+
+        buffer->setDataToReferTo (
+            preallocatedRecordingBuffer.getArrayOfWritePointers (),
+            bufferToFill.buffer->getNumChannels (),
+            numSamplesRecorded
+        );
     }
     else
     {
         masterSource.getNextAudioBlock (bufferToFill);
     }
-}
-
-void TenFtAudioSource::getNextAudioBlock (
-    const AudioSourceChannelInfo& bufferToFill,
-    AudioDeviceManager& deviceManager
-)
-{
-    if (state == Recording)
-    {
-        AudioIODevice* device = deviceManager.getCurrentAudioDevice ();
-        BigInteger activeInputChannels = device->getActiveInputChannels (),
-            activeOutputChannels = device->getActiveOutputChannels ();
-        int maxInputChannels = activeInputChannels.getHighestBit () + 1,
-            maxOutputChannels = activeOutputChannels.getHighestBit () + 1,
-            destChannel = 0;
-
-        for (int channel = 0; channel < maxOutputChannels; ++channel)
-        {
-            if ((!activeOutputChannels[channel]) || maxInputChannels == 0)
-            {
-                bufferToFill.buffer->clear (
-                    channel, bufferToFill.startSample, bufferToFill.numSamples
-                );
-            }
-            else
-            {
-                int actualInputChannel = channel % maxInputChannels;
-
-                if (!activeInputChannels[channel])
-                {
-                    bufferToFill.buffer->clear (
-                        channel, bufferToFill.startSample, bufferToFill.numSamples
-                    );
-                }
-                else
-                {
-                    preallocatedRecordingBuffer.copyFrom (
-                        destChannel++,
-                        numSamplesRecorded,
-                        *bufferToFill.buffer,
-                        actualInputChannel,
-                        bufferToFill.startSample,
-                        bufferToFill.numSamples
-                    );
-
-                    numSamplesRecorded += bufferToFill.numSamples;
-                    
-                    buffer->setDataToReferTo (
-                        preallocatedRecordingBuffer.getArrayOfWritePointers (),
-                        preallocatedRecordingBuffer.getNumChannels (),
-                        numSamplesRecorded
-                    );
-                }
-            }
-        }
-    }
-
-    getNextAudioBlock (bufferToFill);
 }
 
 void TenFtAudioSource::loadAudio (
@@ -131,13 +96,11 @@ void TenFtAudioSource::unloadAudio ()
     changeState (NoAudioLoaded);
 }
 
-void TenFtAudioSource::loadRecordingBuffer (
-    AudioSampleBuffer* newAudioSampleBuffer,
-    double newSampleRate
-)
+AudioSampleBuffer* TenFtAudioSource::loadRecordingBuffer ()
 {
-    buffer = newAudioSampleBuffer;
-    sampleRate = newSampleRate;
+    // TODO fix hardcoded number of channels
+    buffer = new AudioSampleBuffer (2, 0); 
+    sampleRate = inputSampleRate;
     numSamplesRecorded = 0;
 
     preallocatedRecordingBuffer.setSize (
@@ -169,6 +132,8 @@ void TenFtAudioSource::loadRecordingBuffer (
     bufferSource.swap (tempBufferSource);
 
     changeState (StartRecording);
+
+    return buffer;
 }
 
 void TenFtAudioSource::stopRecording ()
@@ -287,6 +252,11 @@ double TenFtAudioSource::getLengthInSeconds () const
     {
         return 0.0;
     }
+}
+
+double TenFtAudioSource::getSampleRate () const
+{
+    return sampleRate;
 }
 
 void TenFtAudioSource::setPosition (double newPosition)

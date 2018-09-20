@@ -21,24 +21,13 @@ Author:  DBANKOV
 #include "TenFtLookAndFeel.h"
 
 
-class TenFtMainComponent :    public AudioAppComponent,
+class TenFtMainComponent :    public Component,
                               private Timer
 {
 public:
-    TenFtMainComponent ();
+    TenFtMainComponent (TenFtAudioSource& audioSource);
 
     ~TenFtMainComponent ();
-
-    void prepareToPlay (
-        int samplesPerBlockExpected,
-        double currentSampleRate
-    ) override;
-
-    void getNextAudioBlock (
-        const AudioSourceChannelInfo& bufferToFill
-    ) override;
-
-    void releaseResources () override;
 
     void resized () override;
 
@@ -85,9 +74,9 @@ private:
     TextButton normalizeButton;
 
     AudioFormatManager formatManager;
+    // TODO refactor audioBuffer: move into TenFtAudioSource?
     std::unique_ptr<AudioSampleBuffer> audioBuffer;
-    TenFtAudioSource audioSource;
-    double sampleRate = 0.0;
+    TenFtAudioSource& audioSource;
 
     AudioWaveformComponent waveform;
     AudioWaveformSelectedRegionComponent selectedRegion;

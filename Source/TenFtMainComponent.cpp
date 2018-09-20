@@ -12,7 +12,8 @@
 #include "TenFtMainComponent.h"
 
 
-TenFtMainComponent::TenFtMainComponent ()
+TenFtMainComponent::TenFtMainComponent (TenFtAudioSource& audioSourceToUse)
+    : audioSource(audioSourceToUse)
 {
     setLookAndFeel (&tenFtLookAndFeel);
 
@@ -120,36 +121,11 @@ TenFtMainComponent::TenFtMainComponent ()
     ) {
         waveform.mouseWheelMove (event, wheelDetails);
     };
-
-    setSize (1000, 800);
-    setAudioChannels (1, 2);
 }
 
 TenFtMainComponent::~TenFtMainComponent ()
 {
-    shutdownAudio ();
     setLookAndFeel (nullptr);
-}
-
-void TenFtMainComponent::prepareToPlay (
-    int samplesPerBlockExpected,
-    double currentSampleRate
-)
-{
-    sampleRate = currentSampleRate;
-    audioSource.prepareToPlay (samplesPerBlockExpected, currentSampleRate);
-}
-
-void TenFtMainComponent::getNextAudioBlock (
-    const AudioSourceChannelInfo& bufferToFill
-)
-{
-    audioSource.getNextAudioBlock (bufferToFill, deviceManager);
-}
-
-void TenFtMainComponent::releaseResources ()
-{
-    audioSource.releaseResources ();
 }
 
 void TenFtMainComponent::resized ()
@@ -306,20 +282,12 @@ void TenFtMainComponent::enableRecording ()
     audioSource.unloadAudio ();
     scroller.disable ();
 
-    AudioIODevice* device = deviceManager.getCurrentAudioDevice ();
-    BigInteger activeInputChannels = device->getActiveInputChannels ();
-    int numInputChannels = activeInputChannels.countNumberOfSetBits ();
-
-    std::unique_ptr<AudioSampleBuffer> tempAudioBuffer (
-        new AudioSampleBuffer (numInputChannels, 0)
-    );
-
-    audioSource.loadRecordingBuffer (tempAudioBuffer.get (), sampleRate);
+    AudioSampleBuffer* tempAudioBuffer = audioSource.loadRecordingBuffer ();
     waveform.loadWaveform (
-        tempAudioBuffer.get (), sampleRate, audioSource.getBufferUpdateLock()
+        tempAudioBuffer, audioSource.getSampleRate (), audioSource.getBufferUpdateLock()
     );
 
-    audioBuffer.swap (tempAudioBuffer);
+    audioBuffer.reset (tempAudioBuffer);
 
     startTimer (100);
 
@@ -392,6 +360,7 @@ void TenFtMainComponent::enableButtons (
 
 void TenFtMainComponent::timerCallback ()
 {
-    double newEndTime = (double)audioBuffer->getNumSamples () / sampleRate;
+    double newEndTime = 
+        (double)audioBuffer->getNumSamples () / audioSource.getSampleRate ();
     waveform.updateVisibleRegion (0.0, newEndTime);
 }

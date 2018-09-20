@@ -69,11 +69,6 @@ public:
         const AudioSourceChannelInfo& bufferToFill
     ) override;
 
-    void getNextAudioBlock (
-        const AudioSourceChannelInfo& bufferToFill,
-        AudioDeviceManager& deviceManager
-    );
-
     void loadAudio (
         AudioSampleBuffer* newAudioSampleBuffer,
         double newSampleRate
@@ -81,10 +76,7 @@ public:
 
     void unloadAudio ();
 
-    void loadRecordingBuffer (
-        AudioSampleBuffer* newAudioSampleBuffer,
-        double newSampleRate
-    );
+    AudioSampleBuffer* loadRecordingBuffer ();
 
     void stopRecording ();
 
@@ -107,6 +99,8 @@ public:
     double getCurrentPosition () const;
 
     double getLengthInSeconds () const;
+
+    double getSampleRate () const;
 
     void setPosition (double newPosition);
 
@@ -151,6 +145,7 @@ private:
     int numSamplesRecorded = 0;
 
     double sampleRate = 0.0;
+    double inputSampleRate = 0.0;
 
     bool hasSubregion = false;
     double subregionStartTime = 0.0;

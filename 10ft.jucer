@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT name="10ft" companyName="JUCE" version="1.0.0" userNotes="Audio player &amp; waveform editor."
-              companyWebsite="http://juce.com" defines="" projectType="guiapp"
+              companyWebsite="http://juce.com" defines="" projectType="audioplug"
               id="xaPCEr" jucerVersion="5.3.2" bundleIdentifier="com.dsbankov.10ft">
   <MAINGROUP id="YFGFpb" name="10ft">
     <GROUP id="{9E117A82-4BFD-3F75-60D8-A4662BCEA3A5}" name="Source">
-      <FILE id="xQAgO0" name="Application.cpp" compile="1" resource="0" file="Source/Application.cpp"/>
       <FILE id="TbIscL" name="AudioBufferSource.cpp" compile="1" resource="0"
             file="Source/AudioBufferSource.cpp"/>
       <FILE id="uk40Qb" name="AudioBufferSource.h" compile="0" resource="0"
@@ -36,6 +35,13 @@
             resource="0" file="Source/AudioWaveformSelectedRegionComponent.h"/>
       <FILE id="LVYIUE" name="OpenGLComponent.h" compile="0" resource="0"
             file="Source/OpenGLComponent.h"/>
+      <FILE id="QYqmMv" name="PluginEditor.cpp" compile="1" resource="0"
+            file="Source/PluginEditor.cpp"/>
+      <FILE id="l0j5n0" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
+      <FILE id="KQbJWD" name="PluginProcessor.cpp" compile="1" resource="0"
+            file="Source/PluginProcessor.cpp"/>
+      <FILE id="D4y0Y4" name="PluginProcessor.h" compile="0" resource="0"
+            file="Source/PluginProcessor.h"/>
       <FILE id="k3fLwe" name="TenFtAudioSource.cpp" compile="1" resource="0"
             file="Source/TenFtAudioSource.cpp"/>
       <FILE id="nS4kDr" name="TenFtAudioSource.h" compile="0" resource="0"
@@ -56,20 +62,24 @@
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="0"/>
     <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_cryptography" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_video" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
   </MODULES>
   <EXPORTFORMATS>
     <VS2017 targetFolder="Builds/VisualStudio2017" windowsTargetPlatformVersion="10.0.17134.0">
       <CONFIGURATIONS>
-        <CONFIGURATIONS name="Debug" isDebug="1" optimisation="1" targetName="10ft"/>
+        <CONFIGURATIONS name="Debug" isDebug="1" targetName="10ft"/>
         <CONFIGURATIONS name="Release" isDebug="0" optimisation="3" targetName="10ft"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
@@ -85,6 +95,9 @@
         <MODULEPATH id="juce_gui_basics" path="lib/juce/modules"/>
         <MODULEPATH id="juce_gui_extra" path="lib/juce/modules"/>
         <MODULEPATH id="juce_opengl" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_cryptography" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_video" path="../../JUCE/modules"/>
       </MODULEPATHS>
     </VS2017>
     <VS2015 targetFolder="Builds/VisualStudio2015">
@@ -105,6 +118,9 @@
         <MODULEPATH id="juce_audio_formats" path="lib/juce/modules"/>
         <MODULEPATH id="juce_audio_devices" path="lib/juce/modules"/>
         <MODULEPATH id="juce_audio_basics" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_cryptography" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_video" path="../../JUCE/modules"/>
       </MODULEPATHS>
     </VS2015>
     <XCODE_MAC targetFolder="Builds/MacOSX">
@@ -125,6 +141,9 @@
         <MODULEPATH id="juce_audio_formats" path="lib/juce/modules"/>
         <MODULEPATH id="juce_audio_devices" path="lib/juce/modules"/>
         <MODULEPATH id="juce_audio_basics" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_cryptography" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_video" path="../../JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
     <XCODE_IPHONE targetFolder="Builds/iOS">
@@ -145,6 +164,9 @@
         <MODULEPATH id="juce_audio_formats" path="lib/juce/modules"/>
         <MODULEPATH id="juce_audio_devices" path="lib/juce/modules"/>
         <MODULEPATH id="juce_audio_basics" path="lib/juce/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_cryptography" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_video" path="../../JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_IPHONE>
   </EXPORTFORMATS>
