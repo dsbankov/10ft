@@ -126,15 +126,19 @@ bool PluginProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 void PluginProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer&)
 {
     ScopedNoDenormals noDenormals;
+
     int totalNumInputChannels  = getTotalNumInputChannels();
     int totalNumOutputChannels = getTotalNumOutputChannels();
 
-    for (int channel = totalNumInputChannels; channel < totalNumOutputChannels; ++channel)
+    for (int channel = totalNumInputChannels;
+        channel < totalNumOutputChannels;
+        ++channel)
     {
         buffer.clear (channel, 0, buffer.getNumSamples());
     }
 
     int intputBusesCount = getBusCount (true);
+
     for (int busIndex = 0; busIndex < intputBusesCount; ++busIndex)
     {
         AudioBuffer<float> inputBuffer = getBusBuffer (buffer, true, busIndex);

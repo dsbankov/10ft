@@ -74,7 +74,6 @@ private:
     TextButton normalizeButton;
 
     AudioFormatManager formatManager;
-    // TODO refactor audioBuffer: move into TenFtAudioSource?
     std::unique_ptr<AudioSampleBuffer> audioBuffer;
     TenFtAudioSource& audioSource;
 
